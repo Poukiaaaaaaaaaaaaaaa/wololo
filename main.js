@@ -68,7 +68,7 @@ var chessGUI = { hud: [], pieces: [], highlightCase: [] };
 
 // images
 function preload() {
-  pieceImg.noir[0] = loadImage("img/boneless.png");
+  pieceImg.noir[0] = loadImage("img/boneless.PNG");
 }
 // endImages
 
@@ -120,13 +120,15 @@ class Piece {
   viewDepl(){
     var depl = this.getDepl(); fill(240,150,150,210);
     for (var i = 0; i < depl.length; i++) {
-      rect(convertPx(depl[i][0]), convertPx(depl[i][1]),
-	  config.tileSize, config.tileSize, config.border);
+      new HighlightCase(depl[i][0],depl[i][1],
+	  [0,0,255,150],[100,100,255,150],
+	  function(){move})
     }
   }
 
   move(x,y) {
-
+	this.x = x
+	this.y = y
   }
 }
 
@@ -181,11 +183,10 @@ class HighlightCase {
   }
 
   draw() {
-   // if (isCaseHovered(this.xc,this.yc))
-   // { fill(this.hovercolor) } else
-   // { fill(this.color) }
-	fill(0,0,255)
-    rect(convertPx(this.xc),convertPx(this.yc),
+    if (isCaseHovered(this.x,this.y))
+    { fill(this.hovercolor) } else
+    { fill(this.color) }
+    rect(convertPx(this.x),convertPx(this.y),
     config.tileSize,config.tileSize,
     config.border);
   }
