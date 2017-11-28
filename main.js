@@ -68,7 +68,7 @@ var chessGUI = { hud: [], pieces: [], highlightCase: [] };
 
 // images
 function preload() {
-  pieceImg.noir[0] = loadImage("img/boneless.PNG");
+  pieceImg.noir[0] = loadImage("img/boneless.png");
 }
 // endImages
 
