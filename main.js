@@ -117,12 +117,12 @@ class Piece {
     }
   }
 
-  viewDepl(){
-    var depl = this.getDepl(); fill(240,150,150,210);
+  viewDepl() {
+    var depl = this.getDepl();
     for (var i = 0; i < depl.length; i++) {
       new HighlightCase(depl[i][0],depl[i][1],
-	  [0,0,255,150],[100,100,255,150],
-	  function(){move})
+	        [0,0,255,90],[100,100,255,90], this,
+	        function(x,y){this.piece.move(x,y)});
     }
   }
 
@@ -152,45 +152,53 @@ class Pion extends Piece {
 }
 
 class Button {
-  constructor(x,y,w,h,img,hovercallback,callback){
+  constructor(x,y,w,h,img,hovercallback,callback) {
     this.x = x;
     this.y = y;
     this.img = img;
     this.hovercallback = hovercallback
   }
 
-  draw(){
+  draw() {
     //bite
   }
 
-  onLeftClick(){
-     if (isHovered(this.x,this.y,this.w,this.h)){
+  onLeftClick() {
+     if (isHovered(this.x,this.y,this.w,this.h)) {
       this.callback();
     }
-
   }
 }
 
 class HighlightCase {
-  constructor(xc,yc,color,hovercolor,callback) {
+  constructor(xc,yc,color,hovercolor,piece,callback) {
     this.x = xc;
     this.y = yc;
     this.color = color;
     this.hovercolor = hovercolor;
     this.callback = callback;
+    this.piece = piece;
 
     chessGUI.highlightCase.push(this);
   }
 
   draw() {
     if (isCaseHovered(this.x,this.y))
-    { fill(this.hovercolor) } else
-    { fill(this.color) }
+    { fill(this.hovercolor); } else
+    { fill(this.color); }
     rect(convertPx(this.x),convertPx(this.y),
     config.tileSize,config.tileSize,
     config.border);
   }
 
+  onLeftClick() {
+     if (isCaseHovered(this.x,this.y)) {
+      console.log("TU VIENS D'APPUYER SUR MON VENTRE ET J'AI DES GAZ");
+      this.callback(this.x,this.y);
+      chessGUI.highlightCase = [];
+      selectedPiece = 0;
+    }
+  }
 }
 // endClass
 
@@ -219,34 +227,30 @@ function draw() {
   }
 
   if (isPlaying) {
-	   drawBoard();
-     for (var element in chessGUI) {
-       if (chessGUI.hasOwnProperty(element)) {
-         for (var i = 0; i < chessGUI[element].length; i++) {
-           if (typeof chessGUI[element][i].draw === "function"){
-           chessGUI[element][i].draw(); }
-         }
-       }
-
-     }
-   }
-
-}
-
-function mouseClicked(){
-
-  if (mouseButton == LEFT){
-    for (var element in chessGUI){
-      if (chessGUI.hasOwnProperty(element)){
-        for (var i = 0; i < chessGUI[element].length; i++){
-          if (typeof chessGUI[element][i].onLeftClick === "function"){
-          chessGUI[element][i].onLeftClick();
+	  drawBoard();
+    for (var element in chessGUI) {
+      if (chessGUI.hasOwnProperty(element)) {
+        for (var i = 0; i < chessGUI[element].length; i++) {
+          if (typeof chessGUI[element][i].draw === "function"){
+            chessGUI[element][i].draw(); }
           }
         }
       }
     }
   }
 
+function mouseClicked(){
+  if (mouseButton == LEFT){
+    for (var element in chessGUI){
+      if (chessGUI.hasOwnProperty(element)){
+        for (var i = 0; i < chessGUI[element].length; i++){
+          if (typeof chessGUI[element][i].onLeftClick === "function"){
+            chessGUI[element][i].onLeftClick();
+          }
+        }
+      }
+    }
+  }
 }
 
 
