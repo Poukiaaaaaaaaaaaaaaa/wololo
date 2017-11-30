@@ -1,5 +1,5 @@
 // debug
-var debug = false;
+var debug = true;
 // endDebug
 
 // config
@@ -11,6 +11,7 @@ var config = {
   nbGold: 100
 }
 
+config.unit = config.canvasW/100;
 config.boardS = config.canvasH;
 config.border = config.boardS / (10*((config.nLig>config.nCol) ? config.nLig : config.nCol));
 config.tileSize = (config.boardS - ((config.nLig>config.nCol) ? config.nLig + 1 : config.nCol + 1) * config.border) / ((config.nLig>config.nCol) ? config.nLig : config.nCol);
@@ -59,6 +60,7 @@ function isCaseHovered(x,y){
 var pieceImg = {
     blanc: [],
     noir: [] },
+    hudIMG = [],
     selectedPiece = 0,
     playerTurn = 0;
 const mana = 10;
@@ -68,7 +70,10 @@ var chessGUI = { hud: [], pieces: [], highlightCase: [] };
 
 // images
 function preload() {
-  pieceImg.noir[0] = loadImage("img/boneless.PNG");
+  hudIMG[0] = loadImage("img/end_turn.png");
+
+  pieceImg.noir[0] = loadImage("img/boneless.png");
+  pieceImg.noir[1] = loadImage("img/tour.png");
 }
 // endImages
 
@@ -118,6 +123,7 @@ class Piece {
   }
 
   viewDepl() {
+    chessGUI.highlightCase = [];
     var depl = this.getDepl();
     for (var i = 0; i < depl.length; i++) {
       new HighlightCase(depl[i][0],depl[i][1],
@@ -143,29 +149,78 @@ class Pion extends Piece {
   	var direction = ((this.player == joueur[0]) ? 1 : - 1);
   	var mp = (this.y == startLine) ? 3 : 1;
   	for (var i = 0; i < mp; i++){
-		depl.push([this.x,this.y + ((i+1)*direction)])
-	}
+		    depl.push([this.x,this.y + ((i+1)*direction)]);
+	  }
 
     return depl;
   }
 
 }
 
+class Tour extends Piece {
+  constructor(x, y, player) {
+    super(1, "Tour", 20, 200, x, y, player);
+  }
+
+  getDepl() {
+    var depl = [];
+    var mp = 5;
+    for (var i = -mp; i < mp + 1; i++) {
+      if (i && this.y + i < config.nLig) depl.push([this.x,this.y + i]);
+    }
+    for (var i = -mp; i < mp + 1; i++) {
+      if (i && this.x + i < config.nCol) depl.push([this.x + i,this.y]);
+    }
+
+    return depl;
+  }
+
+}
+
+class Fou extends Piece {
+  constructor(x, y, player) {
+    super(1, "Fou", 50, 70, x, y, player);
+  }
+
+  getDepl() {
+    var depl = [];
+    var mp = 5;
+    for (var i = -mp; i < mp; i++) {
+      if (i && this.y + i < config.nLig && this.x + i < config.nCol) {
+          depl.push([this.x + i,this.y + i]);
+      }
+      if (i && this.y + i < config.nLig && this.x - i < config.nCol) {
+            depl.push([this.x - i,this.y + i]);
+      }
+    }
+
+    return depl;
+  }
+}
+
 class Button {
   constructor(x,y,w,h,img,hovercallback,callback) {
     this.x = x;
     this.y = y;
+    this.w = w;
+    this.h = h;
     this.img = img;
     this.hovercallback = hovercallback
+    this.callback = callback
   }
 
   draw() {
-    //bite
+    image(hudIMG[this.img],
+          this.x, this.y,
+          this.w, this.h);
+          if (typeof this.hovercallback == "function" && isHovered(this.x,this.y,this.w,this.h)){
+            this.hovercallback(this.x,this.y,this.w,this.h)
+          }
   }
 
   onLeftClick() {
-     if (isHovered(this.x,this.y,this.w,this.h)) {
-      this.callback();
+     if (typeof this.callback == "function" && isHovered(this.x,this.y,this.w,this.h)) {
+       this.callback();
     }
   }
 }
@@ -193,7 +248,6 @@ class HighlightCase {
 
   onLeftClick() {
      if (isCaseHovered(this.x,this.y)) {
-      console.log("TU VIENS D'APPUYER SUR MON VENTRE ET J'AI DES GAZ");
       this.callback(this.x,this.y);
       chessGUI.highlightCase = [];
       selectedPiece = 0;
@@ -204,9 +258,12 @@ class HighlightCase {
 
 // setup -> mettre dans le draw
 var joueur = [new Joueur("blanc", "Gilbert"), new Joueur("noir", "Patrick")];
-joueur[1].piece[0] = new Pion(3, 5, 1);
+joueur[1].piece[0] = new Pion(3, config.nLig - 2, 1);
+joueur[1].piece[1] = new Tour(5, 6, 1);
+joueur[1].piece[2] = new Fou(2, 3, 1)
 var isPlaying = true;
 playerTurn = 1
+ chessGUI.hud.push(new Button(config.canvasW - (config.unit * 40),10,config.unit * 10,config.unit * 4,0,0,0))
 // endSetup
 
 // main functions
@@ -222,10 +279,6 @@ function draw() {
 
   }
 
-  if (debug) {
-
-  }
-
   if (isPlaying) {
 	  drawBoard();
     for (var element in chessGUI) {
@@ -236,6 +289,11 @@ function draw() {
           }
         }
       }
+    }
+
+    if (debug) {
+      fill(255);
+      text(floor(frameRate()), 20, 20);
     }
   }
 
