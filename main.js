@@ -18,6 +18,20 @@ config.tileSize = (config.boardS - ((config.nLig>config.nCol) ? config.nLig + 1 
 // endConfig
 
 // globalFunctions
+function examineBoard(){
+	board = []
+	
+	for (var i = 0; i < nLig, i++){
+		board[i] = []
+	}
+	
+	for (var i = 0; i < joueur.length ; i++){
+		
+	}
+	return board
+}
+
+
 function convertPx(x) {
   return x*config.tileSize + (x+1)*config.border;
 }
