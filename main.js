@@ -11,6 +11,8 @@ var config = {
   nbGold: 100
 }
 
+
+
 config.unit = config.canvasW/100;
 config.boardS = config.canvasH;
 config.border = config.boardS / (10*((config.nLig>config.nCol) ? config.nLig : config.nCol));
@@ -18,16 +20,19 @@ config.tileSize = (config.boardS - ((config.nLig>config.nCol) ? config.nLig + 1 
 // endConfig
 
 // globalFunctions
-function examineBoard(){
+
+function examineBoard() {
 	board = []
-	
-	for (var i = 0; i < nLig, i++){
+
+	for (var i = 0; i < config.nCol; i++){
 		board[i] = []
 	}
-	
-	for (var i = 0; i < joueur.length ; i++){
-		
-	}
+
+  for (var i = 0; i < chessGUI.pieces.length;i++){
+    var piece = chessGUI.pieces[i]
+    board[piece.x][piece.y] = piece
+  }
+
 	return board
 }
 
@@ -88,6 +93,7 @@ function preload() {
 
   pieceImg.noir[0] = loadImage("img/boneless.png");
   pieceImg.noir[1] = loadImage("img/tour.png");
+  pieceImg.blanc[1] = pieceImg.noir[1];
 }
 // endImages
 
@@ -138,7 +144,8 @@ class Piece {
 
   viewDepl() {
     chessGUI.highlightCase = [];
-    var depl = this.getDepl();
+    board = examineBoard()
+    var depl = this.getDepl(board);
     for (var i = 0; i < depl.length; i++) {
       new HighlightCase(depl[i][0],depl[i][1],
 	        [0,0,255,90],[100,100,255,90], this,
@@ -157,7 +164,7 @@ class Pion extends Piece {
     super(0, "Pion", 50, 120, x, y, player);
   }
 
-  getDepl() {
+  getDepl(board) {
     var depl = [];
   	var startLine = ((this.player == joueur[0]) ? 1 : config.nLig - 2);
   	var direction = ((this.player == joueur[0]) ? 1 : - 1);
@@ -176,7 +183,7 @@ class Tour extends Piece {
     super(1, "Tour", 20, 200, x, y, player);
   }
 
-  getDepl() {
+  getDepl(board) {
     var depl = [];
     var mp = 5;
     for (var i = -mp; i < mp + 1; i++) {
@@ -196,7 +203,7 @@ class Fou extends Piece {
     super(1, "Fou", 50, 70, x, y, player);
   }
 
-  getDepl() {
+  getDepl(board) {
     var depl = [];
     var mp = 5;
     for (var i = -mp; i < mp; i++) {
@@ -273,11 +280,11 @@ class HighlightCase {
 // setup -> mettre dans le draw
 var joueur = [new Joueur("blanc", "Gilbert"), new Joueur("noir", "Patrick")];
 joueur[1].piece[0] = new Pion(3, config.nLig - 2, 1);
-joueur[1].piece[1] = new Tour(5, 6, 1);
+joueur[0].piece[1] = new Tour(5, 6, 0);
 joueur[1].piece[2] = new Fou(2, 3, 1)
 var isPlaying = true;
 playerTurn = 1
- chessGUI.hud.push(new Button(config.canvasW - (config.unit * 40),10,config.unit * 10,config.unit * 4,0,0,0))
+ chessGUI.hud.push(new Button(config.canvasW - (config.unit * 40),10,config.unit * 10,config.unit * 4,0,0,function(){playerTurn = 1-playerTurn}))
 // endSetup
 
 // main functions
