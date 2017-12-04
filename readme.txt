@@ -1,5 +1,5 @@
 Alors c'est un jeu d'échecs mais pas vraiment genre y a des trucs en plus et tout
-
+Versions actuelle : 0.1
 
 By :
 Amael "Pouki" Marquez 
