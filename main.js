@@ -21,15 +21,29 @@ config.tileSize = (config.boardS - ((config.nLig>config.nCol) ? config.nLig + 1 
 
 // globalFunctions
 
+
+function getArrayID(array,element){
+	for (var i = 0; i < array.length; i++){
+		if (array[i] == element){
+			return i
+		}
+	}
+}
+
+function Array.prototype.spliceItem(item){
+	var array = this
+	array.splice(getArrayID(array,item),1)
+}	
+
 function kill(target,killer){
-  
+	joueur[target.player].piece.splice(getArrayID())
 }
 
 function damage(target,source,dmg){
   target.hp = target.hp - dmg
 
   if (target.hp < 1){
-    //kill(target,source)
+    kill(target,source)
   }
 
 }
