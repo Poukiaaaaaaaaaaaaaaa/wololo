@@ -21,6 +21,19 @@ config.tileSize = (config.boardS - ((config.nLig>config.nCol) ? config.nLig + 1 
 
 // globalFunctions
 
+function kill(target,killer){
+  
+}
+
+function damage(target,source,dmg){
+  target.hp = target.hp - dmg
+
+  if (target.hp < 1){
+    //kill(target,source)
+  }
+
+}
+
 function examineBoard() {
 	board = []
 
@@ -112,6 +125,7 @@ class Piece {
     this.img = img;
     this.name = name;
     this.atk = atk;
+    this.baseHP = hp;
     this.hp = hp;
     this.x = x;
     this.y = y;
@@ -119,7 +133,6 @@ class Piece {
     this.color = joueur[player].color;
     this.player = player;
     this.bgColor = { r: 150, g: 150, b: 240, a: 0 }
-
     chessGUI.pieces.push(this);
   }
 
@@ -133,7 +146,15 @@ class Piece {
     rect(convertPx(this.x),convertPx(this.y),
     config.tileSize, config.tileSize, config.border);
     }
+
+    fill("red");
+    rect(convertPx(this.x),convertPx(this.y) + config.tileSize * 0.8,
+    config.tileSize,config.tileSize*0.2);
+    fill("green");
+    rect(convertPx(this.x),convertPx(this.y) + config.tileSize * 0.8,
+    config.tileSize / this.baseHP * this.hp,config.tileSize*0.2)
   }
+
 
   onLeftClick() {
     if (isCaseHovered(this.x,this.y) && playerTurn == this.player && !(selectedPiece == this)) {
@@ -151,6 +172,10 @@ class Piece {
 	        [0,0,255,90],[100,100,255,90], this,
 	        function(x,y){this.piece.move(x,y)});
     }
+  }
+
+  attack(target){
+    damage(target,this,this.atk)
   }
 
   move(x,y) {
