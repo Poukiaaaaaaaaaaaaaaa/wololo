@@ -21,6 +21,12 @@ config.tileSize = (config.boardS - ((config.nLig>config.nCol) ? config.nLig + 1 
 
 // globalFunctions
 
+function addDepl(depl,x,y){
+  if (typeof board[x][y] == "undefined" && x + 1 > 0 && x < config.nCol && y + 1 > 0 && y < config.nLig){
+    depl.push([x,y])
+    }else{return false}
+}
+
 function getArrayID(array,element){
 	for (var i = 0; i < array.length; i++){
 		if (array[i] == element){
@@ -32,7 +38,7 @@ function getArrayID(array,element){
 Array.prototype.spliceItem = function(item){
 	var array = this
 	array.splice(getArrayID(array,item),1)
-}	
+}
 
 function kill(target,killer){
 	joueur[target.player].piece.spliceItem(target)
@@ -121,7 +127,10 @@ function preload() {
 
   pieceImg.noir[0] = loadImage("img/boneless.png");
   pieceImg.noir[1] = loadImage("img/tour.png");
-  pieceImg.blanc[1] = pieceImg.noir[1];
+  pieceImg.noir[2] = loadImage("img/fou.png")
+  pieceImg.blanc[0] = pieceImg.noir[0]
+  pieceImg.blanc[1] = pieceImg.noir[1]
+  pieceImg.blanc[2] = pieceImg.noir[2]
 }
 // endImages
 
@@ -189,35 +198,35 @@ class Piece {
     }
 	var atk = this.getAtkRange(board);
 	var HLCase
-	
+
 	for (var i = 0; i < atk.length; i++) {
 		if (typeof board[atk[i][0]][atk[i][1]] !="undefined"){
-			if (board[atk[i][0]][atk[i][1]].player == 1 - this.player){	
+			if (board[atk[i][0]][atk[i][1]].player == 1 - this.player){
 				HLCase = new HighlightCase(atk[i][0],atk[i][1],
 				[255,0,0,90],[255,100,100,90], this,
 				function(){this.piece.attack(this.target)});
 				HLCase.target = board[atk[i][0]][atk[i][1]];
 			}
 		}
-	}		
+	}
   }
-  
+
 
   attack(target){
     damage(target,this,this.atk)
   }
-  
+
 
   move(x,y) {
 	this.x = x;
 	this.y = y;
   }
-  
+
   //Fonctions à redéfinir dans chaque classe piece
   getDepl(board){
 	return []
   }
-  
+
   getAtkRange(board){
 	return []
   }
@@ -234,12 +243,12 @@ class Pion extends Piece {
   	var direction = ((this.player == joueur[0]) ? 1 : - 1);
   	var mp = (this.y == startLine) ? 3 : 1;
   	for (var i = 0; i < mp; i++){
-		    depl.push([this.x,this.y + ((i+1)*direction)]);
+		  if (addDepl(depl,this.x,this.y + ((i+1)*direction)) == false){break}
 	  }
 
     return depl;
   }
-  
+
   getAtkRange(board){
 	var atk = [];
 	var direction = ((this.player == joueur[0]) ? 1 : - 1);
@@ -252,7 +261,7 @@ class Pion extends Piece {
 		}
 	}
 	return atk
-  }  
+  }
 
 }
 
@@ -278,7 +287,7 @@ class Tour extends Piece {
 
 class Fou extends Piece {
   constructor(x, y, player) {
-    super(1, "Fou", 50, 70, x, y, player);
+    super(2, "Fou", 50, 70, x, y, player);
   }
 
   getDepl(board) {
