@@ -15,12 +15,11 @@ var config = {
 
 config.unit = config.canvasW/100;
 config.boardS = config.canvasH;
-config.border = config.boardS / (10*((config.nLig>config.nCol) ? config.nLig : config.nCol));
+config.border = config.boardS / (15*((config.nLig>config.nCol) ? config.nLig : config.nCol));
 config.tileSize = (config.boardS - ((config.nLig>config.nCol) ? config.nLig + 1 : config.nCol + 1) * config.border) / ((config.nLig>config.nCol) ? config.nLig : config.nCol);
 // endConfig
 
 // globalFunctions
-
 
 function getArrayID(array,element){
 	for (var i = 0; i < array.length; i++){
@@ -30,13 +29,14 @@ function getArrayID(array,element){
 	}
 }
 
-function Array.prototype.spliceItem(item){
+Array.prototype.spliceItem = function(item){
 	var array = this
 	array.splice(getArrayID(array,item),1)
 }	
 
 function kill(target,killer){
-	joueur[target.player].piece.splice(getArrayID())
+	joueur[target.player].piece.spliceItem(target)
+	chessGUI.pieces.spliceItem(target)
 }
 
 function damage(target,source,dmg){
@@ -47,6 +47,7 @@ function damage(target,source,dmg){
   }
 
 }
+
 
 function examineBoard() {
 	board = []
@@ -173,28 +174,52 @@ class Piece {
   onLeftClick() {
     if (isCaseHovered(this.x,this.y) && playerTurn == this.player && !(selectedPiece == this)) {
       selectedPiece = this;
-      this.viewDepl();
+      this.viewRanges();
     }
   }
 
-  viewDepl() {
+  viewRanges() {
     chessGUI.highlightCase = [];
     board = examineBoard()
     var depl = this.getDepl(board);
     for (var i = 0; i < depl.length; i++) {
       new HighlightCase(depl[i][0],depl[i][1],
 	        [0,0,255,90],[100,100,255,90], this,
-	        function(x,y){this.piece.move(x,y)});
+	        function(){this.piece.move(this.x,this.y)});
     }
+	var atk = this.getAtkRange(board);
+	var HLCase
+	
+	for (var i = 0; i < atk.length; i++) {
+		if (typeof board[atk[i][0]][atk[i][1]] !="undefined"){
+			if (board[atk[i][0]][atk[i][1]].player == 1 - this.player){	
+				HLCase = new HighlightCase(atk[i][0],atk[i][1],
+				[255,0,0,90],[255,100,100,90], this,
+				function(){this.piece.attack(this.target)});
+				HLCase.target = board[atk[i][0]][atk[i][1]];
+			}
+		}
+	}		
   }
+  
 
   attack(target){
     damage(target,this,this.atk)
   }
+  
 
   move(x,y) {
-	this.x = x
-	this.y = y
+	this.x = x;
+	this.y = y;
+  }
+  
+  //Fonctions à redéfinir dans chaque classe piece
+  getDepl(board){
+	return []
+  }
+  
+  getAtkRange(board){
+	return []
   }
 }
 
@@ -214,6 +239,20 @@ class Pion extends Piece {
 
     return depl;
   }
+  
+  getAtkRange(board){
+	var atk = [];
+	var direction = ((this.player == joueur[0]) ? 1 : - 1);
+	var x,y
+	for (var i = -1; i < 2;i++){
+		x = this.x + i
+		y = this.y + direction
+		if (x + 1 > 0 || x < config.nCol || y + 1 > 0 || y < config.nLig){
+			atk.push([x,y]);
+		}
+	}
+	return atk
+  }  
 
 }
 
@@ -308,7 +347,7 @@ class HighlightCase {
 
   onLeftClick() {
      if (isCaseHovered(this.x,this.y)) {
-      this.callback(this.x,this.y);
+      this.callback();
       chessGUI.highlightCase = [];
       selectedPiece = 0;
     }
@@ -323,7 +362,7 @@ joueur[0].piece[1] = new Tour(5, 6, 0);
 joueur[1].piece[2] = new Fou(2, 3, 1)
 var isPlaying = true;
 playerTurn = 1
- chessGUI.hud.push(new Button(config.canvasW - (config.unit * 40),10,config.unit * 10,config.unit * 4,0,0,function(){playerTurn = 1-playerTurn}))
+ chessGUI.hud.push(new Button(config.canvasW - (config.unit * 40),10,config.unit * 10,config.unit * 4,0,0,function(){playerTurn = 1-playerTurn ; chessGUI.highlightCase = []}))
 // endSetup
 
 // main functions
