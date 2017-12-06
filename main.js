@@ -11,8 +11,6 @@ var config = {
   nbGold: 100
 }
 
-
-
 config.unit = config.canvasW/100;
 config.boardS = config.canvasH;
 config.border = config.boardS / (15*((config.nLig>config.nCol) ? config.nLig : config.nCol));
@@ -272,13 +270,21 @@ class Tour extends Piece {
 
   getDepl(board) {
     var depl = [];
-    var mp = 5;
-    for (var i = -mp; i < mp + 1; i++) {
-      if (i && this.y + i < config.nLig) depl.push([this.x,this.y + i]);
+    var mp = 5; 
+    for (var i = 1; i < mp + 1; i++) {
+      if (addDepl(depl,this.x,this.y + 1) == false) break;
+    } 
+    for (var i = -1; i < mp + 1; i--) {
+      if (addDepl(depl,this.x,this.y + 1) == false) break;
     }
-    for (var i = -mp; i < mp + 1; i++) {
-      if (i && this.x + i < config.nCol) depl.push([this.x + i,this.y]);
+
+    for (var i = 1; i < mp + 1; i++) {
+      if (addDepl(depl,this.x + 1,this.y) == false) break;
     }
+	for (var i = -1; i < mp + 1; i--) {
+      if (addDepl(depl,this.x + 1,this.y) == false) break;
+    }
+	
 
     return depl;
   }
