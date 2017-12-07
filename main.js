@@ -8,7 +8,9 @@ var config = {
   canvasH: window.innerHeight,
   nLig: 12,
   nCol: 8,
-  nbGold: 100
+  nbGold: 100,
+  mana: {depl: 3, atk: 5, newPiece: 3},
+  maxMana: 12
 }
 
 config.unit = config.canvasW/100;
@@ -18,11 +20,21 @@ config.tileSize = (config.boardS - ((config.nLig>config.nCol) ? config.nLig + 1 
 // endConfig
 
 // globalFunctions
-
-function addDepl(depl,x,y){
-  if (typeof board[x][y] == "undefined" && x + 1 > 0 && x < config.nCol && y + 1 > 0 && y < config.nLig){
+function addDepl(board,depl,x,y){
+  if (x + 1 > 0 && x < config.nCol && y + 1 > 0 && y < config.nLig && typeof board[x][y] == "undefined"){
     depl.push([x,y])
-    }else{return false}
+    } else { return false }
+}
+
+function addAtk(board,atk,x,y){
+	if (x + 1 > 0 && x < config.nCol && y + 1 > 0 && y < config.nLig){
+		if (typeof board[x][y] != "undefined"){
+			atk.push([x,y]);
+			return 2; // dans le board et une pièce
+		}
+		return 1; // dans le board mais pas de pièce
+	}
+	return 0; // hors du board
 }
 
 function getArrayID(array,element){
@@ -54,7 +66,7 @@ function damage(target,source,dmg){
 
 
 function examineBoard() {
-	board = []
+	var board = [];
 
 	for (var i = 0; i < config.nCol; i++){
 		board[i] = []
@@ -65,7 +77,7 @@ function examineBoard() {
     board[piece.x][piece.y] = piece
   }
 
-	return board
+	return board;
 }
 
 
@@ -119,16 +131,22 @@ const mana = 10;
 var chessGUI = { hud: [], pieces: [], highlightCase: [] };
 // endGlobalVars
 
+// initBoard
+
+// initBoard end
+
 // images
 function preload() {
   hudIMG[0] = loadImage("img/end_turn.png");
 
-  pieceImg.noir[0] = loadImage("img/boneless.png");
-  pieceImg.noir[1] = loadImage("img/tour.png");
-  pieceImg.noir[2] = loadImage("img/fou.png")
-  pieceImg.blanc[0] = pieceImg.noir[0]
-  pieceImg.blanc[1] = pieceImg.noir[1]
-  pieceImg.blanc[2] = pieceImg.noir[2]
+  pieceImg.noir[0] = loadImage("img/boneless.png"); // pion noir
+  pieceImg.noir[1] = loadImage("img/tour.png"); // tour noire
+  pieceImg.noir[2] = loadImage("img/fou.png"); // fou noir
+  pieceImg.blanc[0] = pieceImg.noir[0]; // pion blanc
+  pieceImg.blanc[1] = pieceImg.noir[1]; // tour blanche
+  pieceImg.blanc[2] = pieceImg.noir[2]; // fou blanc
+  pieceImg.blanc[3] = pieceImg.noir[0]; // reine blanche
+  pieceImg.blanc[4] = pieceImg.noir[0]; // cavalier blanc
 }
 // endImages
 
@@ -137,18 +155,26 @@ class Joueur {
   constructor(color, name) {
     this.color = color;
     this.gold = config.nbGold;
-    this.mana = config.mana;
+    this.mana = config.maxMana;
     this.piece = [];
+  }
+  
+  startTurn(){
+        var playerID = getArrayID(joueur,this)
+        playerTurn = playerID ; 
+        chessGUI.highlightCase = [];
+        this.mana = config.maxMana;
   }
 }
 
 class Piece {
-  constructor(img,name,atk,hp,x,y,player){
+  constructor(img,name,atk,hp,x,y,player,mp = 0){
     this.img = img;
     this.name = name;
     this.atk = atk;
     this.baseHP = hp;
     this.hp = hp;
+	this.mp = mp;
     this.x = x;
     this.y = y;
     this.activeSpells = [];
@@ -187,7 +213,7 @@ class Piece {
 
   viewRanges() {
     chessGUI.highlightCase = [];
-    board = examineBoard()
+    var board = examineBoard();
     var depl = this.getDepl(board);
     for (var i = 0; i < depl.length; i++) {
       new HighlightCase(depl[i][0],depl[i][1],
@@ -195,7 +221,7 @@ class Piece {
 	        function(){this.piece.move(this.x,this.y)});
     }
 	var atk = this.getAtkRange(board);
-	var HLCase
+	var HLCase;
 
 	for (var i = 0; i < atk.length; i++) {
 		if (typeof board[atk[i][0]][atk[i][1]] !="undefined"){
@@ -212,36 +238,38 @@ class Piece {
 
   attack(target){
     damage(target,this,this.atk)
+    joueur[playerTurn].mana -= config.mana.atk
   }
 
 
   move(x,y) {
-	this.x = x;
-	this.y = y;
+    this.x = x;
+    this.y = y;
+    joueur[playerTurn].mana -= config.mana.depl
   }
 
   //Fonctions à redéfinir dans chaque classe piece
   getDepl(board){
-	return []
+	return [];
   }
 
   getAtkRange(board){
-	return []
+	return [];
   }
 }
 
 class Pion extends Piece {
   constructor(x, y, player) {
-    super(0, "Pion", 50, 120, x, y, player);
+    super(0, "Pion", 50, 120, x, y, player, 3);
   }
 
   getDepl(board) {
     var depl = [];
   	var startLine = ((this.player == joueur[0]) ? 1 : config.nLig - 2);
   	var direction = ((this.player == joueur[0]) ? 1 : - 1);
-  	var mp = (this.y == startLine) ? 3 : 1;
+  	var mp = (this.y == startLine) ? this.mp : 1;
   	for (var i = 0; i < mp; i++){
-		  if (addDepl(depl,this.x,this.y + ((i+1)*direction)) == false){break}
+		  if (addDepl(board,depl,this.x,this.y + ((i+1)*direction)) == false){break}
 	  }
 
     return depl;
@@ -250,7 +278,7 @@ class Pion extends Piece {
   getAtkRange(board){
 	var atk = [];
 	var direction = ((this.player == joueur[0]) ? 1 : - 1);
-	var x,y
+	var x,y;
 	for (var i = -1; i < 2;i++){
 		x = this.x + i
 		y = this.y + direction
@@ -258,58 +286,207 @@ class Pion extends Piece {
 			atk.push([x,y]);
 		}
 	}
-	return atk
+	return atk;
   }
 
 }
 
 class Tour extends Piece {
   constructor(x, y, player) {
-    super(1, "Tour", 20, 200, x, y, player);
+    super(1, "Tour", 20, 200, x, y, player, 5);
   }
 
   getDepl(board) {
-    var depl = [];
-    var mp = 5; 
-    for (var i = 1; i < mp + 1; i++) {
-      if (addDepl(depl,this.x,this.y + 1) == false) break;
+    var depl = []; 
+    for (var i = 1; i < this.mp + 1; i++) {
+	  if (addDepl(board,depl,this.x,this.y + i) == false) break;
     } 
-    for (var i = -1; i < mp + 1; i--) {
-      if (addDepl(depl,this.x,this.y + 1) == false) break;
+    for (var i = -1; i > -this.mp - 1; i--) {
+      if (addDepl(board,depl,this.x,this.y + i) == false) break;
     }
 
-    for (var i = 1; i < mp + 1; i++) {
-      if (addDepl(depl,this.x + 1,this.y) == false) break;
+    for (var i = 1; i < this.mp + 1; i++) {
+      if (addDepl(board,depl,this.x + i,this.y) == false) break;
     }
-	for (var i = -1; i < mp + 1; i--) {
-      if (addDepl(depl,this.x + 1,this.y) == false) break;
+	for (var i = -1; i > -this.mp - 1; i--) {
+      if (addDepl(board,depl,this.x + i,this.y) == false) break;
     }
-	
 
     return depl;
   }
+  
+  getAtkRange(board){
+	var atk = []; 
+	for (var i = 1; i < this.mp - 1; i++) {
+	  var atkRt = addAtk(board,atk,this.x,this.y + i);
+      if (atkRt == 2 || !atkRt) break;
+    } 
+    for (var i = -1; i > -this.mp + 1; i--) {
+      var atkRt = addAtk(board,atk,this.x,this.y + i);
+      if (atkRt == 2 || !atkRt) break;
+    }
 
+    for (var i = 1; i < this.mp - 1; i++) {
+      var atkRt = addAtk(board,atk,this.x + i,this.y);
+      if (atkRt == 2 || !atkRt) break;
+    }
+	for (var i = -1; i > -this.mp + 1; i--) {
+      var atkRt = addAtk(board,atk,this.x + i,this.y);
+      if (atkRt == 2 || !atkRt) break;
+    }
+
+    return atk;
+  }
 }
 
 class Fou extends Piece {
   constructor(x, y, player) {
-    super(2, "Fou", 50, 70, x, y, player);
+    super(2, "Fou", 50, 70, x, y, player, 5);
   }
 
   getDepl(board) {
     var depl = [];
-    var mp = 5;
-    for (var i = -mp; i < mp; i++) {
-      if (i && this.y + i < config.nLig && this.x + i < config.nCol) {
-          depl.push([this.x + i,this.y + i]);
-      }
-      if (i && this.y + i < config.nLig && this.x - i < config.nCol) {
-            depl.push([this.x - i,this.y + i]);
-      }
+	
+    for (var i = 1; i < this.mp; i++) {
+      if (addDepl(board,depl,this.x + i,this.y + i) == false) { break }
+	}
+	for (var i = -1; i > -this.mp; i--) {
+      if (addDepl(board,depl,this.x + i,this.y - i) == false) { break }
+	}
+	for (var i = 1; i < this.mp; i++) {
+	  if (addDepl(board,depl,this.x - i,this.y - i) == false) { break }
+	}
+	for (var i = -1; i > -this.mp; i--) {
+      if (addDepl(board,depl,this.x - i,this.y + i) == false) { break }
+	}
+	
+	return depl;
+  }
+  
+  getAtkRange(board){
+	var atk = []; 
+	
+	for (var i = 1; i < this.mp - 1; i++) {
+	  var atkRt = addAtk(board,atk,this.x + i,this.y + i);
+      if (atkRt == 2 || !atkRt) break;
+    } 
+    for (var i = -1; i > -this.mp + 1; i--) {
+      var atkRt = addAtk(board,atk,this.x + i,this.y - i);
+      if (atkRt == 2 || !atkRt) break;
     }
 
-    return depl;
+    for (var i = 1; i < this.mp - 1; i++) {
+      var atkRt = addAtk(board,atk,this.x - i,this.y - i);
+      if (atkRt == 2 || !atkRt) break;
+    }
+	for (var i = -1; i > -this.mp + 1; i--) {
+      var atkRt = addAtk(board,atk,this.x - i,this.y + i);
+      if (atkRt == 2 || !atkRt) break;
+    }
+
+    return atk;
   }
+}
+
+class Reine extends Piece {
+	constructor(x, y, player) {
+		super(3, "Reine", 120, 400, x, y, player, 5);
+	}
+	
+	getDepl(board) {
+    var depl = [];
+	
+    for (var i = 1; i < this.mp; i++) {
+      if (addDepl(board,depl,this.x + i,this.y + i) == false) break;
+	}
+	for (var i = -1; i > -this.mp; i--) {
+      if (addDepl(board,depl,this.x + i,this.y - i) == false) break;
+	}
+	for (var i = 1; i < this.mp; i++) {
+	  if (addDepl(board,depl,this.x - i,this.y - i) == false) break;
+	}
+	for (var i = -1; i > -this.mp; i--) {
+      if (addDepl(board,depl,this.x - i,this.y + i) == false) break;
+	}
+	for (var i = 1; i < this.mp + 1; i++) {
+	  if (addDepl(board,depl,this.x,this.y + i) == false) break;
+    } 
+    for (var i = -1; i > -this.mp - 1; i--) {
+      if (addDepl(board,depl,this.x,this.y + i) == false) break;
+    }
+
+    for (var i = 1; i < this.mp + 1; i++) {
+      if (addDepl(board,depl,this.x + i,this.y) == false) break;
+    }
+	for (var i = -1; i > -this.mp - 1; i--) {
+      if (addDepl(board,depl,this.x + i,this.y) == false) break;
+    }
+	
+	return depl;
+  }
+  
+  getAtkRange(board){
+	var atk = []; 
+	
+	for (var i = 1; i < this.mp - 1; i++) {
+	  var atkRt = addAtk(board,atk,this.x + i,this.y + i);
+      if (atkRt == 2 || !atkRt) break;
+    } 
+    for (var i = -1; i > -this.mp + 1; i--) {
+      var atkRt = addAtk(board,atk,this.x + i,this.y - i);
+      if (atkRt == 2 || !atkRt) break;
+    }
+
+    for (var i = 1; i < this.mp - 1; i++) {
+      var atkRt = addAtk(board,atk,this.x - i,this.y - i);
+      if (atkRt == 2 || !atkRt) break;
+    }
+	for (var i = -1; i > -this.mp + 1; i--) {
+      var atkRt = addAtk(board,atk,this.x - i,this.y + i);
+      if (atkRt == 2 || !atkRt) break;
+    }
+	for (var i = 1; i < this.mp - 1; i++) {
+	  var atkRt = addAtk(board,atk,this.x,this.y + i);
+      if (atkRt == 2 || !atkRt) break;
+    } 
+    for (var i = -1; i > -this.mp + 1; i--) {
+      var atkRt = addAtk(board,atk,this.x,this.y + i);
+      if (atkRt == 2 || !atkRt) break;
+    }
+
+    for (var i = 1; i < this.mp - 1; i++) {
+      var atkRt = addAtk(board,atk,this.x + i,this.y);
+      if (atkRt == 2 || !atkRt) break;
+    }
+	for (var i = -1; i > -this.mp + 1; i--) {
+      var atkRt = addAtk(board,atk,this.x + i,this.y);
+      if (atkRt == 2 || !atkRt) break;
+    }
+
+    return atk;
+  }
+}
+
+class Cavalier extends Piece {
+	constructor(x, y, player) {
+		super(4, "Cavalier", 80, 50, x, y, player);
+	}
+	
+	getDepl(board) {
+		var depl = [];
+		
+		for (var i = -1; i < 2; i += 2) {
+			if (addDepl(board,depl,this.x + i,this.y + 2) == false) break;
+		}
+		for (var i = -1; i < 2; i +=2) {
+			if (addDepl(board,depl,this.x + 2,this.y + i) == false) break;
+		}
+	}
+	
+	getAtkRange(board){
+		var atk = [0, 0];
+		return atk;
+	}
 }
 
 class Button {
@@ -371,13 +548,22 @@ class HighlightCase {
 // endClass
 
 // setup -> mettre dans le draw
+chessGUI.hud.push(new Button(config.canvasW - (config.unit * 40),10,config.unit * 10,config.unit * 4,0,0,function(){joueur[1 - playerTurn].startTurn()}))
+chessGUI.hud.push({x: config.canvasW - (config.unit * 40), y: config.unit * 6, w: config.unit * 20, h: config.unit * 3,
+draw: function(){
+    fill(100,100,255)
+    rect(this.x,this.y,this.w,this.h)
+    fill(0,0,255)
+    rect(this.x,this.y,joueur[playerTurn].mana / config.maxMana * this.w,this.h)
+}})
 var joueur = [new Joueur("blanc", "Gilbert"), new Joueur("noir", "Patrick")];
 joueur[1].piece[0] = new Pion(3, config.nLig - 2, 1);
-joueur[0].piece[1] = new Tour(5, 6, 0);
-joueur[1].piece[2] = new Fou(2, 3, 1)
+joueur[0].piece[0] = new Tour(5, 6, 0);
+joueur[1].piece[1] = new Fou(2, 3, 1);
+joueur[0].piece[1] = new Reine(7, 7, 0);
+joueur[0].piece[2] = new Cavalier(0, 0, 0);
 var isPlaying = true;
-playerTurn = 1
- chessGUI.hud.push(new Button(config.canvasW - (config.unit * 40),10,config.unit * 10,config.unit * 4,0,0,function(){playerTurn = 1-playerTurn ; chessGUI.highlightCase = []}))
+playerTurn = 1;
 // endSetup
 
 // main functions
