@@ -816,7 +816,7 @@ class Text {
 class Animated {
   constructor(object,property,speed,max = NaN,reachMaxCallback = 0){
     this.object = object;
-    this.prop = property;
+    this.property = property;
     this.speed = speed;
     this.max = max;
 
