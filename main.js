@@ -2,7 +2,7 @@
 var debug = true;
 // endDebug
 
-// config : objet contenant toutes les valeurs constantes qui définiront le fonctionnement du jeu
+// config : objet contenant toutes les valeurs constantes qui dï¿½finiront le fonctionnement du jeu
 var config = {
   canvasW: window.innerWidth,
   canvasH: window.innerHeight,
@@ -12,15 +12,15 @@ var config = {
   mana: {depl: 3, atk: 5, newPiece: 3},
   maxMana: 30
 }
-// Définition de certains éléments de configuration calculés
-config.unit = config.canvasW/100;  //unité de distance dépendant de la taille du canvas
+// Dï¿½finition de certains ï¿½lï¿½ments de configuration calculï¿½s
+config.unit = config.canvasW/100;  //unitï¿½ de distance dï¿½pendant de la taille du canvas
 config.boardS = config.canvasH;
 config.border = config.boardS / (15*((config.nLig>config.nCol) ? config.nLig : config.nCol));
 config.tileSize = (config.boardS - ((config.nLig>config.nCol) ? config.nLig + 1 : config.nCol + 1) * config.border) / ((config.nLig>config.nCol) ? config.nLig : config.nCol);
 // endConfig -------------
 
 // globalFunctions -----------
-// Initialise les positions de toutes les pièces en début de partie
+// Initialise les positions de toutes les piï¿½ces en dï¿½but de partie
 // 0 -> Pion
 // 1 -> Tour
 // 2 -> Fou
@@ -79,31 +79,31 @@ function callPassive(piece,passive,arg){
 }
 
 function addDepl(board,depl,x,y){
-	//utile dans les fonctions piece.getDepl() uniquement : ajoute un déplacement
-	//à la liste après avoir effectué tous les tests nécessaires (si la case est hors
-	//de l'échiquier ou si une pièce si trouve déjà)
+	//utile dans les fonctions piece.getDepl() uniquement : ajoute un dï¿½placement
+	//ï¿½ la liste aprï¿½s avoir effectuï¿½ tous les tests nï¿½cessaires (si la case est hors
+	//de l'ï¿½chiquier ou si une piï¿½ce si trouve dï¿½jï¿½)
   if (x + 1 > 0 && x < config.nCol && y + 1 > 0 && y < config.nLig && typeof board[x][y] == "undefined"){
     depl.push([x,y]);
-    } else { return false } //renvoie false si l'ajout n'a pas pu être effectué
+    } else { return false } //renvoie false si l'ajout n'a pas pu ï¿½tre effectuï¿½
 }
 
 function addAtk(board,atk,x,y){
 	//utile dans les fonctions piece.getAtkRange() uniquement : ajoute une case d'attaque
-	//à la liste après avoir effectué tous les tests nécessaires (si la case est hors
-	//de l'échiquier ou s'il n'y a aucune cible possible sur cette case)
+	//ï¿½ la liste aprï¿½s avoir effectuï¿½ tous les tests nï¿½cessaires (si la case est hors
+	//de l'ï¿½chiquier ou s'il n'y a aucune cible possible sur cette case)
 	if (x + 1 > 0 && x < config.nCol && y + 1 > 0 && y < config.nLig){
 		if (typeof board[x][y] != "undefined"){
 			atk.push([x,y]);
-			return 2; // dans le board et une pièce -> l'ajout a réussi
+			return 2; // dans le board et une piï¿½ce -> l'ajout a rï¿½ussi
 		}
-		return 1; // dans le board mais pas de pièce
+		return 1; // dans le board mais pas de piï¿½ce
 	}
 	return 0; // hors du board
 }
 
 function getArrayID(array,element){
-	//fonction générique renvoyant la clé d'un élément dans un tableau.
-	//ne foncitonne correctement que si chaque élément est unique
+	//fonction gï¿½nï¿½rique renvoyant la clï¿½ d'un ï¿½lï¿½ment dans un tableau.
+	//ne foncitonne correctement que si chaque ï¿½lï¿½ment est unique
 	for (var i = 0; i < array.length; i++){
 		if (array[i] == element){
 			return i
@@ -113,38 +113,38 @@ function getArrayID(array,element){
 }
 
 Array.prototype.spliceItem = function(item){
-	//méthode appartenant au prototype des Arrays, ce qui signifie qu'elle sera présente pour tous les tableaux
-	//elle permet de détruire un élément du tableau, en spécifiant uniquement l'élément en question
-	//(sa clé est déterminée via getArrayID())
+	//mï¿½thode appartenant au prototype des Arrays, ce qui signifie qu'elle sera prï¿½sente pour tous les tableaux
+	//elle permet de dï¿½truire un ï¿½lï¿½ment du tableau, en spï¿½cifiant uniquement l'ï¿½lï¿½ment en question
+	//(sa clï¿½ est dï¿½terminï¿½e via getArrayID())
 	var array = this
 	array.splice(getArrayID(array,item),1)
 }
 
-function kill(target,killer){ //tue une pièce -> la supprime des deux tableaux dont elle fait partie :
-	joueur[target.player].piece.spliceItem(target) //le tableau des pièces du propriétaire
-	chessGUI.pieces.spliceItem(target) //le tableau des éléments gérés par la GUI
+function kill(target,killer){ //tue une piï¿½ce -> la supprime des deux tableaux dont elle fait partie :
+	joueur[target.player].piece.spliceItem(target) //le tableau des piï¿½ces du propriï¿½taire
+	chessGUI.pieces.spliceItem(target) //le tableau des ï¿½lï¿½ments gï¿½rï¿½s par la GUI
 }
 
-function damage(target,source,dmg){ //inflig des dégâts à une pièce
+function damage(target,source,dmg){ //inflig des dï¿½gï¿½ts ï¿½ une piï¿½ce
   target.hp = target.hp - dmg
 
   if (target.hp < 1){
-    kill(target,source) //si es PV de la pièce tombent en dessous de 0, la tue
+    kill(target,source) //si es PV de la piï¿½ce tombent en dessous de 0, la tue
   }
 
 }
 
 function examineBoard() {
-	//permet d'analyser le contenu de l'échiquier facilement
-	//via un tableau dont chaque entrée représente une case
-	var board = []; //crée un tableau
+	//permet d'analyser le contenu de l'ï¿½chiquier facilement
+	//via un tableau dont chaque entrï¿½e reprï¿½sente une case
+	var board = []; //crï¿½e un tableau
 
 	for (var i = 0; i < config.nCol; i++){ //y place autant de sous tableaux qu'il y a de colonnes,
-		board[i] = [] 					   //on a donc un tableau à deux dimensions avec une entrée = une case
+		board[i] = [] 					   //on a donc un tableau ï¿½ deux dimensions avec une entrï¿½e = une case
 	}
 
   for (var i = 0; i < chessGUI.pieces.length;i++){
-    var piece = chessGUI.pieces[i]		//récupère les coordonnées de chaque pièce et place une référence à cette pièce
+    var piece = chessGUI.pieces[i]		//rï¿½cupï¿½re les coordonnï¿½es de chaque piï¿½ce et place une rï¿½fï¿½rence ï¿½ cette piï¿½ce
     board[piece.x][piece.y] = piece		//dans la case correspodante dans le tableau
   }
 
@@ -154,12 +154,12 @@ function examineBoard() {
 }
 
 
-function convertPx(x) { //convertit une coordonnée exprimée en cases en une coordonnée en pixels, pour l'affichage
+function convertPx(x) { //convertit une coordonnï¿½e exprimï¿½e en cases en une coordonnï¿½e en pixels, pour l'affichage
   return x*config.tileSize + (x+1)*config.border;
 }
 
 function drawBoard(dx = 0) {
-//dessine case par case l'échiquier
+//dessine case par case l'ï¿½chiquier
   fill(80);
   rect(0,0,config.tileSize * config.nCol + (config.nCol + 1) * config.border,config.tileSize * config.nLig + (config.nLig + 1) * config.border);
   for (var i = 0; i < config.nCol; i++) {
@@ -180,20 +180,19 @@ function animate(x, type, coef) {
   }
 }
 
-function isHovered(x,y,w,h) { //teste si le curseur de la souris se trouve au dessus de la zone spécifiée
+function isHovered(x,y,w,h) { //teste si le curseur de la souris se trouve au dessus de la zone spï¿½cifiï¿½e
   if (mouseX > x && mouseX < x + w &&
       mouseY > y && mouseY < y + h ){
         return true;
       } else { return false; }
 }
 
-function isCaseHovered(x,y){ //teste si le curseur de la souris se trouve au dessus de la case spécifiée
+function isCaseHovered(x,y){ //teste si le curseur de la souris se trouve au dessus de la case spï¿½cifiï¿½e
   return isHovered(convertPx(x),convertPx(y),config.tileSize,config.tileSize,config.border);
 }
 
-function deltaVarSpeed(startVal,startTime,speed){
-  var time = actTime - startTime
-  var delta = (time * speed) + startVal
+function deltaVarSpeed(time,speed){
+  var delta = (time * speed)
   return delta
 }
 
@@ -201,17 +200,17 @@ function deltaVarSpeed(startVal,startTime,speed){
 
 // globalVars --------------
 // variables globales
-var pieceImg = { //objet contenant deux tableaux, "blanc" et "noir" : chacun contiendra les images des pièces de couleur correspodante
+var pieceImg = { //objet contenant deux tableaux, "blanc" et "noir" : chacun contiendra les images des piï¿½ces de couleur correspodante
     blanc: [],
     noir: [] },
     hudIMG = [], //tableau contenant les images du HUD
-    selectedPiece = 0, //pièce sélectionnée par le joueur
-    playerTurn = 0, //ID (numérique) du joueur dont c'est le tour
+    selectedPiece = 0, //piï¿½ce sï¿½lectionnï¿½e par le joueur
+    playerTurn = 0, //ID (numï¿½rique) du joueur dont c'est le tour
     time, //le temps (relatif au 1/1/1970)
     d; //le futur objet date
 
-var chessGUI = { hud: [], pieces: [], highlightCase: [] };  //objet fondamental, qui contient tous les éléments gérée par le HUD,
-															//c'est à dire qui seront affichés et/ou qui réagiront au clic
+var chessGUI = { hud: [], pieces: [], highlightCase: [] };  //objet fondamental, qui contient tous les ï¿½lï¿½ments gï¿½rï¿½e par le HUD,
+															//c'est ï¿½ dire qui seront affichï¿½s et/ou qui rï¿½agiront au clic
 // endGlobalVars --------------
 
 
@@ -235,9 +234,9 @@ function preload() { //chargement des images
 
 // class
 class Joueur {
-	//classe représentant un joueur (sa couleur, son nom,ses ressources, ses pièces)
+	//classe reprï¿½sentant un joueur (sa couleur, son nom,ses ressources, ses piï¿½ces)
   constructor(color, name) {
-	//les paramètres passés au contruceur sont la couleur et le nom ; les autre propriétés dépendront de la partie (ressources, pièces)
+	//les paramï¿½tres passï¿½s au contruceur sont la couleur et le nom ; les autre propriï¿½tï¿½s dï¿½pendront de la partie (ressources, piï¿½ces)
     this.color = color;
     this.gold = config.nbGold;
     this.mana = config.maxMana;
@@ -245,8 +244,8 @@ class Joueur {
   }
 
   startTurn(){
-	  //méthode permettant de démarrer le tour du joueur  : mise à jour de la variable
-	  //playerTurn, restauration du mana, réinitialisation des cases colorées
+	  //mï¿½thode permettant de dï¿½marrer le tour du joueur  : mise ï¿½ jour de la variable
+	  //playerTurn, restauration du mana, rï¿½initialisation des cases colorï¿½es
         var playerID = getArrayID(joueur,this)
         playerTurn = playerID ;
         chessGUI.highlightCase = [];
@@ -259,12 +258,12 @@ class Joueur {
 }
 
 class Piece {
-	//classe représentant une pièce en général
-	//les différentes pièces seront des classes héritées de celle-ci
+	//classe reprï¿½sentant une piï¿½ce en gï¿½nï¿½ral
+	//les diffï¿½rentes piï¿½ces seront des classes hï¿½ritï¿½es de celle-ci
   constructor(img,name,atk,hp,x,y,player,mp = 0){
-	  //on passe au constructeur l'image, le nom, les stats, la position initiale, le propriétaire d'une pièce
-	  //l'ID d'image, le nom, les stats seront déterminés de manière fixe lors de l'appel du superconstructeur
-	  //dans le constructeur des classes héritées (= les pièces en elles mêmes)
+	  //on passe au constructeur l'image, le nom, les stats, la position initiale, le propriï¿½taire d'une piï¿½ce
+	  //l'ID d'image, le nom, les stats seront dï¿½terminï¿½s de maniï¿½re fixe lors de l'appel du superconstructeur
+	  //dans le constructeur des classes hï¿½ritï¿½es (= les piï¿½ces en elles mï¿½mes)
 
     this.img = img;
     this.name = name;
@@ -278,17 +277,17 @@ class Piece {
     this.color = joueur[player].color;
     this.player = player;
     this.deplCD = false;
-    chessGUI.pieces.push(this); //ajout de la pièce au tableau des éléments de la GUI
+    chessGUI.pieces.push(this); //ajout de la piï¿½ce au tableau des ï¿½lï¿½ments de la GUI
   }
 
 
   draw() {
-  //méthode affichant la pièce
+  //mï¿½thode affichant la piï¿½ce
     image(pieceImg[this.color][this.img],
           convertPx(this.x) + config.border, convertPx(this.y) + config.border,
           config.tileSize - 2*config.border, config.tileSize - 2*config.border);
     if (playerTurn == this.player && isCaseHovered(this.x,this.y)){
-		// si le curseur est sur la pièce et qu'on peut la sélectionner, affichage d'un indicateur
+		// si le curseur est sur la piï¿½ce et qu'on peut la sï¿½lectionner, affichage d'un indicateur
     fill(255,255,255,50);
     rect(convertPx(this.x),convertPx(this.y),
     config.tileSize, config.tileSize, config.border);
@@ -305,21 +304,21 @@ class Piece {
 
 
   onLeftClick() {
-	  //fonction appelée à chaque clic de la souris
+	  //fonction appelï¿½e ï¿½ chaque clic de la souris
     if (isCaseHovered(this.x,this.y) && playerTurn == this.player && !(selectedPiece == this)) {
-		//si le clic a eu lieu sur cette pièce :
+		//si le clic a eu lieu sur cette piï¿½ce :
       selectedPiece = this;
-      this.viewRanges(); //on affiche les portées d'attaque et de déplacement
+      this.viewRanges(); //on affiche les portï¿½es d'attaque et de dï¿½placement
     }
   }
 
   viewRanges() {
-	  //affiche les portées d'attaque et de déplacement
-	  //(= cases où ils est possible de se déplacer + pièces attaquables)
-    chessGUI.highlightCase = []; //réinitialisation des cases colorées
-    var board = examineBoard();  //récupération du tableau représentant l'échiquier
-    var depl = this.getDepl(board); //récupération de la liste des cases où il est possible de de déplacer
-									//la méthode getDepl est définie dans chaque classe de pièce, le déplacement étant propre à celle-ci
+	  //affiche les portï¿½es d'attaque et de dï¿½placement
+	  //(= cases oï¿½ ils est possible de se dï¿½placer + piï¿½ces attaquables)
+    chessGUI.highlightCase = []; //rï¿½initialisation des cases colorï¿½es
+    var board = examineBoard();  //rï¿½cupï¿½ration du tableau reprï¿½sentant l'ï¿½chiquier
+    var depl = this.getDepl(board); //rï¿½cupï¿½ration de la liste des cases oï¿½ il est possible de de dï¿½placer
+									//la mï¿½thode getDepl est dï¿½finie dans chaque classe de piï¿½ce, le dï¿½placement ï¿½tant propre ï¿½ celle-ci
 
 	var color = 0
 	var hoverColor = 0
@@ -350,7 +349,7 @@ class Piece {
 	}
 
 
-  //DÉPLACEMENTS
+  //Dï¿½PLACEMENTS
   if (this.deplCD == false){
   	if (joueur[playerTurn].mana >= config.mana.depl){
   		color = [0,0,255,120];
@@ -385,7 +384,7 @@ class Piece {
 	}
   }
 
-  //Fonctions à redéfinir dans chaque classe piece
+  //Fonctions ï¿½ redï¿½finir dans chaque classe piece
   getDepl(board){
 	return [];
   }
@@ -732,7 +731,7 @@ class Roi extends Piece {
 }
 
 class Button {
-  constructor(x,y,w,h,img,hovercallback,callback) {
+  constructor(gui,x,y,w,h,img,hovercallback,callback) {
     this.x = x;
     this.y = y;
     this.w = w;
@@ -740,6 +739,9 @@ class Button {
     this.img = img;
     this.hovercallback = hovercallback
     this.callback = callback
+    this.gui = gui
+
+    chessGUI[gui].push(this)
   }
 
   draw() {
@@ -789,11 +791,14 @@ class HighlightCase {
 }
 
 class Text {
-  constructor(x,y,text,font,size,color){
+  constructor(gui,x,y,text,font,size,color){
     this.x = x;
     this.y = y;
     this.text = text;
     this.color = color;
+    this.gui = gui
+
+    chessGUI[gui].push(this)
   }
 
   draw(){
@@ -803,9 +808,12 @@ class Text {
     text(this.text,this.x,this.y)
   }
 
+  destroy(){
+    chessGUI[gui].spliceItem(this)
+  }
 }
 
-/*class Animated {
+class Animated {
   constructor(object,property,speed,max = NaN,reachMaxCallback = 0){
     this.object = object;
     this.prop = property;
@@ -820,11 +828,12 @@ class Text {
   }
 
   update(){
-    var val = this.objet[this.property] + deltaVarSpeed(this.startVal,this.last,this.speed);
+    var time = actTime - this.lastTime
+    var val = this.objet[this.property] + deltaVarSpeed(time,this.speed);
     this.objet[this.property] = val
 
     if (this.max != NaN && typeof reachMaxCallback == "function"){
-      if (val * this.sign > max * this.sign){
+      if (val * this.sign > this.max * this.sign){
           reachMaxCallback(this.object,this.property)
       }
     }
@@ -841,18 +850,25 @@ class FadeOut{
     this.speed = speed
     this.animation = new Animated(this,"alpha",-speed,0,
     function(obj){obj.destroy()})
+
+    this.object.fadeOut = this
+
+    this.object.staticDraw = this.object.draw
+    this.object.draw = function(){this.fadeOut.update() ; this.staticDraw()}
   }
 
   update(){
-    this.animation
+    this.animation.update()
+    this.obj.color = [this.rawColor[0],this.rawColor[1],this.rawColor[2],this.alpha]
   }
 
-}*/
+}
 
 // endClass ----------
 
 // setup -> mettre dans le draw
-chessGUI.hud.push(new Button(config.canvasW - (config.unit * 40),10,config.unit * 10,config.unit * 4,0,0,function(){joueur[1 - playerTurn].startTurn()}))
+new Button("hud",config.canvasW - (config.unit * 40),10,config.unit * 10,config.unit * 4,0,0,function(){joueur[1 - playerTurn].startTurn()})
+new Text("hud",x,y,text,font,size,color)
 chessGUI.hud.push({x: config.canvasW - (config.unit * 40), y: config.unit * 6, w: config.unit * 20, h: config.unit * 3,
 draw: function(){
     fill(150,150,255);
@@ -880,7 +896,7 @@ function setup() {
 }
 
 function draw() {
-	
+
   background(80);
 
   d = new Date();
