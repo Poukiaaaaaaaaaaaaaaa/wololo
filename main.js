@@ -790,7 +790,7 @@ class HighlightCase {
   }
 }
 
-class Text {
+/* class Text {
   constructor(gui,x,y,text,font,size,color){
     this.x = x;
     this.y = y;
@@ -862,7 +862,7 @@ class FadeOut{
     this.obj.color = [this.rawColor[0],this.rawColor[1],this.rawColor[2],this.alpha]
   }
 
-}
+} */
 
 // endClass ----------
 
