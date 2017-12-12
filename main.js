@@ -868,7 +868,7 @@ class FadeOut{
 
 // setup -> mettre dans le draw
 new Button("hud",config.canvasW - (config.unit * 40),10,config.unit * 10,config.unit * 4,0,0,function(){joueur[1 - playerTurn].startTurn()})
-new Text("hud",x,y,text,font,size,color)
+//new Text("hud",x,y,text,font,size,color)
 chessGUI.hud.push({x: config.canvasW - (config.unit * 40), y: config.unit * 6, w: config.unit * 20, h: config.unit * 3,
 draw: function(){
     fill(150,150,255);
