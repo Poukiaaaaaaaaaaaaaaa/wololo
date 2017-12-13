@@ -164,19 +164,13 @@ function drawBoard(dx = 0) {
   rect(0,0,config.tileSize * config.nCol + (config.nCol + 1) * config.border,config.tileSize * config.nLig + (config.nLig + 1) * config.border);
   for (var i = 0; i < config.nCol; i++) {
     for (var j = 0; j < config.nLig; j++) {
-      if ((i + j) % 2 == 0) { fill(20); } else { fill(255); }
+      if ((i + j) % 2 == 0) { fill(50); } else { fill(255); }
       rect(i*config.tileSize + (i + 1)*config.border + dx,
            j*config.tileSize + (j + 1)*config.border,
            config.tileSize,
            config.tileSize,
            config.border);
     }
-  }
-}
-
-function animate(x, type, coef) {
-  if (type === "line") {
-    return x += coef;
   }
 }
 
@@ -196,6 +190,11 @@ function deltaVarSpeed(time,speed){
   return delta
 }
 
+function applyFadeOut(object,rawColor,initAlpha,speed){
+	new FadeOut(object,rawColor,initAlpha,speed)
+}
+
+
 // endGlobalFunctions -------------
 
 // globalVars --------------
@@ -206,10 +205,10 @@ var pieceImg = { //objet contenant deux tableaux, "blanc" et "noir" : chacun con
     hudIMG = [], //tableau contenant les images du HUD
     selectedPiece = 0, //pi�ce s�lectionn�e par le joueur
     playerTurn = 0, //ID (num�rique) du joueur dont c'est le tour
-    time, //le temps (relatif au 1/1/1970)
+    actTime, //le temps (relatif au 1/1/1970)
     d; //le futur objet date
 
-var chessGUI = { hud: [], pieces: [], highlightCase: [] };  //objet fondamental, qui contient tous les �l�ments g�r�e par le HUD,
+var chessGUI = { hud: [], pieces: [], highlightCase: [], pieceHUD: [] };  //objet fondamental, qui contient tous les �l�ments g�r�e par le HUD,
 															//c'est � dire qui seront affich�s et/ou qui r�agiront au clic
 // endGlobalVars --------------
 
@@ -253,7 +252,9 @@ class Joueur {
         for (var i = 0; i < this.piece.length; i++){
           this.piece[i].deplCD = false
         }
+		selectedPiece = 0
   }
+  
 
 }
 
@@ -335,7 +336,7 @@ class Piece {
 	} else {
 		color = [190,0,0,50];
 		hoverColor = [190,100,100,50];
-		callback = function(){ prompt("Not enough mana") }
+		callback = function(){ this.piece.noManaError(convertPx(this.x) + config.tileSize / 2,convertPx(this.y) + config.tileSize / 2)}
 	}
 
 	for (var i = 0; i < atk.length; i++) {
@@ -358,7 +359,7 @@ class Piece {
   	} else {
   		color = [0,0,190,50]
   		hoverColor = [100,100,190,50]
-  		callback = function(){ prompt("Not enough mana") }
+  		callback = function(){this.piece.noManaError(convertPx(this.x) + config.tileSize / 2,convertPx(this.y) + config.tileSize / 2) }
   	}
 
     for (var i = 0; i < depl.length; i++) {
@@ -372,7 +373,7 @@ class Piece {
     if (joueur[playerTurn].mana >= config.mana.atk){
 		damage(target,this,this.atk)
 		joueur[playerTurn].mana -= config.mana.atk
-	 }
+	}
   }
 
 
@@ -391,6 +392,12 @@ class Piece {
 
   getAtkRange(board){
 	return [];
+  }
+  
+  noManaError(x,y){
+  textAlign(CENTER,CENTER)
+  {let manaTXT = new Text("hud",x,y,"Not enough mana","Arial",config.unit,[0,0,255])
+  applyFadeOut(manaTXT,manaTXT.color,255,0.5)}
   }
 }
 
@@ -790,21 +797,23 @@ class HighlightCase {
   }
 }
 
-/* class Text {
+ class Text {
   constructor(gui,x,y,text,font,size,color){
     this.x = x;
     this.y = y;
     this.text = text;
     this.color = color;
     this.gui = gui
+	this.font = font
+	this.size = size
 
     chessGUI[gui].push(this)
   }
 
   draw(){
-    textFont(font)
-    textSize(18)
-    fill(color)
+    textFont(this.font)
+    textSize(this.size)
+    fill(this.color)
     text(this.text,this.x,this.y)
   }
 
@@ -821,7 +830,7 @@ class Animated {
     this.max = max;
 
     this.direction = Math.sign(speed);
-    this.startVal = this.objet[this.property];
+    this.startVal = this.object[this.property];
     this.lastTime = actTime;
     this.val;
 
@@ -829,22 +838,24 @@ class Animated {
 
   update(){
     var time = actTime - this.lastTime
-    var val = this.objet[this.property] + deltaVarSpeed(time,this.speed);
-    this.objet[this.property] = val
+    var val = this.object[this.property] + deltaVarSpeed(time,this.speed);
+	
+    this.object[this.property] = val
 
     if (this.max != NaN && typeof reachMaxCallback == "function"){
       if (val * this.sign > this.max * this.sign){
           reachMaxCallback(this.object,this.property)
       }
     }
-    this.lastTime = time
+    this.lastTime = actTime
   }
+  
 
 }
 
 class FadeOut{
   constructor(object,rawColor,initAlpha,speed){
-    this.obj = object
+    this.object = object
     this.rawColor = rawColor
     this.alpha = initAlpha
     this.speed = speed
@@ -859,16 +870,18 @@ class FadeOut{
 
   update(){
     this.animation.update()
-    this.obj.color = [this.rawColor[0],this.rawColor[1],this.rawColor[2],this.alpha]
+    this.object.color = [this.rawColor[0],this.rawColor[1],this.rawColor[2],this.alpha]
   }
 
-} */
+} 
 
 // endClass ----------
 
 // setup -> mettre dans le draw
-new Button("hud",config.canvasW - (config.unit * 40),10,config.unit * 10,config.unit * 4,0,0,function(){joueur[1 - playerTurn].startTurn()})
-//new Text("hud",x,y,text,font,size,color)
+d = new Date();
+actTime = d.getTime();
+
+new Button("hud",config.canvasW - (config.unit * 40),config.unit,config.unit * 10,config.unit * 4,0,0,function(){joueur[1 - playerTurn].startTurn()})
 chessGUI.hud.push({x: config.canvasW - (config.unit * 40), y: config.unit * 6, w: config.unit * 20, h: config.unit * 3,
 draw: function(){
     fill(150,150,255);
@@ -887,6 +900,7 @@ playerTurn = 1;
 
 // main functions
 function setup() {
+	
   noStroke();
   cursor("img/cursor.png");
   createCanvas(config.canvasW, config.canvasH);
@@ -900,7 +914,7 @@ function draw() {
   background(80);
 
   d = new Date();
-  actTime = d.getTime;
+  actTime = d.getTime();
 
   if (!isPlaying) {
 
