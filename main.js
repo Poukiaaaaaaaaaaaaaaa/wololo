@@ -1,6 +1,6 @@
-// CHESS++ PROJET D'ISN
+// CHESS++ ISN PROJECT
 // Téo Tinarrage // Amaël Marquez
-// TODO: ------------
+// TODO: terminer les animations, s'occuper du balancing, écran titre
 
 // debug
 var debug = true;
