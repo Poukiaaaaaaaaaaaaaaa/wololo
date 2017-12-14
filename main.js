@@ -1,3 +1,7 @@
+// CHESS++ PROJET D'ISN
+// Téo Tinarrage // Amaël Marquez
+// TODO: ------------
+
 // debug
 var debug = true;
 // endDebug
@@ -9,12 +13,12 @@ var config = {
   nLig: 12,
   nCol: 8,
   nbGold: 100,
-  mana: {depl: 3, atk: 5, newPiece: 3},
+  mana: { depl: 3, atk: 5, newPiece: 3 },
   maxMana: 30
 }
-// D�finition de certains �l�ments de configuration calcul�s
-config.unit = config.canvasW/100;  //unit� de distance d�pendant de la taille du canvas
-config.boardS = config.canvasH;
+// Définition de certains éléments de configuration calcul�s
+config.boardS = config.canvasH > config.canvasW ? config.canvasW : config.canvasH;
+config.unit = config.boardS/100;  //unité de distance dépendant de la taille du plateau
 config.border = config.boardS / (15*((config.nLig>config.nCol) ? config.nLig : config.nCol));
 config.tileSize = (config.boardS - ((config.nLig>config.nCol) ? config.nLig + 1 : config.nCol + 1) * config.border) / ((config.nLig>config.nCol) ? config.nLig : config.nCol);
 // endConfig -------------
@@ -27,45 +31,42 @@ config.tileSize = (config.boardS - ((config.nLig>config.nCol) ? config.nLig + 1 
 // 3 -> Reine
 // 4 -> Cavalier
 // 5 -> Roi
-function initBoard() {
-  var count = 0;
-  var p1 = [ // joueur 1 -> Blanc
+function initBoard() { // placement de toutes les pièces sur le plateau
+  var c = 0; // compte le nombre de pièces placées (utilisé pour l'index de joueur[].piece[c])
+  var layout = [ // joueur 1 -> Blanc
     [1, 4, 2, 3, 5, 2, 4, 1],
     [0, 0, 0, 0, 0, 0, 0, 0]
   ];
 
-  var p2 = [ // joueur 2 -> Noir
-    [0, 0, 0, 0, 0, 0, 0, 0],
-    [1, 4, 2, 3, 5, 2, 4, 1]
-  ];
-
-  for (var i = 0; i < p1.length; i++) {
-    for (var j = 0; j < p1[i].length; j++) {
-      switch (p1[i][j]) {
-        case 0: joueur[0].piece[count] = new Pion(j, i, 0); break;
-        case 1: joueur[0].piece[count] = new Tour(j, i, 0); break;
-        case 2: joueur[0].piece[count] = new Fou(j, i, 0); break;
-        case 3: joueur[0].piece[count] = new Reine(j, i, 0); break;
-        case 4: joueur[0].piece[count] = new Cavalier(j, i, 0); break;
-        case 5: joueur[0].piece[count] = new Roi(j, i, 0); break;
+  for (var i = 0; i < layout.length; i++) {
+    for (var j = 0; j < layout[i].length; j++) {
+      switch (layout[i][j]) {
+        case 0: joueur[0].piece[c] = new Pion(j, i, 0); break;
+        case 1: joueur[0].piece[c] = new Tour(j, i, 0); break;
+        case 2: joueur[0].piece[c] = new Fou(j, i, 0); break;
+        case 3: joueur[0].piece[c] = new Reine(j, i, 0); break;
+        case 4: joueur[0].piece[c] = new Cavalier(j, i, 0); break;
+        case 5: joueur[0].piece[c] = new Roi(j, i, 0); break;
       }
-      count++;
+
+      c++;
     }
   }
 
-  count = 0;
+  c = 0;
 
-  for (var i = 0; i < p2.length; i++) {
-    for (var j = 0; j < p2[i].length; j++) {
-      switch (p1[i][j]) {
-        case 0: joueur[1].piece[count] = new Pion(j, config.nLig - i - 1, 1); break;
-        case 1: joueur[1].piece[count] = new Tour(j, config.nLig - i - 1, 1); break;
-        case 2: joueur[1].piece[count] = new Fou(j, config.nLig - i - 1, 1); break;
-        case 3: joueur[1].piece[count] = new Reine(j, config.nLig - i - 1, 1); break;
-        case 4: joueur[1].piece[count] = new Cavalier(j, config.nLig - i - 1, 1); break;
-        case 5: joueur[1].piece[count] = new Roi(j, config.nLig - i - 1, 1); break;
+  for (var i = 0; i < layout.length; i++) {
+    for (var j = 0; j < layout[i].length; j++) {
+      switch (layout[i][j]) {
+        case 0: joueur[1].piece[c] = new Pion(j, config.nLig - i - 1, 1); break;
+        case 1: joueur[1].piece[c] = new Tour(j, config.nLig - i - 1, 1); break;
+        case 2: joueur[1].piece[c] = new Fou(j, config.nLig - i - 1, 1); break;
+        case 3: joueur[1].piece[c] = new Reine(j, config.nLig - i - 1, 1); break;
+        case 4: joueur[1].piece[c] = new Cavalier(j, config.nLig - i - 1, 1); break;
+        case 5: joueur[1].piece[c] = new Roi(j, config.nLig - i - 1, 1); break;
       }
-      count++;
+
+      c++;
     }
   }
 
@@ -74,14 +75,14 @@ function initBoard() {
 function callPassive(piece,passive,arg){
 	var passiveFunction = piece[passive]
 	if (!typeof passiveFunction == "undefined"){
-		return passiveFunction(arg)
+		return passiveFunction(arg);
 	}
 }
 
 function addDepl(board,depl,x,y){
-	//utile dans les fonctions piece.getDepl() uniquement : ajoute un d�placement
-	//� la liste apr�s avoir effectu� tous les tests n�cessaires (si la case est hors
-	//de l'�chiquier ou si une pi�ce si trouve d�j�)
+	//utile dans les fonctions piece.getDepl() uniquement : ajoute un déplacement
+	//à la liste après avoir effectué tous les tests nécessaires (si la case est hors
+	//de l'échiquier ou si une pi�ce si trouve déjà
   if (x + 1 > 0 && x < config.nCol && y + 1 > 0 && y < config.nLig && typeof board[x][y] == "undefined"){
     depl.push([x,y]);
     } else { return false } //renvoie false si l'ajout n'a pas pu �tre effectu�
@@ -89,7 +90,7 @@ function addDepl(board,depl,x,y){
 
 function addAtk(board,atk,x,y){
 	//utile dans les fonctions piece.getAtkRange() uniquement : ajoute une case d'attaque
-	//� la liste apr�s avoir effectu� tous les tests n�cessaires (si la case est hors
+	//à la liste apr�s avoir effectu� tous les tests n�cessaires (si la case est hors
 	//de l'�chiquier ou s'il n'y a aucune cible possible sur cette case)
 	if (x + 1 > 0 && x < config.nCol && y + 1 > 0 && y < config.nLig){
 		if (typeof board[x][y] != "undefined"){
@@ -102,14 +103,15 @@ function addAtk(board,atk,x,y){
 }
 
 function getArrayID(array,element){
-	//fonction g�n�rique renvoyant la cl� d'un �l�ment dans un tableau.
-	//ne foncitonne correctement que si chaque �l�ment est unique
+	//fonction générique renvoyant la clé d'un élément dans un tableau.
+	//ne foncitonne correctement que si chaque élément est unique
 	for (var i = 0; i < array.length; i++){
 		if (array[i] == element){
-			return i
+			return i;
 		}
 	}
-	return false
+
+	return false;
 }
 
 Array.prototype.spliceItem = function(item){
@@ -140,7 +142,7 @@ function examineBoard() {
 	var board = []; //cr�e un tableau
 
 	for (var i = 0; i < config.nCol; i++){ //y place autant de sous tableaux qu'il y a de colonnes,
-		board[i] = [] 					   //on a donc un tableau � deux dimensions avec une entr�e = une case
+		board[i] = []; 					   //on a donc un tableau à deux dimensions avec une entr�e = une case
 	}
 
   for (var i = 0; i < chessGUI.pieces.length;i++){
@@ -191,7 +193,7 @@ function deltaVarSpeed(time,speed){
 }
 
 function applyFadeOut(object,rawColor,initAlpha,speed){
-	new FadeOut(object,rawColor,initAlpha,speed)
+	new FadeOut(object,rawColor,initAlpha,speed);
 }
 
 
@@ -203,13 +205,15 @@ var pieceImg = { //objet contenant deux tableaux, "blanc" et "noir" : chacun con
     blanc: [],
     noir: [] },
     hudIMG = [], //tableau contenant les images du HUD
-    selectedPiece = 0, //pi�ce s�lectionn�e par le joueur
-    playerTurn = 0, //ID (num�rique) du joueur dont c'est le tour
+    selectedPiece = 0, //pièce sélectionnée par le joueur
+    playerTurn = 0, //ID (numérique) du joueur dont c'est le tour
     actTime, //le temps (relatif au 1/1/1970)
-    d; //le futur objet date
+    d, //le futur objet date
+    joueur = [],
+    isPlaying = false;
 
-var chessGUI = { hud: [], pieces: [], highlightCase: [], pieceHUD: [] };  //objet fondamental, qui contient tous les �l�ments g�r�e par le HUD,
-															//c'est � dire qui seront affich�s et/ou qui r�agiront au clic
+var chessGUI = { hud: [], pieces: [], highlightCase: [], pieceHUD: [] };  //objet fondamental, qui contient tous les éléments gérés par le HUD,
+															//c'est à dire qui seront affichés et/ou qui réagiront au clic
 // endGlobalVars --------------
 
 
@@ -233,26 +237,27 @@ function preload() { //chargement des images
 
 // class
 class Joueur {
-	//classe repr�sentant un joueur (sa couleur, son nom,ses ressources, ses pi�ces)
+	//classe représentant un joueur (sa couleur, son nom,ses ressources, ses pièces)
   constructor(color, name) {
-	//les param�tres pass�s au contruceur sont la couleur et le nom ; les autre propri�t�s d�pendront de la partie (ressources, pi�ces)
+	//les paramètres passés au contruceur sont la couleur et le nom; les autre propriétés dépendront de la partie (ressources, pièces)
     this.color = color;
     this.gold = config.nbGold;
     this.mana = config.maxMana;
     this.piece = [];
   }
 
-  startTurn(){
-	  //m�thode permettant de d�marrer le tour du joueur  : mise � jour de la variable
-	  //playerTurn, restauration du mana, r�initialisation des cases color�es
-        var playerID = getArrayID(joueur,this)
-        playerTurn = playerID ;
+  startTurn() {
+	  //méthode permettant de démarrer le tour du joueur: mise à jour de la variable
+	  //playerTurn, restauration du mana, réinitialisation des cases color�es
+        var playerID = getArrayID(joueur,this);
+        playerTurn = playerID;
         chessGUI.highlightCase = [];
         this.mana = config.maxMana;
-        for (var i = 0; i < this.piece.length; i++){
-          this.piece[i].deplCD = false
+        for (var i = 0; i < this.piece.length; i++) {
+          this.piece[i].deplCD = false;
         }
-		selectedPiece = 0
+
+		selectedPiece = 0;
   }
   
 
@@ -261,7 +266,7 @@ class Joueur {
 class Piece {
 	//classe repr�sentant une pi�ce en g�n�ral
 	//les diff�rentes pi�ces seront des classes h�rit�es de celle-ci
-  constructor(img,name,atk,hp,x,y,player,mp = 0){
+  constructor(img,name,atk,hp,x,y,player,mp = 0) {
 	  //on passe au constructeur l'image, le nom, les stats, la position initiale, le propri�taire d'une pi�ce
 	  //l'ID d'image, le nom, les stats seront d�termin�s de mani�re fixe lors de l'appel du superconstructeur
 	  //dans le constructeur des classes h�rit�es (= les pi�ces en elles m�mes)
@@ -278,7 +283,7 @@ class Piece {
     this.color = joueur[player].color;
     this.player = player;
     this.deplCD = false;
-    chessGUI.pieces.push(this); //ajout de la pi�ce au tableau des �l�ments de la GUI
+    chessGUI.pieces.push(this); //ajout de la pièce au tableau des éléments de la GUI
   }
 
 
@@ -300,16 +305,16 @@ class Piece {
     config.tileSize,config.tileSize*0.2);
     fill("green");
     rect(convertPx(this.x),convertPx(this.y) + config.tileSize * 0.8,
-    config.tileSize / this.baseHP * this.hp,config.tileSize*0.2)
+    config.tileSize / this.baseHP * this.hp,config.tileSize * 0.2);
   }
 
 
   onLeftClick() {
-	  //fonction appel�e � chaque clic de la souris
+	  //fonction appelée à chaque clic de la souris
     if (isCaseHovered(this.x,this.y) && playerTurn == this.player && !(selectedPiece == this)) {
-		//si le clic a eu lieu sur cette pi�ce :
+		//si le clic a eu lieu sur cette pièce :
       selectedPiece = this;
-      this.viewRanges(); //on affiche les port�es d'attaque et de d�placement
+      this.viewRanges(); //on affiche les portées d'attaque et de déplacement
     }
   }
 
@@ -373,31 +378,34 @@ class Piece {
     if (joueur[playerTurn].mana >= config.mana.atk){
 		damage(target,this,this.atk)
 		joueur[playerTurn].mana -= config.mana.atk
-	}
+	 }
   }
 
 
   move(x,y) {
-	if (joueur[playerTurn].mana >= config.mana.depl){
-		this.x = x;
-		this.y = y;
-		joueur[playerTurn].mana -= config.mana.depl
-	}
+  	if (joueur[playerTurn].mana >= config.mana.depl){
+  		this.x = x;
+  		this.y = y;
+  		joueur[playerTurn].mana -= config.mana.depl
+  	}
   }
 
-  //Fonctions � red�finir dans chaque classe piece
+  // Fonctions à redéfinir dans chaque classe piece
   getDepl(board){
-	return [];
+	 return [];
   }
 
   getAtkRange(board){
-	return [];
+	 return [];
   }
   
   noManaError(x,y){
-  textAlign(CENTER,CENTER)
-  {let manaTXT = new Text("hud",x,y,"Not enough mana","Arial",config.unit,[0,0,255])
-  applyFadeOut(manaTXT,manaTXT.color,255,0.5)}
+    textAlign(CENTER,CENTER);
+
+    {
+      let manaTXT = new Text("hud",x,y,"Not enough mana","Arial",config.unit,[0,0,255])
+      applyFadeOut(manaTXT,manaTXT.color,255,0.5)
+    }
   }
 }
 
@@ -837,23 +845,23 @@ class Animated {
   }
 
   update(){
-    var time = actTime - this.lastTime
+    var time = actTime - this.lastTime;
     var val = this.object[this.property] + deltaVarSpeed(time,this.speed);
 	
-    this.object[this.property] = val
+    this.object[this.property] = val;
 
     if (this.max != NaN && typeof reachMaxCallback == "function"){
       if (val * this.sign > this.max * this.sign){
-          reachMaxCallback(this.object,this.property)
+          reachMaxCallback(this.object,this.property);
       }
     }
-    this.lastTime = actTime
+    this.lastTime = actTime;
   }
   
 
 }
 
-class FadeOut{
+class FadeOut {
   constructor(object,rawColor,initAlpha,speed){
     this.object = object
     this.rawColor = rawColor
@@ -862,51 +870,53 @@ class FadeOut{
     this.animation = new Animated(this,"alpha",-speed,0,
     function(obj){obj.destroy()})
 
-    this.object.fadeOut = this
+    this.object.fadeOut = this;
 
-    this.object.staticDraw = this.object.draw
+    this.object.staticDraw = this.object.draw;
     this.object.draw = function(){this.fadeOut.update() ; this.staticDraw()}
   }
 
   update(){
     this.animation.update()
-    this.object.color = [this.rawColor[0],this.rawColor[1],this.rawColor[2],this.alpha]
+    this.object.color = [this.rawColor[0],this.rawColor[1],this.rawColor[2],this.alpha];
   }
 
 } 
 
 // endClass ----------
 
-// setup -> mettre dans le draw
-d = new Date();
-actTime = d.getTime();
+// reset function
+function startGame() {
+  
+  d = new Date();
+  actTime = d.getTime();
 
-new Button("hud",config.canvasW - (config.unit * 40),config.unit,config.unit * 10,config.unit * 4,0,0,function(){joueur[1 - playerTurn].startTurn()})
-chessGUI.hud.push({x: config.canvasW - (config.unit * 40), y: config.unit * 6, w: config.unit * 20, h: config.unit * 3,
-draw: function(){
-    fill(150,150,255);
-    rect(this.x,this.y,this.w,this.h);
-    fill(0,0,255);
-    rect(this.x,this.y,joueur[playerTurn].mana / config.maxMana * this.w,this.h)
-}});
+  new Button("hud",config.boardS + config.tileSize - config.unit * 10,config.unit,config.unit * 10,config.unit * 4,0,0,function(){joueur[1 - playerTurn].startTurn()})
+  chessGUI.hud.push({x: config.boardS + config.tileSize - config.unit * 10, y: config.unit * 6, w: config.unit * 20, h: config.unit * 3,
+  draw: function(){
+      fill(150,150,255);
+      rect(this.x,this.y,this.w,this.h);
+      fill(0,0,255);
+      rect(this.x,this.y,joueur[playerTurn].mana / config.maxMana * this.w,this.h);
+  }});
 
-//temp
-var joueur = [new Joueur("blanc", "Gilbert"), new Joueur("noir", "Patrick")];
-initBoard();
-var isPlaying = true;
-playerTurn = 1;
-
-// endSetup
+  joueur = [new Joueur("blanc", "Gilbert"), new Joueur("noir", "Patrick")];
+  isPlaying = true;
+  playerTurn = 1;
+  initBoard();
+}
+// -------
 
 // main functions
-function setup() {
-	
+function setup() {	
   noStroke();
   cursor("img/cursor.png");
   createCanvas(config.canvasW, config.canvasH);
   background(80); //drawBoard();
 
-  textFont("Arial")
+  textFont("Arial");
+
+  startGame();
 }
 
 function draw() {
