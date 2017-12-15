@@ -76,13 +76,6 @@ function initBoard() { // placement de toutes les pièces sur le plateau
 
 }
 
-function callPassive(piece,passive,arg){
-	var passiveFunction = piece[passive]
-	if (!typeof passiveFunction == "undefined"){
-		return passiveFunction(arg);
-	}
-}
-
 function addDepl(board,depl,x,y){
 	//utile dans les fonctions piece.getDepl() uniquement : ajoute un déplacement
 	//à la liste après avoir effectué tous les tests nécessaires (si la case est hors
@@ -127,8 +120,11 @@ Array.prototype.spliceItem = function(item){
 }
 
 function kill(target,killer){ //tue une pi�ce -> la supprime des deux tableaux dont elle fait partie :
-	joueur[target.player].piece.spliceItem(target) //le tableau des pi�ces du propri�taire
+  target.callPassive("onDying",killer)
+
+  joueur[target.player].piece.spliceItem(target) //le tableau des pi�ces du propri�taire
 	chessGUI.pieces.spliceItem(target) //le tableau des �l�ments g�r�s par la GUI
+
 }
 
 function damage(target,source,dmg){ //inflig des d�g�ts � une pi�ce
@@ -431,6 +427,13 @@ class Piece {
       let manaTXT = new Text("hud",x,y,"Not enough mana","Arial",config.unit,[0,0,255])
       applyFadeOut(manaTXT,manaTXT.color,255,0.5)
     }
+  }
+
+  callPassive(passive,arg){
+  	let passiveFunction = this[passive]
+  	if (typeof passiveFunction == "function"){
+  		return passiveFunction(arg);
+  	}
   }
 }
 
@@ -768,6 +771,13 @@ class Roi extends Piece {
 
       return atk;
   }
+
+  onDying(killer){
+    console.log(killer)
+    alert("Victoire de " + joueur[killer.player].name)
+    startGame()
+  }
+
 }
 
 class Button {
