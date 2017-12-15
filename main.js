@@ -18,7 +18,7 @@ var config = {
   nCol: 8,
   nbGold: 100,
   mana: { depl: 3, atk: 5, newPiece: 3 },
-  maxMana: 10
+  maxMana: 10,
 }
 // Définition de certains éléments de configuration calcul�s
 config.boardS = config.canvasH > config.canvasW ? config.canvasW : config.canvasH;
@@ -230,6 +230,7 @@ var pieceImg = { //objet contenant deux tableaux, "blanc" et "noir" : chacun con
     actTime, //le temps (relatif au 1/1/1970)
     d, //le futur objet date
     joueur = [],
+    guiElements = {},
     isPlaying = false;
 
 var chessGUI = {pieces: [], highlightCase: [], hud: [], pieceHUD: [] };  //objet fondamental, qui contient tous les éléments gérés par le HUD,
@@ -264,6 +265,7 @@ class Joueur {
     this.gold = config.nbGold;
     this.mana = config.maxMana;
     this.piece = [];
+    this.name = name
   }
 
   startTurn() {
@@ -276,10 +278,10 @@ class Joueur {
         for (var i = 0; i < this.piece.length; i++) {
           this.piece[i].deplCD = false;
         }
-
+    guiElements.playerTurnText.text = this.name + " is playing"
 		selectedPiece = 0;
   }
-  
+
 
 }
 
@@ -409,7 +411,7 @@ class Piece {
   		this.cy = cy;
   		joueur[playerTurn].mana -= config.mana.depl
 
-      move(this,0.05,convertPx(cx),convertPx(cy))
+      move(this,0.2,convertPx(cx),convertPx(cy))
   	}
   }
 
@@ -421,7 +423,7 @@ class Piece {
   getAtkRange(board){
 	 return [];
   }
-  
+
   noManaError(x,y){
     textAlign(CENTER,CENTER);
 
@@ -698,29 +700,29 @@ class Roi extends Piece {
     var depl = [];
 
     for (var i = 1; i < this.mp; i++) {
-      if (addDepl(board,depl,this.x + i,this.y + i) == false) break;
+      if (addDepl(board,depl,this.cx + i,this.cy + i) == false) break;
   }
   for (var i = -1; i > -this.mp; i--) {
-      if (addDepl(board,depl,this.x + i,this.y - i) == false) break;
+      if (addDepl(board,depl,this.cx + i,this.cy - i) == false) break;
   }
   for (var i = 1; i < this.mp; i++) {
-    if (addDepl(board,depl,this.x - i,this.y - i) == false) break;
+    if (addDepl(board,depl,this.cx - i,this.cy - i) == false) break;
   }
   for (var i = -1; i > -this.mp; i--) {
-      if (addDepl(board,depl,this.x - i,this.y + i) == false) break;
+      if (addDepl(board,depl,this.cx - i,this.cy + i) == false) break;
   }
   for (var i = 1; i < this.mp + 1; i++) {
-    if (addDepl(board,depl,this.x,this.y + i) == false) break;
+    if (addDepl(board,depl,this.cx,this.cy + i) == false) break;
     }
     for (var i = -1; i > -this.mp - 1; i--) {
-      if (addDepl(board,depl,this.x,this.y + i) == false) break;
+      if (addDepl(board,depl,this.cx,this.cy + i) == false) break;
     }
 
     for (var i = 1; i < this.mp + 1; i++) {
-      if (addDepl(board,depl,this.x + i,this.y) == false) break;
+      if (addDepl(board,depl,this.cx + i,this.cy) == false) break;
     }
   for (var i = -1; i > -this.mp - 1; i--) {
-      if (addDepl(board,depl,this.x + i,this.y) == false) break;
+      if (addDepl(board,depl,this.cx + i,this.cy) == false) break;
     }
 
   return depl;
@@ -828,8 +830,8 @@ class HighlightCase {
   }
 }
 
- class Text {
-  constructor(gui,x,y,text,font,size,color){
+class Text {
+  constructor(gui,x,y,text,font,size,color,xalign = CENTER,yalign = CENTER){
     this.x = x;
     this.y = y;
     this.text = text;
@@ -837,6 +839,8 @@ class HighlightCase {
     this.gui = gui
   	this.font = font
 	  this.size = size
+    this.xalign = xalign
+    this.yalign = yalign
 
     chessGUI[gui].push(this)
   }
@@ -844,6 +848,7 @@ class HighlightCase {
   draw(){
     textFont(this.font)
     textSize(this.size)
+    textAlign(this.xalign,this.yalign)
     fill(this.color)
     text(this.text,this.x,this.y)
   }
@@ -871,17 +876,17 @@ class Animated {
   update(){
     var time = actTime - this.lastTime;
     var val = this.object[this.property] + deltaVarSpeed(time,this.speed);
-	
+
     this.object[this.property] = val;
 
     if (this.max != NaN && typeof this.reachMaxCallback == "function"){
-      if (val * this.direction > this.max * this.direction){
-          this.reachMaxCallback(this.object,this.property); 
+      if (val * this.direction >= this.max * this.direction){
+          this.reachMaxCallback(this.object,this.property);
       }
     }
     this.lastTime = actTime;
   }
-  
+
 
 }
 
@@ -905,7 +910,7 @@ class FadeOut {
     this.object.color = [this.rawColor[0],this.rawColor[1],this.rawColor[2],this.alpha];
   }
 
-} 
+}
 
 class Movement{
   constructor(object,speed,xTarget,yTarget){
@@ -913,19 +918,22 @@ class Movement{
     this.speed = speed
     this.xTarget = xTarget
     this.yTarget = yTarget
-    
+
+    this.xReach = false
+    this.yReach = false
+
     this.x = object.x
     this.y = object.y
-    var dx = xTarget - object.x ; console.log("dx : " + dx)
-    var dy = yTarget - object.y ; console.log("dy : " + dy)
-    var dist = Math.sqrt(Math.pow(dx,2)+(dy,2)); console.log("dist : " + dist)
-    var vx = (dx / dist) * speed ; console.log("vx : " + vx)
-    var vy = (dy / dist) * speed ; console.log("vy : " + vy)
+    var dx = xTarget - object.x
+    var dy = yTarget - object.y
+    var dist = Math.sqrt(Math.pow(dx,2)+pow(dy,2));
+    var vx = (dx / dist) * speed
+    var vy = (dy / dist) * speed
 
     this.xAnimation = new Animated(this,"x",vx,xTarget,
-      function(mov){mov.end()})
+      function(mov){mov.xReach = true ; if (mov.yReach) mov.end()})
     this.yAnimation = new Animated(this,"y",vy,yTarget,
-      function(mov){mov.end()})
+      function(mov){mov.yReach = true ; if (mov.xReach) mov.end()})
 
 
     if (object.movement) object.movement.destroy()
@@ -958,13 +966,13 @@ class Movement{
 
 // reset function
 function startGame() {
-  
+
   d = new Date();
   actTime = d.getTime();
 
   clearGUI()
-  new Button("hud",config.boardS + config.tileSize - config.unit * 10,config.unit,config.unit * 10,config.unit * 4,0,0,function(){joueur[1 - playerTurn].startTurn()})
-  chessGUI.hud.push({x: config.boardS + config.tileSize - config.unit * 10, y: config.unit * 6, w: config.unit * 20, h: config.unit * 3,
+  new Button("hud",config.boardS + config.tileSize - config.unit * 10,config.unit * 5,config.unit * 10,config.unit * 4,0,0,function(){joueur[1 - playerTurn].startTurn()})
+  chessGUI.hud.push({x: config.boardS + config.tileSize - config.unit * 10, y: config.unit * 10, w: config.unit * 20, h: config.unit * 3,
   draw: function(){
       fill(150,150,255);
       rect(this.x,this.y,this.w,this.h);
@@ -973,14 +981,15 @@ function startGame() {
   }});
 
   joueur = [new Joueur("blanc", "Gilbert"), new Joueur("noir", "Patrick")];
-  isPlaying = true;
   playerTurn = 1;
+  guiElements.playerTurnText = new Text("hud",config.boardS + config.tileSize - config.unit * 10,config.unit,joueur[playerTurn].name + " is playing","Arial",config.unit*3,[0,255,0],LEFT,TOP)
+  isPlaying = true;
   initBoard();
 }
 // -------
 
 // main functions
-function setup() {	
+function setup() {
   noStroke();
   cursor("img/cursor.png");
   createCanvas(config.canvasW, config.canvasH);
