@@ -14,7 +14,7 @@ var config = {
   nCol: 8,
   nbGold: 100,
   mana: { depl: 3, atk: 5, newPiece: 3 },
-  maxMana: 30
+  maxMana: 10
 }
 // Définition de certains éléments de configuration calcul�s
 config.boardS = config.canvasH > config.canvasW ? config.canvasW : config.canvasH;
@@ -147,7 +147,7 @@ function examineBoard() {
 
   for (var i = 0; i < chessGUI.pieces.length;i++){
     var piece = chessGUI.pieces[i]		//r�cup�re les coordonn�es de chaque pi�ce et place une r�f�rence � cette pi�ce
-    board[piece.x][piece.y] = piece		//dans la case correspodante dans le tableau
+    board[piece.cx][piece.cy] = piece		//dans la case correspodante dans le tableau
   }
 
 	return board;
@@ -299,28 +299,31 @@ class Piece {
     this.color = joueur[player].color;
     this.player = player;
     this.deplCD = false;
+    this.animated = false
     chessGUI.pieces.push(this); //ajout de la pièce au tableau des éléments de la GUI
   }
 
 
   draw() {
   //m�thode affichant la pi�ce
+    if (this.animated == false) {this.x = convertPx(this.cx) ; this.y = convertPx(this.cy)}
+
     image(pieceImg[this.color][this.img],
-          convertPx(this.cx) + config.border, convertPx(this.cy) + config.border,
+          this.x + config.border, this.y + config.border,
           config.tileSize - 2*config.border, config.tileSize - 2*config.border);
     if (playerTurn == this.player && isCaseHovered(this.cx,this.cy)){
 		// si le curseur est sur la pi�ce et qu'on peut la s�lectionner, affichage d'un indicateur
     fill(255,255,255,50);
-    rect(convertPx(this.cx),convertPx(this.cy),
+    rect(this.x,this.y,
     config.tileSize, config.tileSize, config.border);
     }
 
 	//affichage de la barre de vie
     fill("red");
-    rect(convertPx(this.cx),convertPx(this.cy) + config.tileSize * 0.8,
+    rect(this.x,this.y + config.tileSize * 0.8,
     config.tileSize,config.tileSize*0.2);
     fill("green");
-    rect(convertPx(this.cx),convertPx(this.cy) + config.tileSize * 0.8,
+    rect(this.x,this.y + config.tileSize * 0.8,
     config.tileSize / this.baseHP * this.hp,config.tileSize * 0.2);
   }
 
@@ -357,7 +360,7 @@ class Piece {
 	} else {
 		color = [190,0,0,50];
 		hoverColor = [190,100,100,50];
-		callback = function(){ this.piece.noManaError(convertPx(this.x) + config.tileSize / 2,convertPx(this.y) + config.tileSize / 2)}
+		callback = function(){ this.piece.noManaError(convertPx(this.cx) + config.tileSize / 2,convertPx(this.cy) + config.tileSize / 2)}
 	}
 
 	for (var i = 0; i < atk.length; i++) {
@@ -398,7 +401,7 @@ class Piece {
   }
 
 
-  move(x,y) {
+  move(cx,cy) {
   	if (joueur[playerTurn].mana >= config.mana.depl){
   		this.cx = cx;
   		this.cy = cy;
@@ -434,9 +437,9 @@ class Pion extends Piece {
     var depl = [];
   	var startLine = ((this.player == 0) ? 1 : config.nLig - 2);
   	var direction = ((this.player == 0) ? 1 : -1);
-  	var mp = (this.y == startLine) ? this.mp : 1;
+  	var mp = (this.cy == startLine) ? this.mp : 1;
   	for (var i = 0; i < mp; i++){
-		  if (addDepl(board,depl,this.x,this.y + ((i+1)*direction)) == false){break}
+		  if (addDepl(board,depl,this.cx,this.cy + ((i+1)*direction)) == false){break}
 	  }
 
     return depl;
@@ -466,17 +469,17 @@ class Tour extends Piece {
   getDepl(board) {
     var depl = [];
     for (var i = 1; i < this.mp + 1; i++) {
-	  if (addDepl(board,depl,this.x,this.y + i) == false) break;
+	  if (addDepl(board,depl,this.cx,this.cy + i) == false) break;
     }
     for (var i = -1; i > -this.mp - 1; i--) {
-      if (addDepl(board,depl,this.x,this.y + i) == false) break;
+      if (addDepl(board,depl,this.cx,this.cy + i) == false) break;
     }
 
     for (var i = 1; i < this.mp + 1; i++) {
-      if (addDepl(board,depl,this.x + i,this.y) == false) break;
+      if (addDepl(board,depl,this.cx + i,this.cy) == false) break;
     }
 	for (var i = -1; i > -this.mp - 1; i--) {
-      if (addDepl(board,depl,this.x + i,this.y) == false) break;
+      if (addDepl(board,depl,this.cx + i,this.cy) == false) break;
     }
 
     return depl;
@@ -485,20 +488,20 @@ class Tour extends Piece {
   getAtkRange(board){
 	var atk = [];
 	for (var i = 1; i < this.mp - 1; i++) {
-	  var atkRt = addAtk(board,atk,this.x,this.y + i);
+	  var atkRt = addAtk(board,atk,this.cx,this.cy + i);
       if (atkRt == 2 || !atkRt) break;
     }
     for (var i = -1; i > -this.mp + 1; i--) {
-      var atkRt = addAtk(board,atk,this.x,this.y + i);
+      var atkRt = addAtk(board,atk,this.cx,this.cy + i);
       if (atkRt == 2 || !atkRt) break;
     }
 
     for (var i = 1; i < this.mp - 1; i++) {
-      var atkRt = addAtk(board,atk,this.x + i,this.y);
+      var atkRt = addAtk(board,atk,this.cx + i,this.cy);
       if (atkRt == 2 || !atkRt) break;
     }
 	for (var i = -1; i > -this.mp + 1; i--) {
-      var atkRt = addAtk(board,atk,this.x + i,this.y);
+      var atkRt = addAtk(board,atk,this.cx + i,this.cy);
       if (atkRt == 2 || !atkRt) break;
     }
 
@@ -515,16 +518,16 @@ class Fou extends Piece {
     var depl = [];
 
     for (var i = 1; i < this.mp; i++) {
-      if (addDepl(board,depl,this.x + i,this.y + i) == false) { break }
+      if (addDepl(board,depl,this.cx + i,this.cy + i) == false) { break }
 	}
 	for (var i = -1; i > -this.mp; i--) {
-      if (addDepl(board,depl,this.x + i,this.y - i) == false) { break }
+      if (addDepl(board,depl,this.cx + i,this.cy - i) == false) { break }
 	}
 	for (var i = 1; i < this.mp; i++) {
-	  if (addDepl(board,depl,this.x - i,this.y - i) == false) { break }
+	  if (addDepl(board,depl,this.cx - i,this.cy - i) == false) { break }
 	}
 	for (var i = -1; i > -this.mp; i--) {
-      if (addDepl(board,depl,this.x - i,this.y + i) == false) { break }
+      if (addDepl(board,depl,this.cx - i,this.cy + i) == false) { break }
 	}
 
 	return depl;
@@ -534,20 +537,20 @@ class Fou extends Piece {
 	var atk = [];
 
 	for (var i = 1; i < this.mp - 1; i++) {
-	  var atkRt = addAtk(board,atk,this.x + i,this.y + i);
+	  var atkRt = addAtk(board,atk,this.cx + i,this.cy + i);
       if (atkRt == 2 || !atkRt) break;
     }
     for (var i = -1; i > -this.mp + 1; i--) {
-      var atkRt = addAtk(board,atk,this.x + i,this.y - i);
+      var atkRt = addAtk(board,atk,this.cx + i,this.cy - i);
       if (atkRt == 2 || !atkRt) break;
     }
 
     for (var i = 1; i < this.mp - 1; i++) {
-      var atkRt = addAtk(board,atk,this.x - i,this.y - i);
+      var atkRt = addAtk(board,atk,this.cx - i,this.cy - i);
       if (atkRt == 2 || !atkRt) break;
     }
 	for (var i = -1; i > -this.mp + 1; i--) {
-      var atkRt = addAtk(board,atk,this.x - i,this.y + i);
+      var atkRt = addAtk(board,atk,this.cx - i,this.cy + i);
       if (atkRt == 2 || !atkRt) break;
     }
 
@@ -564,29 +567,29 @@ class Reine extends Piece {
     var depl = [];
 
     for (var i = 1; i < this.mp; i++) {
-      if (addDepl(board,depl,this.x + i,this.y + i) == false) break;
+      if (addDepl(board,depl,this.cx + i,this.cy + i) == false) break;
 	}
 	for (var i = -1; i > -this.mp; i--) {
-      if (addDepl(board,depl,this.x + i,this.y - i) == false) break;
+      if (addDepl(board,depl,this.cx + i,this.cy - i) == false) break;
 	}
 	for (var i = 1; i < this.mp; i++) {
-	  if (addDepl(board,depl,this.x - i,this.y - i) == false) break;
+	  if (addDepl(board,depl,this.cx - i,this.cy - i) == false) break;
 	}
 	for (var i = -1; i > -this.mp; i--) {
-      if (addDepl(board,depl,this.x - i,this.y + i) == false) break;
+      if (addDepl(board,depl,this.cx - i,this.cy + i) == false) break;
 	}
 	for (var i = 1; i < this.mp + 1; i++) {
-	  if (addDepl(board,depl,this.x,this.y + i) == false) break;
+	  if (addDepl(board,depl,this.cx,this.cy + i) == false) break;
     }
     for (var i = -1; i > -this.mp - 1; i--) {
-      if (addDepl(board,depl,this.x,this.y + i) == false) break;
+      if (addDepl(board,depl,this.cx,this.cy + i) == false) break;
     }
 
     for (var i = 1; i < this.mp + 1; i++) {
-      if (addDepl(board,depl,this.x + i,this.y) == false) break;
+      if (addDepl(board,depl,this.cx + i,this.cy) == false) break;
     }
 	for (var i = -1; i > -this.mp - 1; i--) {
-      if (addDepl(board,depl,this.x + i,this.y) == false) break;
+      if (addDepl(board,depl,this.cx + i,this.cy) == false) break;
     }
 
 	return depl;
@@ -596,37 +599,37 @@ class Reine extends Piece {
 	var atk = [];
 
 	for (var i = 1; i < this.mp - 1; i++) {
-	  var atkRt = addAtk(board,atk,this.x + i,this.y + i);
+	  var atkRt = addAtk(board,atk,this.cx + i,this.cy + i);
       if (atkRt == 2 || !atkRt) break;
     }
     for (var i = -1; i > -this.mp + 1; i--) {
-      var atkRt = addAtk(board,atk,this.x + i,this.y - i);
+      var atkRt = addAtk(board,atk,this.cx + i,this.cy - i);
       if (atkRt == 2 || !atkRt) break;
     }
 
     for (var i = 1; i < this.mp - 1; i++) {
-      var atkRt = addAtk(board,atk,this.x - i,this.y - i);
+      var atkRt = addAtk(board,atk,this.cx - i,this.cy - i);
       if (atkRt == 2 || !atkRt) break;
     }
 	for (var i = -1; i > -this.mp + 1; i--) {
-      var atkRt = addAtk(board,atk,this.x - i,this.y + i);
+      var atkRt = addAtk(board,atk,this.cx - i,this.cy + i);
       if (atkRt == 2 || !atkRt) break;
     }
 	for (var i = 1; i < this.mp - 1; i++) {
-	  var atkRt = addAtk(board,atk,this.x,this.y + i);
+	  var atkRt = addAtk(board,atk,this.cx,this.cy + i);
       if (atkRt == 2 || !atkRt) break;
     }
     for (var i = -1; i > -this.mp + 1; i--) {
-      var atkRt = addAtk(board,atk,this.x,this.y + i);
+      var atkRt = addAtk(board,atk,this.cx,this.cy + i);
       if (atkRt == 2 || !atkRt) break;
     }
 
     for (var i = 1; i < this.mp - 1; i++) {
-      var atkRt = addAtk(board,atk,this.x + i,this.y);
+      var atkRt = addAtk(board,atk,this.cx + i,this.cy);
       if (atkRt == 2 || !atkRt) break;
     }
 	for (var i = -1; i > -this.mp + 1; i--) {
-      var atkRt = addAtk(board,atk,this.x + i,this.y);
+      var atkRt = addAtk(board,atk,this.cx + i,this.cy);
       if (atkRt == 2 || !atkRt) break;
     }
 
@@ -643,16 +646,16 @@ class Cavalier extends Piece {
 		var depl = [];
 
 		for (var i = -1; i < 2; i += 2) {
-			if (addDepl(board,depl,this.x + i,this.y + 2) == false) continue;
+			if (addDepl(board,depl,this.cx + i,this.cy + 2) == false) continue;
 		}
 		for (var i = -1; i < 2; i += 2) {
-			if (addDepl(board,depl,this.x + 2,this.y + i) == false) continue;
+			if (addDepl(board,depl,this.cx + 2,this.cy + i) == false) continue;
 		}
     for (var i = -1; i < 2; i += 2) {
-      if (addDepl(board,depl,this.x + i,this.y - 2) == false) continue;
+      if (addDepl(board,depl,this.cx + i,this.cy - 2) == false) continue;
     }
     for (var i = -1; i < 2; i += 2) {
-      if (addDepl(board,depl,this.x - 2,this.y + i) == false) continue;
+      if (addDepl(board,depl,this.cx - 2,this.cy + i) == false) continue;
     }
 
     return depl;
@@ -662,19 +665,19 @@ class Cavalier extends Piece {
     var atk = [];
 
     for (var i = -1; i < 2; i += 2) {
-      var atkRt = addAtk(board,atk,this.x + i,this.y + 2);
+      var atkRt = addAtk(board,atk,this.cx + i,this.cy + 2);
         if (atkRt == 2 || !atkRt) continue;
 		}
 		for (var i = -1; i < 2; i += 2) {
-      var atkRt = addAtk(board,atk,this.x + 2,this.y + i);
+      var atkRt = addAtk(board,atk,this.cx + 2,this.cy + i);
         if (atkRt == 2 || !atkRt) continue;
 		}
     for (var i = -1; i < 2; i += 2) {
-      var atkRt = addAtk(board,atk,this.x + i,this.y - 2);
+      var atkRt = addAtk(board,atk,this.cx + i,this.cy - 2);
         if (atkRt == 2 || !atkRt) continue;
     }
     for (var i = -1; i < 2; i += 2) {
-      var atkRt = addAtk(board,atk,this.x - 2,this.y + i);
+      var atkRt = addAtk(board,atk,this.cx - 2,this.cy + i);
         if (atkRt == 2 || !atkRt) continue;
     }
 
@@ -828,8 +831,8 @@ class HighlightCase {
     this.text = text;
     this.color = color;
     this.gui = gui
-	this.font = font
-	this.size = size
+  	this.font = font
+	  this.size = size
 
     chessGUI[gui].push(this)
   }
@@ -842,7 +845,7 @@ class HighlightCase {
   }
 
   destroy(){
-    chessGUI[gui].spliceItem(this)
+    chessGUI[this.gui].spliceItem(this)
   }
 }
 
@@ -885,7 +888,7 @@ class FadeOut {
     this.alpha = initAlpha
     this.speed = speed
     this.animation = new Animated(this,"alpha",-speed,0,
-    function(obj){obj.destroy()})
+    function(obj){obj.object.destroy()})
 
     this.object.fadeOut = this;
 
