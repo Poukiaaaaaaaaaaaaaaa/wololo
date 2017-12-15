@@ -196,6 +196,22 @@ function applyFadeOut(object,rawColor,initAlpha,speed){
 	new FadeOut(object,rawColor,initAlpha,speed);
 }
 
+function move(object,speed,xTarget,yTarget){
+  new Movement(object,speed,xTarget,yTarget)
+}
+
+function clearGUI(gui){
+  if (typeof gui == "undefined"){
+    for (var element in chessGUI){
+      if (chessGUI.hasOwnProperty(element)){
+        chessGUI[element] = []
+      }
+    }
+  }else if (typeof gui == "string"){
+    chessGUI[gui] = []
+  }
+
+}
 
 // endGlobalFunctions -------------
 
@@ -212,7 +228,7 @@ var pieceImg = { //objet contenant deux tableaux, "blanc" et "noir" : chacun con
     joueur = [],
     isPlaying = false;
 
-var chessGUI = { hud: [], pieces: [], highlightCase: [], pieceHUD: [] };  //objet fondamental, qui contient tous les éléments gérés par le HUD,
+var chessGUI = {pieces: [], highlightCase: [], hud: [], pieceHUD: [] };  //objet fondamental, qui contient tous les éléments gérés par le HUD,
 															//c'est à dire qui seront affichés et/ou qui réagiront au clic
 // endGlobalVars --------------
 
@@ -224,7 +240,7 @@ function preload() { //chargement des images
   pieceImg.noir[1] = loadImage("img/tour_noire.png"); // tour noire
   pieceImg.noir[2] = loadImage("img/fou_noir.png"); // fou noir
   pieceImg.noir[3] = loadImage("img/reine_noire.png") // reine noire
-  pieceImg.noir[4] = loadImage("img/cavalier_noir.png") // cavalier noi
+  pieceImg.noir[4] = loadImage("img/cavalier_noir.png") // cavalier noirrrrrr
   pieceImg.noir[5] = loadImage("img/roi_noir.png") // roi noir
   pieceImg.blanc[0] = loadImage("img/pion_blanc.png"); // pion blanc
   pieceImg.blanc[1] = loadImage("img/tour_blanche.png"); // tour blanche
@@ -883,6 +899,51 @@ class FadeOut {
 
 } 
 
+class Movement{
+  constructor(object,speed,xTarget,yTarget){
+    this.object = object
+    this.speed = speed
+    this.xTarget = xTarget
+    this.yTarget = yTarget
+    
+    this.x = object.x
+    this.y = object.y
+    var dx = xTarget - object.x ; console.log("dx : " + dx)
+    var dy = yTarget - object.y ; console.log("dy : " + dy)
+    var dist = Math.sqrt(Math.pow(dx,2)+(dy,2)); console.log("dist : " + dist)
+    var vx = (dx / dist) * speed ; console.log("vx : " + vx)
+    var vy = (dy / dist) * speed ; console.log("vy : " + vy)
+
+    this.xAnimation = new Animated(this,"x",vx,xTarget,
+      function(mov){mov.end()})
+    this.yAnimation = new Animated(this,"y",vy,yTarget,
+      function(mov){mov.end()})
+
+    this.object.movement = this
+
+    this.object.staticDraw = this.object.draw
+    this.object.draw = function(){this.movement.update() ; this.staticDraw()}
+  }
+
+  update(){
+    this.xAnimation.update();
+    this.yAnimation.update();
+    this.object.x = this.x;
+    this.object.y = this.y;
+  }
+
+  destroy(){
+    this.object.draw = this.object.staticDraw; this.object.movement = 0;
+  }
+
+  end(){
+    this.object.x = this.xTarget ;
+    this.object.y = this.yTarget ;
+    this.destroy();
+  }
+
+}
+
 // endClass ----------
 
 // reset function
@@ -891,6 +952,7 @@ function startGame() {
   d = new Date();
   actTime = d.getTime();
 
+  clearGUI()
   new Button("hud",config.boardS + config.tileSize - config.unit * 10,config.unit,config.unit * 10,config.unit * 4,0,0,function(){joueur[1 - playerTurn].startTurn()})
   chessGUI.hud.push({x: config.boardS + config.tileSize - config.unit * 10, y: config.unit * 6, w: config.unit * 20, h: config.unit * 3,
   draw: function(){
