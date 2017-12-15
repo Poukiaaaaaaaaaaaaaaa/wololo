@@ -282,7 +282,7 @@ class Joueur {
 class Piece {
 	//classe repr�sentant une pi�ce en g�n�ral
 	//les diff�rentes pi�ces seront des classes h�rit�es de celle-ci
-  constructor(img,name,atk,hp,x,y,player,mp = 0) {
+  constructor(img,name,atk,hp,cx,cy,player,mp = 0) {
 	  //on passe au constructeur l'image, le nom, les stats, la position initiale, le propri�taire d'une pi�ce
 	  //l'ID d'image, le nom, les stats seront d�termin�s de mani�re fixe lors de l'appel du superconstructeur
 	  //dans le constructeur des classes h�rit�es (= les pi�ces en elles m�mes)
@@ -293,8 +293,8 @@ class Piece {
     this.baseHP = hp;
     this.hp = hp;
 	  this.mp = mp;
-    this.x = x;
-    this.y = y;
+    this.cx = cx;
+    this.cy = cy;
     this.activeSpells = [];
     this.color = joueur[player].color;
     this.player = player;
@@ -306,28 +306,28 @@ class Piece {
   draw() {
   //m�thode affichant la pi�ce
     image(pieceImg[this.color][this.img],
-          convertPx(this.x) + config.border, convertPx(this.y) + config.border,
+          convertPx(this.cx) + config.border, convertPx(this.cy) + config.border,
           config.tileSize - 2*config.border, config.tileSize - 2*config.border);
-    if (playerTurn == this.player && isCaseHovered(this.x,this.y)){
+    if (playerTurn == this.player && isCaseHovered(this.cx,this.cy)){
 		// si le curseur est sur la pi�ce et qu'on peut la s�lectionner, affichage d'un indicateur
     fill(255,255,255,50);
-    rect(convertPx(this.x),convertPx(this.y),
+    rect(convertPx(this.cx),convertPx(this.cy),
     config.tileSize, config.tileSize, config.border);
     }
 
 	//affichage de la barre de vie
     fill("red");
-    rect(convertPx(this.x),convertPx(this.y) + config.tileSize * 0.8,
+    rect(convertPx(this.cx),convertPx(this.cy) + config.tileSize * 0.8,
     config.tileSize,config.tileSize*0.2);
     fill("green");
-    rect(convertPx(this.x),convertPx(this.y) + config.tileSize * 0.8,
+    rect(convertPx(this.cx),convertPx(this.cy) + config.tileSize * 0.8,
     config.tileSize / this.baseHP * this.hp,config.tileSize * 0.2);
   }
 
 
   onLeftClick() {
 	  //fonction appelée à chaque clic de la souris
-    if (isCaseHovered(this.x,this.y) && playerTurn == this.player && !(selectedPiece == this)) {
+    if (isCaseHovered(this.cx,this.cy) && playerTurn == this.player && !(selectedPiece == this)) {
 		//si le clic a eu lieu sur cette pièce :
       selectedPiece = this;
       this.viewRanges(); //on affiche les portées d'attaque et de déplacement
@@ -400,8 +400,8 @@ class Piece {
 
   move(x,y) {
   	if (joueur[playerTurn].mana >= config.mana.depl){
-  		this.x = x;
-  		this.y = y;
+  		this.cx = cx;
+  		this.cy = cy;
   		joueur[playerTurn].mana -= config.mana.depl
   	}
   }
@@ -852,6 +852,7 @@ class Animated {
     this.property = property;
     this.speed = speed;
     this.max = max;
+    this.reachMaxCallback = reachMaxCallback
 
     this.direction = Math.sign(speed);
     this.startVal = this.object[this.property];
@@ -866,9 +867,9 @@ class Animated {
 	
     this.object[this.property] = val;
 
-    if (this.max != NaN && typeof reachMaxCallback == "function"){
-      if (val * this.sign > this.max * this.sign){
-          reachMaxCallback(this.object,this.property);
+    if (this.max != NaN && typeof this.reachMaxCallback == "function"){
+      if (val * this.direction > this.max * this.direction){
+          this.reachMaxCallback(this.object,this.property); 
       }
     }
     this.lastTime = actTime;
@@ -919,6 +920,8 @@ class Movement{
     this.yAnimation = new Animated(this,"y",vy,yTarget,
       function(mov){mov.end()})
 
+
+    if (object.movement) object.movement.destroy()
     this.object.movement = this
 
     this.object.staticDraw = this.object.draw
