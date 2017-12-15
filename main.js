@@ -1,3 +1,7 @@
+
+
+
+
 // CHESS++ ISN PROJECT
 // Téo Tinarrage // Amaël Marquez
 // TODO: terminer les animations, s'occuper du balancing, écran titre
@@ -299,14 +303,13 @@ class Piece {
     this.color = joueur[player].color;
     this.player = player;
     this.deplCD = false;
-    this.animated = false
     chessGUI.pieces.push(this); //ajout de la pièce au tableau des éléments de la GUI
   }
 
 
   draw() {
   //m�thode affichant la pi�ce
-    if (this.animated == false) {this.x = convertPx(this.cx) ; this.y = convertPx(this.cy)}
+    if (!(this.movement)) {this.x = convertPx(this.cx) ; this.y = convertPx(this.cy)}
 
     image(pieceImg[this.color][this.img],
           this.x + config.border, this.y + config.border,
@@ -327,7 +330,6 @@ class Piece {
     config.tileSize / this.baseHP * this.hp,config.tileSize * 0.2);
   }
 
-
   onLeftClick() {
 	  //fonction appelée à chaque clic de la souris
     if (isCaseHovered(this.cx,this.cy) && playerTurn == this.player && !(selectedPiece == this)) {
@@ -345,53 +347,53 @@ class Piece {
     var depl = this.getDepl(board); //r�cup�ration de la liste des cases o� il est possible de de d�placer
 									//la m�thode getDepl est d�finie dans chaque classe de pi�ce, le d�placement �tant propre � celle-ci
 
-	var color = 0
-	var hoverColor = 0
-	var callback
+  	var color = 0
+  	var hoverColor = 0
+  	var callback
 
-	//ATTAQUE
-	var atk = this.getAtkRange(board);
-	var HLCase;
+  	//ATTAQUE
+  	var atk = this.getAtkRange(board);
+  	var HLCase;
 
-	if (joueur[playerTurn].mana >= config.mana.atk){
-		color = [255,0,0,120];
-		hoverColor = [255,100,100,120];
-		callback = function(){ this.piece.attack(this.target) }
-	} else {
-		color = [190,0,0,50];
-		hoverColor = [190,100,100,50];
-		callback = function(){ this.piece.noManaError(convertPx(this.cx) + config.tileSize / 2,convertPx(this.cy) + config.tileSize / 2)}
-	}
-
-	for (var i = 0; i < atk.length; i++) {
-		if (typeof board[atk[i][0]][atk[i][1]] != "undefined"){
-			if (board[atk[i][0]][atk[i][1]].player == 1 - this.player){
-				HLCase = new HighlightCase(atk[i][0],atk[i][1],
-				color,hoverColor,this,callback);
-				HLCase.target = board[atk[i][0]][atk[i][1]];
-			}
-		}
-	}
-
-
-  //D�PLACEMENTS
-  if (this.deplCD == false){
-  	if (joueur[playerTurn].mana >= config.mana.depl){
-  		color = [0,0,255,120];
-  		hoverColor = [100,100,255,120];
-  		callback = function(){ this.piece.move(this.x,this.y); this.piece.deplCD = true }
+  	if (joueur[playerTurn].mana >= config.mana.atk){
+  		color = [255,0,0,120];
+  		hoverColor = [255,100,100,120];
+  		callback = function(){ this.piece.attack(this.target) }
   	} else {
-  		color = [0,0,190,50]
-  		hoverColor = [100,100,190,50]
-  		callback = function(){this.piece.noManaError(convertPx(this.x) + config.tileSize / 2,convertPx(this.y) + config.tileSize / 2) }
+  		color = [190,0,0,50];
+  		hoverColor = [190,100,100,50];
+  		callback = function(){ this.piece.noManaError(convertPx(this.cx) + config.tileSize / 2,convertPx(this.cy) + config.tileSize / 2)}
   	}
 
-    for (var i = 0; i < depl.length; i++) {
-      new HighlightCase(depl[i][0],depl[i][1],
-  	       color,hoverColor,this,callback);
+  	for (var i = 0; i < atk.length; i++) {
+  		if (typeof board[atk[i][0]][atk[i][1]] != "undefined"){
+  			if (board[atk[i][0]][atk[i][1]].player == 1 - this.player){
+  				HLCase = new HighlightCase(atk[i][0],atk[i][1],
+  				color,hoverColor,this,callback);
+  				HLCase.target = board[atk[i][0]][atk[i][1]];
+  			}
+  		}
+  	}
+
+
+    //D�PLACEMENTS
+    if (this.deplCD == false){
+    	if (joueur[playerTurn].mana >= config.mana.depl){
+    		color = [0,0,255,120];
+    		hoverColor = [100,100,255,120];
+    		callback = function(){ this.piece.move(this.x,this.y); this.piece.deplCD = true }
+    	} else {
+    		color = [0,0,190,50]
+    		hoverColor = [100,100,190,50]
+    		callback = function(){this.piece.noManaError(convertPx(this.x) + config.tileSize / 2,convertPx(this.y) + config.tileSize / 2) }
+    	}
+
+      for (var i = 0; i < depl.length; i++) {
+        new HighlightCase(depl[i][0],depl[i][1],
+    	       color,hoverColor,this,callback);
+      }
     }
   }
-}
 
   attack(target){
     if (joueur[playerTurn].mana >= config.mana.atk){
@@ -406,6 +408,8 @@ class Piece {
   		this.cx = cx;
   		this.cy = cy;
   		joueur[playerTurn].mana -= config.mana.depl
+
+      move(this,0.05,convertPx(cx),convertPx(cy))
   	}
   }
 
