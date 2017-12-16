@@ -1,7 +1,3 @@
-
-
-
-
 // CHESS++ ISN PROJECT
 // Téo Tinarrage // Amaël Marquez
 // TODO: terminer les animations, s'occuper du balancing, écran titre
@@ -18,7 +14,7 @@ var config = {
   nCol: 8,
   nbGold: 100,
   mana: { depl: 3, atk: 5, newPiece: 3 },
-  maxMana: 10,
+  maxMana: 10
 }
 // Définition de certains éléments de configuration calcul�s
 config.boardS = config.canvasH > config.canvasW ? config.canvasW : config.canvasH;
@@ -76,6 +72,13 @@ function initBoard() { // placement de toutes les pièces sur le plateau
 
 }
 
+function callPassive(piece,passive,arg){
+	var passiveFunction = piece[passive]
+	if (!typeof passiveFunction == "undefined"){
+		return passiveFunction(arg);
+	}
+}
+
 function addDepl(board,depl,x,y){
 	//utile dans les fonctions piece.getDepl() uniquement : ajoute un déplacement
 	//à la liste après avoir effectué tous les tests nécessaires (si la case est hors
@@ -120,11 +123,8 @@ Array.prototype.spliceItem = function(item){
 }
 
 function kill(target,killer){ //tue une pi�ce -> la supprime des deux tableaux dont elle fait partie :
-  target.callPassive("onDying",killer)
-
-  joueur[target.player].piece.spliceItem(target) //le tableau des pi�ces du propri�taire
+	joueur[target.player].piece.spliceItem(target) //le tableau des pi�ces du propri�taire
 	chessGUI.pieces.spliceItem(target) //le tableau des �l�ments g�r�s par la GUI
-
 }
 
 function damage(target,source,dmg){ //inflig des d�g�ts � une pi�ce
@@ -197,7 +197,7 @@ function applyFadeOut(object,rawColor,initAlpha,speed){
 }
 
 function move(object,speed,xTarget,yTarget){
-  new Movement(object,speed,xTarget,yTarget)
+  new Movement(object,speed,xTarget,yTarget);
 }
 
 function clearGUI(gui){
@@ -220,16 +220,17 @@ function clearGUI(gui){
 var pieceImg = { //objet contenant deux tableaux, "blanc" et "noir" : chacun contiendra les images des pi�ces de couleur correspodante
     blanc: [],
     noir: [] },
+    winIMG = [], //tableau contenant les images nécessaires aux fenêtres
     hudIMG = [], //tableau contenant les images du HUD
     selectedPiece = 0, //pièce sélectionnée par le joueur
     playerTurn = 0, //ID (numérique) du joueur dont c'est le tour
     actTime, //le temps (relatif au 1/1/1970)
     d, //le futur objet date
     joueur = [],
-    guiElements = {},
     isPlaying = false;
 
-var chessGUI = {pieces: [], highlightCase: [], hud: [], pieceHUD: [] };  //objet fondamental, qui contient tous les éléments gérés par le HUD,
+var chessGUI = { pieces: [], highlightCase: [], hud: [], pieceHUD: [] };  //objet fondamental, qui contient tous les éléments gérés par le HUD,
+var windows = []; //array contenant toutes les fenêtres ouvertes
 															//c'est à dire qui seront affichés et/ou qui réagiront au clic
 // endGlobalVars --------------
 
@@ -237,6 +238,8 @@ var chessGUI = {pieces: [], highlightCase: [], hud: [], pieceHUD: [] };  //objet
 // images ---------------
 function preload() { //chargement des images
   hudIMG[0] = loadImage("img/end_turn.png");
+  winIMG[0] = loadImage("img/window_left_arrow.png");
+  winIMG[1] = loadImage("img/window_right_arrow.png");
   pieceImg.noir[0] = loadImage("img/pion_noir.png"); // pion noir
   pieceImg.noir[1] = loadImage("img/tour_noire.png"); // tour noire
   pieceImg.noir[2] = loadImage("img/fou_noir.png"); // fou noir
@@ -253,6 +256,162 @@ function preload() { //chargement des images
 // endImages -------------
 
 // class
+class Window {
+	constructor(x,y,w,h,title,nPages) {
+		this.x = x;
+    this.y = y;
+    this.w = w;
+    this.h = h;
+		this.headerSize = h/7;
+		this.cross = { x: x + w - h/7, y: y, s: h/7,
+            			 isHovered: function(){if (mouseX > this.x &&
+            															   mouseX < this.x + this.s &&
+            															   mouseY > this.y &&
+            															   mouseY < this.y + this.s) { return true } else { return false } } };
+		this.eleBorder = h/25;
+		this.title = title;
+		this.titleSize = h/9;
+		this.titleOffset = h/60;
+		this.nPages = nPages;
+		this.pageCounter = 0;
+    this.footer = { buttons: [], text: [] };
+    this.footerOffset = h/80;
+    this.footerHeight = h/12;
+		this.elements = [nPages];
+    this.closed = false;
+
+		for (var i = 0; i < this.elements.length; i++) {
+			this.elements[i] = { buttons: [], text: [] };
+		}
+
+    for (var i = 0; i < 3; i++) {
+      if (i == 0) this.footer.buttons[0] = new WButton(this,-this.eleBorder + this.footerOffset,this.h - this.eleBorder - this.footerHeight - this.headerSize - this.footerOffset,
+                                           this.footerHeight,this.footerHeight,0,null,function(){if (this.win.pageCounter > 0) this.win.pageCounter -= 1});
+      if (i == 1) this.footer.buttons[1] = new WButton(this,this.w - this.eleBorder - this.footerHeight - this.footerOffset,this.h - this.eleBorder - this.footerHeight - this.headerSize - this.footerOffset,
+                                           this.footerHeight,this.footerHeight,1,null,function(){if (this.win.pageCounter < this.win.nPages) this.win.pageCounter += 1});
+      if (i == 2) this.footer.text[0] = new FText(this,-this.eleBorder + this.w/2, this.h - this.footerHeight - this.headerSize, this.pageCounter + "/" + this.nPages, this.footerHeight, [255]);
+    }
+	}
+
+  shouldClose(){ if (this.cross.isHovered()) { return true } else { return false; } }
+
+  onLeftClick() {
+    for (let i = 0; i < this.elements.length; i++) {
+      for (let j = 0; j < this.elements[0].buttons.length; j++) {
+        this.elements[i].buttons[j].onLeftClick();
+      }
+    }
+
+    for (let i = 0; i < this.footer.buttons.length; i++) {
+      this.footer.buttons[i].onLeftClick();
+    }
+  }
+
+	draw() {
+		// Tout ce qui concerne le framework
+			noStroke(); textSize(this.titleSize);
+			textAlign(LEFT, TOP);
+			fill(30, 10, 20);
+			rect(this.x, this.y, this.w, this.h);
+			fill(150);
+			rect(this.x, this.y, this.w, this.headerSize);
+			fill(255);
+			text(this.title, this.x + this.titleOffset, this.y + this.titleOffset);
+			if (this.cross.isHovered()) fill(230, 50, 0);
+			else fill(250);
+			rect(this.x + this.w - this.headerSize,  this.y, this.headerSize, this.headerSize);
+		// Fin Du Framework
+
+    // Footer
+      for (let i in this.footer) {
+        for (let j = 0; j < this.footer[i].length; j++) {
+          this.footer[i][j].draw();
+        }
+      }
+    // Footer End
+
+		// Elements
+			for (let j in this.elements[this.pageCounter]) {
+				for (let k = 0; k < this.elements[this.pageCounter][j].length; k++) {
+					this.elements[this.pageCounter][j][k].draw();
+				}
+			}
+		// Fin des Elements
+
+	}
+}
+
+class WindowElement {
+	constructor(win, x, y) {
+		this.win = win;
+		this.x = x + this.win.x + this.win.eleBorder;
+		this.y = y + this.win.y + this.win.headerSize + this.win.eleBorder;
+	}
+
+	draw() { //fonction à overload dans chaque classe qui hérite
+		return false;
+	}
+}
+
+class WText extends WindowElement {
+	constructor(win,x,y,text,size,color) {
+		super(win, x, y);
+		this.text = text;
+		this.size = size;
+		this.color = color;
+	}
+
+	draw() {
+    textAlign(LEFT, TOP);
+		textSize(this.size); fill(this.color);
+		text(this.text, this.x, this.y);
+	}
+}
+
+class FText extends WText {
+  constructor(win,x,y,text,size,color) {
+    super(win, x, y, text, size, color);
+  }
+
+  draw() {
+    textAlign(CENTER, CENTER);
+		textSize(this.size); fill(this.color);
+		text(this.text, this.x, this.y);
+    this.update();
+	}
+
+  update() {
+    this.text = this.win.pageCounter + "/" + this.win.nPages;
+  }
+}
+
+class WButton extends WindowElement {
+  constructor(win,x,y,w,h,img,hovercallback,callback) {
+		super(win, x, y);
+    this.w = w;
+    this.h = h;
+    this.img = img;
+    this.hovercallback = hovercallback;
+    this.callback = callback;
+  }
+
+  draw() {
+    image(winIMG[this.img],
+          this.x, this.y,
+          this.w, this.h);
+          if (typeof this.hovercallback == "function" && isHovered(this.x,this.y,this.w,this.h)){
+            this.hovercallback(this.x,this.y,this.w,this.h)
+          }
+	}
+
+  onLeftClick() {
+     if (typeof this.callback == "function" && isHovered(this.x,this.y,this.w,this.h)) {
+       this.callback();
+    }
+  }
+}
+
+
 class Joueur {
 	//classe représentant un joueur (sa couleur, son nom,ses ressources, ses pièces)
   constructor(color, name) {
@@ -261,7 +420,6 @@ class Joueur {
     this.gold = config.nbGold;
     this.mana = config.maxMana;
     this.piece = [];
-    this.name = name
   }
 
   startTurn() {
@@ -274,7 +432,7 @@ class Joueur {
         for (var i = 0; i < this.piece.length; i++) {
           this.piece[i].deplCD = false;
         }
-    guiElements.playerTurnText.text = this.name + " is playing"
+
 		selectedPiece = 0;
   }
 
@@ -407,7 +565,7 @@ class Piece {
   		this.cy = cy;
   		joueur[playerTurn].mana -= config.mana.depl
 
-      move(this,0.2,convertPx(cx),convertPx(cy))
+      move(this,0.05,convertPx(cx),convertPx(cy))
   	}
   }
 
@@ -427,13 +585,6 @@ class Piece {
       let manaTXT = new Text("hud",x,y,"Not enough mana","Arial",config.unit,[0,0,255])
       applyFadeOut(manaTXT,manaTXT.color,255,0.5)
     }
-  }
-
-  callPassive(passive,arg){
-  	let passiveFunction = this[passive]
-  	if (typeof passiveFunction == "function"){
-  		return passiveFunction(arg);
-  	}
   }
 }
 
@@ -703,29 +854,29 @@ class Roi extends Piece {
     var depl = [];
 
     for (var i = 1; i < this.mp; i++) {
-      if (addDepl(board,depl,this.cx + i,this.cy + i) == false) break;
+      if (addDepl(board,depl,this.x + i,this.y + i) == false) break;
   }
   for (var i = -1; i > -this.mp; i--) {
-      if (addDepl(board,depl,this.cx + i,this.cy - i) == false) break;
+      if (addDepl(board,depl,this.x + i,this.y - i) == false) break;
   }
   for (var i = 1; i < this.mp; i++) {
-    if (addDepl(board,depl,this.cx - i,this.cy - i) == false) break;
+    if (addDepl(board,depl,this.x - i,this.y - i) == false) break;
   }
   for (var i = -1; i > -this.mp; i--) {
-      if (addDepl(board,depl,this.cx - i,this.cy + i) == false) break;
+      if (addDepl(board,depl,this.x - i,this.y + i) == false) break;
   }
   for (var i = 1; i < this.mp + 1; i++) {
-    if (addDepl(board,depl,this.cx,this.cy + i) == false) break;
+    if (addDepl(board,depl,this.x,this.y + i) == false) break;
     }
     for (var i = -1; i > -this.mp - 1; i--) {
-      if (addDepl(board,depl,this.cx,this.cy + i) == false) break;
+      if (addDepl(board,depl,this.x,this.y + i) == false) break;
     }
 
     for (var i = 1; i < this.mp + 1; i++) {
-      if (addDepl(board,depl,this.cx + i,this.cy) == false) break;
+      if (addDepl(board,depl,this.x + i,this.y) == false) break;
     }
   for (var i = -1; i > -this.mp - 1; i--) {
-      if (addDepl(board,depl,this.cx + i,this.cy) == false) break;
+      if (addDepl(board,depl,this.x + i,this.y) == false) break;
     }
 
   return depl;
@@ -771,13 +922,6 @@ class Roi extends Piece {
 
       return atk;
   }
-
-  onDying(killer){
-    console.log(killer)
-    alert("Victoire de " + joueur[killer.player].name)
-    startGame()
-  }
-
 }
 
 class Button {
@@ -787,9 +931,9 @@ class Button {
     this.w = w;
     this.h = h;
     this.img = img;
-    this.hovercallback = hovercallback
-    this.callback = callback
-    this.gui = gui
+    this.hovercallback = hovercallback;
+    this.callback = callback;
+    this.gui = gui;
 
     chessGUI[gui].push(this)
   }
@@ -840,25 +984,22 @@ class HighlightCase {
   }
 }
 
-class Text {
-  constructor(gui,x,y,text,font,size,color,xalign = CENTER,yalign = CENTER){
+ class Text {
+  constructor(gui,x,y,text,font,size,color){
     this.x = x;
     this.y = y;
     this.text = text;
     this.color = color;
-    this.gui = gui
-  	this.font = font
-	  this.size = size
-    this.xalign = xalign
-    this.yalign = yalign
+    this.gui = gui;
+  	this.font = font;
+	  this.size = size;
 
-    chessGUI[gui].push(this)
+    chessGUI[gui].push(this);
   }
 
   draw(){
     textFont(this.font)
     textSize(this.size)
-    textAlign(this.xalign,this.yalign)
     fill(this.color)
     text(this.text,this.x,this.y)
   }
@@ -890,7 +1031,7 @@ class Animated {
     this.object[this.property] = val;
 
     if (this.max != NaN && typeof this.reachMaxCallback == "function"){
-      if (val * this.direction >= this.max * this.direction){
+      if (val * this.direction > this.max * this.direction){
           this.reachMaxCallback(this.object,this.property);
       }
     }
@@ -922,28 +1063,25 @@ class FadeOut {
 
 }
 
-class Movement{
+class Movement {
   constructor(object,speed,xTarget,yTarget){
-    this.object = object
-    this.speed = speed
-    this.xTarget = xTarget
-    this.yTarget = yTarget
+    this.object = object;
+    this.speed = speed;
+    this.xTarget = xTarget;
+    this.yTarget = yTarget;
 
-    this.xReach = false
-    this.yReach = false
-
-    this.x = object.x
-    this.y = object.y
-    var dx = xTarget - object.x
-    var dy = yTarget - object.y
-    var dist = Math.sqrt(Math.pow(dx,2)+pow(dy,2));
-    var vx = (dx / dist) * speed
-    var vy = (dy / dist) * speed
+    this.x = object.x;
+    this.y = object.y;
+    var dx = xTarget - object.x ; console.log("dx : " + dx);
+    var dy = yTarget - object.y ; console.log("dy : " + dy);
+    var dist = Math.sqrt(Math.pow(dx,2)+(dy,2)); console.log("dist : " + dist);
+    var vx = (dx / dist) * speed ; console.log("vx : " + vx);
+    var vy = (dy / dist) * speed ; console.log("vy : " + vy);
 
     this.xAnimation = new Animated(this,"x",vx,xTarget,
-      function(mov){mov.xReach = true ; if (mov.yReach) mov.end()})
+      function(mov){mov.end()})
     this.yAnimation = new Animated(this,"y",vy,yTarget,
-      function(mov){mov.yReach = true ; if (mov.xReach) mov.end()})
+      function(mov){mov.end()})
 
 
     if (object.movement) object.movement.destroy()
@@ -976,13 +1114,12 @@ class Movement{
 
 // reset function
 function startGame() {
-
   d = new Date();
   actTime = d.getTime();
 
   clearGUI()
-  new Button("hud",config.boardS + config.tileSize - config.unit * 10,config.unit * 5,config.unit * 10,config.unit * 4,0,0,function(){joueur[1 - playerTurn].startTurn()})
-  chessGUI.hud.push({x: config.boardS + config.tileSize - config.unit * 10, y: config.unit * 10, w: config.unit * 20, h: config.unit * 3,
+  new Button("hud",config.boardS + config.tileSize - config.unit * 10,config.unit,config.unit * 10,config.unit * 4,0,0,function(){joueur[1 - playerTurn].startTurn()})
+  chessGUI.hud.push({x: config.boardS + config.tileSize - config.unit * 10, y: config.unit * 6, w: config.unit * 20, h: config.unit * 3,
   draw: function(){
       fill(150,150,255);
       rect(this.x,this.y,this.w,this.h);
@@ -991,9 +1128,8 @@ function startGame() {
   }});
 
   joueur = [new Joueur("blanc", "Gilbert"), new Joueur("noir", "Patrick")];
-  playerTurn = 1;
-  guiElements.playerTurnText = new Text("hud",config.boardS + config.tileSize - config.unit * 10,config.unit,joueur[playerTurn].name + " is playing","Arial",config.unit*3,[0,255,0],LEFT,TOP)
   isPlaying = true;
+  playerTurn = 1;
   initBoard();
 }
 // -------
@@ -1001,7 +1137,7 @@ function startGame() {
 // main functions
 function setup() {
   noStroke();
-  cursor("img/cursor.png");
+  //cursor("img/cursor.png");
   createCanvas(config.canvasW, config.canvasH);
   background(80); //drawBoard();
 
@@ -1009,6 +1145,8 @@ function setup() {
 
   startGame();
 }
+
+windows.push(new Window(900, 200, 400, 300, "Shop", 120));
 
 function draw() {
 
@@ -1022,19 +1160,28 @@ function draw() {
   }
 
   if (isPlaying) {
-	drawBoard();
+	  drawBoard();
     for (var element in chessGUI) {
       if (chessGUI.hasOwnProperty(element)) {
         for (var i = 0; i < chessGUI[element].length; i++) {
           if (typeof chessGUI[element][i].draw === "function"){
             chessGUI[element][i].draw(); }
-          }
         }
       }
     }
 
+    for (let i = 0; i < windows.length; i++) {
+      windows[i].draw();
+    }
+
+    for (let i = 0; i < windows.length; i++) {
+      if (windows[i].closed)
+        windows.splice(i, 1);
+    }
+    }
+
     if (debug) {
-      fill(255);
+      fill(255); textSize(20);
       text(floor(frameRate()), 20, 20);
     }
 
@@ -1050,6 +1197,11 @@ function mouseClicked(){
           }
         }
       }
+    }
+
+    for (let i = 0; i < windows.length; i++) {
+      windows[i].closed = windows[i].shouldClose();
+      windows[i].onLeftClick();
     }
   }
 }
