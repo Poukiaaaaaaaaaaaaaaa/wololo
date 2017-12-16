@@ -238,8 +238,9 @@ var windows = []; //array contenant toutes les fenêtres ouvertes
 // images ---------------
 function preload() { //chargement des images
   hudIMG[0] = loadImage("img/end_turn.png");
-  winIMG[0] = loadImage("img/window_left_arrow.png");
-  winIMG[1] = loadImage("img/window_right_arrow.png");
+  winIMG[0] = loadImage("img/window_left_arrow.png"); // flèche gauche du footer
+  winIMG[1] = loadImage("img/window_right_arrow.png"); // flèche droite du footer
+  winIMG[2] = loadImage("img/window_right_arrow.png"); // window test button
   pieceImg.noir[0] = loadImage("img/pion_noir.png"); // pion noir
   pieceImg.noir[1] = loadImage("img/tour_noire.png"); // tour noire
   pieceImg.noir[2] = loadImage("img/fou_noir.png"); // fou noir
@@ -268,21 +269,21 @@ class Window {
             															   mouseX < this.x + this.s &&
             															   mouseY > this.y &&
             															   mouseY < this.y + this.s) { return true } else { return false } } };
-		this.eleBorder = h/25;
-		this.title = title;
-		this.titleSize = h/9;
-		this.titleOffset = h/60;
-		this.nPages = nPages;
-		this.pageCounter = 0;
-    this.footer = { buttons: [], text: [] };
-    this.footerOffset = h/80;
-    this.footerHeight = h/12;
-		this.elements = [nPages];
-    this.closed = false;
+	this.eleBorder = h/25;
+	this.title = title;
+	this.titleSize = h/9;
+	this.titleOffset = h/60;
+	this.nPages = nPages;
+	this.pageCounter = 0;
+  this.footer = { buttons: [], text: [] };
+  this.footerOffset = h/80;
+  this.footerHeight = h/12;
+	this.elements = [];
+  this.closed = false;
 
-		for (var i = 0; i < this.elements.length; i++) {
-			this.elements[i] = { buttons: [], text: [] };
-		}
+	for (var i = 0; i < nPages; i++) {
+		this.elements[i] = { buttons: [], text: [] };
+	}
 
     for (var i = 0; i < 3; i++) {
       if (i == 0) this.footer.buttons[0] = new WButton(this,-this.eleBorder + this.footerOffset,this.h - this.eleBorder - this.footerHeight - this.headerSize - this.footerOffset,
@@ -294,6 +295,10 @@ class Window {
 	}
 
   shouldClose(){ if (this.cross.isHovered()) { return true } else { return false; } }
+
+  clearElements() {
+    this.elements[this.pageCounter] = { buttons: [], text: [] };
+  }
 
   onLeftClick() {
     for (let i = 0; i < this.elements.length; i++) {
@@ -331,9 +336,10 @@ class Window {
     // Footer End
 
 		// Elements
-			for (let j in this.elements[this.pageCounter]) {
-				for (let k = 0; k < this.elements[this.pageCounter][j].length; k++) {
-					this.elements[this.pageCounter][j][k].draw();
+			for (let i in this.elements[this.pageCounter]) {
+				for (let j = 0; j < this.elements[this.pageCounter][i].length; j++) {
+					if (typeof (this.elements[this.pageCounter][i][j].draw) == "function")
+            this.elements[this.pageCounter][i][j].draw();
 				}
 			}
 		// Fin des Elements
