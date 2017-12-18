@@ -485,7 +485,13 @@ class Piece {
 class Pion extends Piece {
   constructor(x, y, player) {
     let spell = [
-    new Spell("Allahu Akkbar","8",img.spell.Pion[0],0,0,0,0)
+      new Spell("Allahu Akkbar",8,img.spell.Pion[0],0,0,this,
+        function(spell){
+          spell.effet()
+        },
+        function(){
+          console.log("ok")
+        })
     ];
     super(0, "Pion", 50, 120, x, y, player, 3,spell);
   }
@@ -1025,7 +1031,7 @@ class Movement{
 }
 
 class Spell {
-  constructor(name,manaCost,img,helpImg,baseLocked,onUsed,effect){
+  constructor(name,manaCost,img,helpImg,baseLocked,piece,onUsed,effect){
     this.name = name;
     this.manaCost = manaCost;
     this.img = img;
@@ -1040,8 +1046,10 @@ class Spell {
 }
 
 class SpellIcon extends Button {
-  constructor(x,y,w,h,spell){
-    super("pieceHUD",x,y,w,h,spell.img,0,0)
+  constructor(x,y,w,h,spell){ 
+    super("pieceHUD",x,y,w,h,spell.img,0,function(){
+      this.spell.onUsed(this.spell)
+    })
   }
 }
 
