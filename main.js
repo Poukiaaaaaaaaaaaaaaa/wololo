@@ -268,6 +268,15 @@ function selectCases(cases,callback){ //appelle un même callback(x,y) avec les 
 	}
 }
 
+function startSelectionHLC(pieces, color){//démarre un processus de sélection de pièce, en utilisant les Highlight Cases
+  var piece
+  for (var i = 0; i < pieces.length; i++){
+    piece = pieces[i] 
+    new HighlightCase(piece.x,piece.y
+             color,hoverColor,this,callback);
+  }
+} 
+
 // endGlobalFunctions -------------
 
 // globalVars --------------
