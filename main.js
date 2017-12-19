@@ -164,6 +164,22 @@ function examineBoard() {
 	//board[x][y] contient le contenu de la case (x,y)
 }
 
+function examineBoardHLC() { //même effet de examine board, mais remplit les cases avec les highlightCase au lieu des pièces
+	
+	var board = []; //cr�e un tableau
+
+	for (var i = 0; i < config.nCol; i++){ //y place autant de sous tableaux qu'il y a de colonnes,
+		board[i] = []; 					   //on a donc un tableau à deux dimensions avec une entr�e = une case
+	}
+
+  for (var i = 0; i < chessGUI.highlightCase.length;i++){
+    var hlc = chessGUI.highlightCase[i]		//r�cup�re les coordonn�es de chaque pi�ce et place une r�f�rence � cette pi�ce
+    board[hlc.x][hlc.y] = hlc		//dans la case correspodante dans le tableau
+  }
+
+	return board;	
+}
+
 function convertPx(x) { //convertit une coordonn�e exprim�e en cases en une coordonn�e en pixels, pour l'affichage
   return x*config.tileSize + (x+1)*config.border;
 }
@@ -220,9 +236,36 @@ function clearGUI(gui){
 }
 
 function clearSelectedPiece(piece){
-  selectedPiece = piece
-  chessGUI.pieceHUD = []
-  clearGUI("highlightCase")
+	if (selectedPiece) selectedPiece.deselect() ; 
+	selectedPiece = piece
+	chessGUI.pieceHUD = []
+	clearGUI("highlightCase")
+}
+
+function caseInRangeZ(cx,cy,range){ //fonction donnant les pièces dans une portée donnée (Z: méthode Zone)
+	var cases = []
+	var dist
+	var xStart = (cx - range >= 0) ? cx - range  : 0
+	var xEnd = (cx + range < config.nCol) ? cx + range : config.nCol - 1
+	var yStart = (cy - range >= 0) ? cy - range  : 0
+	var yEnd = (cy + range < config.nLig) ? cy + range : config.nLig - 1
+	
+	for (var i = xStart; i <= xEnd; i++){
+		for (var j = yStart ; j <= yEnd ; j++){
+			dist =  Math.sqrt(Math.pow(i - cx,2)+pow(j - cy,2));
+			if (Math.round(dist) <= range ) {
+				cases.push([i,j])
+			}				
+		}
+	}
+	return cases
+
+}
+
+function selectCases(cases,callback){ //appelle un même callback(x,y) avec les coordonnées des cases du tableau cases 
+	for (var i = 0 ; i < cases.length ; i++){
+		callback(cases[i][0],cases[i][1])
+	}
 }
 
 // endGlobalFunctions -------------
@@ -318,7 +361,7 @@ class Joueur {
 class Piece {
 	//classe repr�sentant une pi�ce en g�n�ral
 	//les diff�rentes pi�ces seront des classes h�rit�es de celle-ci
-  constructor(img,name,atk,hp,cx,cy,player,mp,spells = []) {
+  constructor(img,name,atk,hp,cx,cy,player,mp,spell = []) {
 	  //on passe au constructeur l'image, le nom, les stats, la position initiale, le propri�taire d'une pi�ce
 	  //l'ID d'image, le nom, les stats seront d�termin�s de mani�re fixe lors de l'appel du superconstructeur
 	  //dans le constructeur des classes h�rit�es (= les pi�ces en elles m�mes)
@@ -334,7 +377,7 @@ class Piece {
     this.color = joueur[player].color;
     this.player = player;
     this.deplCD = false;
-    this.spell = spells
+	this.spell = spell
     chessGUI.pieces.push(this); //ajout de la pièce au tableau des éléments de la GUI
   }
 
@@ -381,11 +424,14 @@ class Piece {
       new SpellIcon(config.hud.spells.x + i * (config.hud.spells.spellSize * 1.1),config.hud.spells.y,config.hud.spells.spellSize,config.hud.spells.spellSize,this.spell[i])
     }
   }
+  
+  deselect(){
+	
+  }
 
   viewRanges() {
 	  //affiche les port�es d'attaque et de d�placement
 	  //(= cases o� ils est possible de se d�placer + pi�ces attaquables)
-    chessGUI.highlightCase = []; //r�initialisation des cases color�es
     var board = examineBoard();  //r�cup�ration du tableau repr�sentant l'�chiquier
     var depl = this.getDepl(board); //r�cup�ration de la liste des cases o� il est possible de de d�placer
 									//la m�thode getDepl est d�finie dans chaque classe de pi�ce, le d�placement �tant propre � celle-ci
@@ -484,16 +530,18 @@ class Piece {
 
 class Pion extends Piece {
   constructor(x, y, player) {
-    let spell = [
+    
+    super(0, "Pion", 50, 120, x, y, player, 3);
+	let spell = [
       new Spell("Allahu Akkbar",8,img.spell.Pion[0],0,0,this,
         function(spell){
-          spell.effet()
+          spell.effect()
         },
         function(){
           console.log("ok")
         })
     ];
-    super(0, "Pion", 50, 120, x, y, player, 3,spell);
+	this.spell = spell
   }
 
   getDepl(board) {
@@ -1050,6 +1098,7 @@ class SpellIcon extends Button {
     super("pieceHUD",x,y,w,h,spell.img,0,function(){
       this.spell.onUsed(this.spell)
     })
+	this.spell = spell
   }
 }
 
