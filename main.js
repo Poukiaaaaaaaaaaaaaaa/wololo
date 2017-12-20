@@ -238,11 +238,12 @@ function clearGUI(gui){
 function clearSelectedPiece(piece){
 	if (selectedPiece) selectedPiece.deselect() ; 
 	selectedPiece = piece
-	chessGUI.pieceHUD = []
+	clearGUI("pieceHUD")
 	clearGUI("highlightCase")
+	guiState = ""
 }
 
-function caseInRangeZ(cx,cy,range){ //fonction donnant les pièces dans une portée donnée (Z: méthode Zone)
+function caseInRangeZ(cx,cy,range,includeCenter = false){ //fonction donnant les pièces dans une portée donnée (Z: méthode Zone)
 	var cases = []
 	var dist
 	var xStart = (cx - range >= 0) ? cx - range  : 0
@@ -253,13 +254,25 @@ function caseInRangeZ(cx,cy,range){ //fonction donnant les pièces dans une port
 	for (var i = xStart; i <= xEnd; i++){
 		for (var j = yStart ; j <= yEnd ; j++){
 			dist =  Math.sqrt(Math.pow(i - cx,2)+pow(j - cy,2));
-			if (Math.round(dist) <= range ) {
+			if (Math.round(dist) <= range && !(i == cx && j == cy && !includeCenter) ) {
 				cases.push([i,j])
 			}				
 		}
 	}
+	 
+	
 	return cases
 
+}
+
+function piecesInCases(cases,board){ //renvoie un tableau contenant les pièces se trouvant sur les cases représentées par le tableau cases
+	var x,y
+	var pieces = []
+	for (var i = 0; i < cases.length; i++){
+		x = cases[i][0] ; y = cases[i][1]
+		if (board[x][y]) pieces.push(board[x][y])
+	}
+	return pieces
 }
 
 function selectCases(cases,callback){ //appelle un même callback(x,y) avec les coordonnées des cases du tableau cases 
@@ -268,14 +281,45 @@ function selectCases(cases,callback){ //appelle un même callback(x,y) avec les 
 	}
 }
 
-function startSelectionHLC(pieces, color){//démarre un processus de sélection de pièce, en utilisant les Highlight Cases
+function selectPieces(pieces,callback){ //appelle un même callback(piece) pour chaque pièce du tableau pieces
+	for (var i = 0 ; i < pieces.length ; i++){
+		callback(pieces[i])
+	}
+}
+
+
+function startSelectionHLC(pieces, color, hoverColor, callback){//démarre un processus de sélection de pièce, en utilisant les Highlight Cases
+  if (pieces.length > 0){
+  endSelectionHLC()
+  guiState = "selection"
+  clearGUI("highlightCase")
+  
+  var colorType = typeof color
+  var hoverColorType = typeof hoverColor
+  var caseColor, caseHoverColor
   var piece
+  
   for (var i = 0; i < pieces.length; i++){
-    piece = pieces[i] 
-    new HighlightCase(piece.x,piece.y
-             color,hoverColor,this,callback);
+	piece = pieces[i] 
+	if (colorType == "undefined") {caseColor = [200,200,200,50]}
+	else if (colorType == "function") {caseColor = color(piece)}
+	else {caseColor = color}
+	if (hoverColorType == "undefined") {caseHoverColor = [200,200,200,100]}
+	else if (hoverColorType == "function") {caseHoverColor = hoverColor(piece)}
+	else {caseHoverColor = hoverColor}
+    new HighlightCase(piece.cx,piece.cy,
+        caseColor,caseHoverColor,piece,function(){endSelectionHLC(callback,this.piece)});
+  }
   }
 } 
+
+function endSelectionHLC(callback,selected){
+	if (guiState == "selection") {
+		guiState = "";
+		clearGUI("highlightCase")
+		if (typeof callback == "function") callback(selected)
+	}
+}
 
 // endGlobalFunctions -------------
 
@@ -292,7 +336,7 @@ var img = {},
     isPlaying = false,
     windows = [],
     winIMG = [],
-    TG;
+    guiState = ""; //représente l'action en cours (qui détermine comment certains éléments se comportent)
 
 img.piece = { //objet contenant deux tableaux, "blanc" et "noir" : chacun contiendra les images des pi�ces de couleur correspodante
     blanc: [],
@@ -323,7 +367,8 @@ function preload() { //chargement des images
   img.piece.blanc[5] = loadImage("img/Pièces/roi_blanc.png"); // roi blanc
 
   img.spell.Pion = [];
-  img.spell.Pion[0] = loadImage("img/Spells/Pion/0.png");
+  img.spell.Pion[0] = loadImage("img/Spells/Pion/0.png")
+  img.spell.Pion[1] = loadImage("img/Spells/Pion/1.png");
 /*
    for (var i = 0; i < pieceClass.length; i++){
     img.spell[pieceClass[i]] = [];
@@ -355,7 +400,7 @@ class Joueur {
 	  //playerTurn, restauration du mana, réinitialisation des cases color�es
         var playerID = getArrayID(joueur,this);
         playerTurn = playerID;
-        chessGUI.highlightCase = [];
+        clearSelectedPiece()
         this.mana = config.maxMana;
         for (var i = 0; i < this.piece.length; i++) {
           this.piece[i].deplCD = false;
@@ -386,7 +431,7 @@ class Piece {
     this.color = joueur[player].color;
     this.player = player;
     this.deplCD = false;
-	this.spell = spell
+	this.spell = spell;
     chessGUI.pieces.push(this); //ajout de la pièce au tableau des éléments de la GUI
   }
 
@@ -397,7 +442,7 @@ class Piece {
       image(img.piece[this.color][this.img],
             this.x + config.border, this.y + config.border,
             config.tileSize - 2*config.border, config.tileSize - 2*config.border);
-      if (playerTurn == this.player && isCaseHovered(this.cx,this.cy)){
+      if (playerTurn == this.player && isCaseHovered(this.cx,this.cy) && guiState == ""){
     		// si le curseur est sur la pi�ce et qu'on peut la s�lectionner, affichage d'un indicateur
         fill(255,255,255,50);
         rect(convertPx(this.cx),convertPx(this.cy),
@@ -417,7 +462,7 @@ class Piece {
 
   onLeftClick() {
 	  //fonction appelée à chaque clic de la souris
-    if (isCaseHovered(this.cx,this.cy) && playerTurn == this.player) {
+    if (isCaseHovered(this.cx,this.cy) && playerTurn == this.player && guiState == "") {
 		//si le clic a eu lieu sur cette pièce :
       if (selectedPiece == this) {
         clearSelectedPiece(); return;
@@ -500,15 +545,19 @@ class Piece {
 	 }
   }
 
+	depl(cx,cy){
+		if (joueur[playerTurn].mana >= config.mana.depl){
+			this.move(cx,cy)
+		}
+	}
 
-  move(cx,cy) {
-  	if (joueur[playerTurn].mana >= config.mana.depl){
-  		this.cx = cx;
-  		this.cy = cy;
-  		joueur[playerTurn].mana -= config.mana.depl;
+  move(cx,cy) { 	
+	this.callPassive("onMoved",{x: cx, y: cy})
+  	this.cx = cx;
+  	this.cy = cy;
+  	joueur[playerTurn].mana -= config.mana.depl;
 
-      move(this,0.8,convertPx(cx),convertPx(cy));
-  	}
+    move(this,0.8,convertPx(cx),convertPx(cy));
   }
 
   // Fonctions à redéfinir dans chaque classe piece
@@ -542,13 +591,29 @@ class Pion extends Piece {
     
     super(0, "Pion", 50, 120, x, y, player, 3);
 	let spell = [
-      new Spell("Allahu Akkbar",8,img.spell.Pion[0],0,0,this,
-        function(spell){
-          spell.effect()
-        },
-        function(){
-          console.log("ok")
-        })
+		new Spell("Allahu Akkbar",8,img.spell.Pion[0],0,0,this,
+			function(spell){
+				spell.effect(spell)
+			},
+			function(spell){
+				 var hpCost = 20
+				 var board = examineBoard()
+				 if (spell.piece.hp > hpCost){
+					selectPieces(piecesInCases(caseInRangeZ(spell.piece.cx,spell.piece.cy,1),board),
+						function(target){damage(target,spell.piece,20)})
+					damage(spell.piece,undefined,hpCost) 
+				 }
+			}),
+		new Spell("Hehe boiiiii",12,img.spell.Pion[1],0,0,this,
+			function(spell){
+				var pieces = []
+				var board = examineBoard()
+				selectCases(caseInRangeZ(spell.piece.cx,spell.piece.cy,2),function(x,y){if (board[x][y]) {pieces.push(board[x][y])}})
+				startSelectionHLC(pieces, [255,0,255,50], [255,0,255,100], 
+				function(selected){
+					console.log(selected.name)
+				})
+			})
     ];
 	this.spell = spell
   }
@@ -579,6 +644,11 @@ class Pion extends Piece {
 	return atk;
   }
 
+  // onMoved(arg){
+	// var direction = this.player
+	// var kyojin = (8 * direction) 
+  // }
+  
 }
 
 class Tour extends Piece {
@@ -1096,6 +1166,7 @@ class Spell {
     this.locked = baseLocked;
     this.onUsed = onUsed;
     this.effect = effect;
+	this.piece = piece
   }
 
 
@@ -1105,7 +1176,7 @@ class Spell {
 class SpellIcon extends Button {
   constructor(x,y,w,h,spell){ 
     super("pieceHUD",x,y,w,h,spell.img,0,function(){
-      this.spell.onUsed(this.spell)
+      if (guiState == "") this.spell.onUsed(this.spell)
     })
 	this.spell = spell
   }
