@@ -336,7 +336,8 @@ var img = {},
     isPlaying = false,
     windows = [],
     winIMG = [],
-    guiState = ""; //représente l'action en cours (qui détermine comment certains éléments se comportent)
+    guiState = "", //représente l'action en cours (qui détermine comment certains éléments se comportent)
+    victory = false;
 
 img.piece = { //objet contenant deux tableaux, "blanc" et "noir" : chacun contiendra les images des pi�ces de couleur correspodante
     blanc: [],
@@ -367,8 +368,8 @@ function preload() { //chargement des images
   img.piece.blanc[5] = loadImage("img/Pièces/roi_blanc.png"); // roi blanc
 
   img.spell.Pion = [];
-  img.spell.Pion[0] = loadImage("img/Spells/Pion/0.png")
-  img.spell.Pion[1] = loadImage("img/Spells/Pion/1.png");
+  img.spell.Pion[0] = loadImage("img/spells/Pion/0.png")
+  img.spell.Pion[1] = loadImage("img/spells/Pion/1.png");
 /*
    for (var i = 0; i < pieceClass.length; i++){
     img.spell[pieceClass[i]] = [];
@@ -505,7 +506,7 @@ class Piece {
   	} else {
   		color = [190,0,0,50];
   		hoverColor = [190,100,100,50];
-  		callback = function(){ this.piece.noManaError(convertPx(this.cx) + config.tileSize / 2,convertPx(this.cy) + config.tileSize / 2)}
+  		callback = function(){ this.piece.noManaError(convertPx(this.x) + config.tileSize / 2,convertPx(this.y) + config.tileSize / 2)}
   	}
 
   	for (var i = 0; i < atk.length; i++) {
@@ -552,10 +553,11 @@ class Piece {
 	}
 
   move(cx,cy) { 	
-	this.callPassive("onMoved",{x: cx, y: cy})
+	  this.callPassive("onMoved",{x: cx, y: cy})
   	this.cx = cx;
   	this.cy = cy;
   	joueur[playerTurn].mana -= config.mana.depl;
+    this.callPassive("onMovedDone",{x: cx, y: cy})
 
     move(this,0.8,convertPx(cx),convertPx(cy));
   }
@@ -579,28 +581,36 @@ class Piece {
   }
 
   callPassive(passive,arg){
-  	let passiveFunction = this[passive]
-  	if (typeof passiveFunction == "function"){
-  		return passiveFunction(arg);
+  	if (typeof this[passive] == "function"){
+      return this[passive](arg);
   	}
   }
 }
 
 class Pion extends Piece {
   constructor(x, y, player) {
-    
+
     super(0, "Pion", 50, 120, x, y, player, 3);
+
+    //modification des stats en fonction de la position
+    this.rawBaseHP = this.baseHP
+    var direction = this.player 
+    this.kyojin = Math.abs(((config.nLig - 1) * -direction) + this.cy)
+    this.baseHP = this.rawBaseHP + (this.rawBaseHP/50) * this.kyojin
+
+
 	let spell = [
-		new Spell("Allahu Akkbar",8,img.spell.Pion[0],0,0,this,
+		new Spell("Holy Duty",8,img.spell.Pion[0],0,0,this,
 			function(spell){
 				spell.effect(spell)
 			},
 			function(spell){
 				 var hpCost = 20
 				 var board = examineBoard()
+         var source = this.piece
 				 if (spell.piece.hp > hpCost){
 					selectPieces(piecesInCases(caseInRangeZ(spell.piece.cx,spell.piece.cy,1),board),
-						function(target){damage(target,spell.piece,20)})
+					   function(target){if (target.player != source.player)damage(target,spell.piece,20)})
 					damage(spell.piece,undefined,hpCost) 
 				 }
 			}),
@@ -644,11 +654,9 @@ class Pion extends Piece {
 	return atk;
   }
 
-  // onMoved(arg){
-	// var direction = this.player
-	// var kyojin = (8 * direction) 
-  // }
-  
+  onMovedDone(arg){
+    
+  }
 }
 
 class Tour extends Piece {
@@ -877,7 +885,7 @@ class Cavalier extends Piece {
 
 class Roi extends Piece {
   constructor(x, y, player) {
-    super(5, "Roi", 400, 30, x, y, player, 2);
+    super(5, "Roi", 30, 400, x, y, player, 2);
   }
 
   getDepl(board) {
@@ -954,9 +962,7 @@ class Roi extends Piece {
   }
 
   onDying(killer){
-    console.log(killer)
-    alert("Victoire de " + joueur[killer.player].name)
-    startGame()
+    victory = joueur[1-this.player]
   }
 
 }
@@ -1244,6 +1250,12 @@ function draw() {
         }
       }
     }
+
+  if (victory){
+    alert("Victoire de " + victory.name)
+    startGame()
+    victory = false
+  }
 
   if (debug) {
     fill(255); textSize(20);
