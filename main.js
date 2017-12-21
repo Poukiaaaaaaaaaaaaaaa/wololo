@@ -130,18 +130,26 @@ Array.prototype.spliceItem = function(item){
 
 function kill(target,killer){ //tue une pi�ce -> la supprime des deux tableaux dont elle fait partie :
   target.callPassive("onDying",killer)
+  killer.callPassive("onKilling",target)
 
   joueur[target.player].piece.spliceItem(target) //le tableau des pi�ces du propri�taire
 	chessGUI.pieces.spliceItem(target) //le tableau des �l�ments g�r�s par la GUI
 
+  killer.callPassive("onKillingDone",target)
 }
 
 function damage(target,source,dmg){ //inflig des d�g�ts � une pi�ce
+  target.callPassive("onDamaged",{source : source, damage : dmg})
+  source.callPassive("onDamaging",{target : target, damage : dmg})
+
   target.hp = target.hp - dmg
 
   if (target.hp < 1){
     kill(target,source) //si es PV de la pi�ce tombent en dessous de 0, la tue
   }
+
+  target.callPassive("onDamagedDone",{source : source, damage : dmg})
+  source.callPassive("onDamagingDone",{target : target, damage : dmg})
 
 }
 
@@ -597,6 +605,7 @@ class Pion extends Piece {
     var direction = this.player 
     this.kyojin = Math.abs(((config.nLig - 1) * -direction) + this.cy)
     this.baseHP = this.rawBaseHP + (this.rawBaseHP/50) * this.kyojin
+    this.hp = this.hp * this.baseHP / this.rawBaseHP
 
 
 	let spell = [
@@ -655,7 +664,12 @@ class Pion extends Piece {
   }
 
   onMovedDone(arg){
-    
+      //modification des stats en fonction de la position
+    var direction = this.player 
+    var prevBaseHP = this.baseHP
+    this.kyojin = Math.abs(((config.nLig - 1) * -direction) + this.cy)
+    this.baseHP = this.rawBaseHP + (this.rawBaseHP/50) * this.kyojin
+    this.hp = this.hp * this.baseHP / prevBaseHP
   }
 }
 
