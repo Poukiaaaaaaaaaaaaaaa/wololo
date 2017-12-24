@@ -345,7 +345,8 @@ var img = {},
     windows = [],
     winIMG = [],
     guiState = "", //représente l'action en cours (qui détermine comment certains éléments se comportent)
-    victory = false;
+    victory = false,
+	undefPiece;
 
 img.piece = { //objet contenant deux tableaux, "blanc" et "noir" : chacun contiendra les images des pi�ces de couleur correspodante
     blanc: [],
@@ -548,10 +549,16 @@ class Piece {
   }
 
   attack(target){
-    if (joueur[playerTurn].mana >= config.mana.atk){
+    target.callPassive("onAttacked",{source : this, dmg : this.atk})
+	this.callPassive("onAttacking",{target : target, dmg : this.atk})
+	
+	if (joueur[playerTurn].mana >= config.mana.atk){
 		damage(target,this,this.atk)
 		joueur[playerTurn].mana -= config.mana.atk
 	 }
+	 
+	target.callPassive("onAttacked",{source : this, dmg : this.atk})
+	this.callPassive("onAttacking",{target : target, dmg : this.atk})
   }
 
 	depl(cx,cy){
@@ -614,7 +621,7 @@ class Pion extends Piece {
 				spell.effect(spell)
 			},
 			function(spell){
-				 var hpCost = 20
+				 var hpCost = 50
 				 var board = examineBoard()
          var source = this.piece
 				 if (spell.piece.hp > hpCost){
@@ -1222,6 +1229,7 @@ function startGame() {
        text(joueur[playerTurn].mana + "/" + config.maxMana, this.x + this.w + config.unit * 2, this.y + this.h/2);}
    chessGUI.hud.push(manaGauge)}
   joueur = [new Joueur("blanc", "Gilbert"), new Joueur("noir", "Patrick")];
+  undefPiece = new Piece(0,"undef",0,0,0,0,undefined,0,[])
   playerTurn = 1;
   guiElements.playerTurnText = new Text("hud",config.hud.playerTurnText.x,config.hud.playerTurnText.y,joueur[playerTurn].name + " is playing","Arial",config.unit*3,[0,255,0],LEFT,TOP);
   guiElements.golds = new Text("hud",config.hud.goldText.x,config.hud.goldText.y,joueur[playerTurn].gold + " arjan","Arial",config.unit*3,[255,255,0],LEFT,TOP);
