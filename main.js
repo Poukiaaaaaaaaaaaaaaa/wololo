@@ -173,7 +173,7 @@ function examineBoard() {
 }
 
 function examineBoardHLC() { //même effet de examine board, mais remplit les cases avec les highlightCase au lieu des pièces
-	
+
 	var board = []; //cr�e un tableau
 
 	for (var i = 0; i < config.nCol; i++){ //y place autant de sous tableaux qu'il y a de colonnes,
@@ -185,7 +185,7 @@ function examineBoardHLC() { //même effet de examine board, mais remplit les ca
     board[hlc.x][hlc.y] = hlc		//dans la case correspodante dans le tableau
   }
 
-	return board;	
+	return board;
 }
 
 function convertPx(x) { //convertit une coordonn�e exprim�e en cases en une coordonn�e en pixels, pour l'affichage
@@ -244,7 +244,7 @@ function clearGUI(gui){
 }
 
 function clearSelectedPiece(piece){
-	if (selectedPiece) selectedPiece.deselect() ; 
+	if (selectedPiece) selectedPiece.deselect() ;
 	selectedPiece = piece
 	clearGUI("pieceHUD")
 	clearGUI("highlightCase")
@@ -258,17 +258,17 @@ function caseInRangeZ(cx,cy,range,includeCenter = false){ //fonction donnant les
 	var xEnd = (cx + range < config.nCol) ? cx + range : config.nCol - 1
 	var yStart = (cy - range >= 0) ? cy - range  : 0
 	var yEnd = (cy + range < config.nLig) ? cy + range : config.nLig - 1
-	
+
 	for (var i = xStart; i <= xEnd; i++){
 		for (var j = yStart ; j <= yEnd ; j++){
 			dist =  Math.sqrt(Math.pow(i - cx,2)+pow(j - cy,2));
 			if (Math.round(dist) <= range && !(i == cx && j == cy && !includeCenter) ) {
 				cases.push([i,j])
-			}				
+			}
 		}
 	}
-	 
-	
+
+
 	return cases
 
 }
@@ -283,7 +283,7 @@ function piecesInCases(cases,board){ //renvoie un tableau contenant les pièces 
 	return pieces
 }
 
-function selectCases(cases,callback){ //appelle un même callback(x,y) avec les coordonnées des cases du tableau cases 
+function selectCases(cases,callback){ //appelle un même callback(x,y) avec les coordonnées des cases du tableau cases
 	for (var i = 0 ; i < cases.length ; i++){
 		callback(cases[i][0],cases[i][1])
 	}
@@ -295,31 +295,42 @@ function selectPieces(pieces,callback){ //appelle un même callback(piece) pour 
 	}
 }
 
+function selectPiecesConditional(pieces,callback,condition = []){
+  //Appelle un même callback(piece) pour chaque pièce du tableau pieces qui remplit les conditions
+  //les conditions sont des fonctions prenant en paramètre piece[i] et renvoient true ou false
+	pieceLoop:for (var i = 0 ; i < pieces.length ; i++){
+    for (var j = 0 ; j < condition.length; j++){
+      if (!condition[j](pieces[i])) break pieceLoop
+    }
+    callback(pieces[i])
+	}
+}
+
 
 function startSelectionHLC(pieces, color, hoverColor, callback){//démarre un processus de sélection de pièce, en utilisant les Highlight Cases
   if (pieces.length > 0){
-  endSelectionHLC()
-  guiState = "selection"
-  clearGUI("highlightCase")
-  
-  var colorType = typeof color
-  var hoverColorType = typeof hoverColor
-  var caseColor, caseHoverColor
-  var piece
-  
-  for (var i = 0; i < pieces.length; i++){
-	piece = pieces[i] 
-	if (colorType == "undefined") {caseColor = [200,200,200,50]}
-	else if (colorType == "function") {caseColor = color(piece)}
-	else {caseColor = color}
-	if (hoverColorType == "undefined") {caseHoverColor = [200,200,200,100]}
-	else if (hoverColorType == "function") {caseHoverColor = hoverColor(piece)}
-	else {caseHoverColor = hoverColor}
-    new HighlightCase(piece.cx,piece.cy,
-        caseColor,caseHoverColor,piece,function(){endSelectionHLC(callback,this.piece)});
+    endSelectionHLC()
+    guiState = "selection"
+    clearGUI("highlightCase")
+
+    var colorType = typeof color
+    var hoverColorType = typeof hoverColor
+    var caseColor, caseHoverColor
+    var piece
+
+    for (var i = 0; i < pieces.length; i++){
+    	piece = pieces[i]
+    	if (colorType == "undefined") {caseColor = [200,200,200,50]}
+    	else if (colorType == "function") {caseColor = color(piece)}
+    	else {caseColor = color}
+    	if (hoverColorType == "undefined") {caseHoverColor = [200,200,200,100]}
+    	else if (hoverColorType == "function") {caseHoverColor = hoverColor(piece)}
+    	else {caseHoverColor = hoverColor}
+        new HighlightCase(piece.cx,piece.cy,
+            caseColor,caseHoverColor,piece,function(){endSelectionHLC(callback,this.piece)});
+    }
   }
-  }
-} 
+}
 
 function endSelectionHLC(callback,selected){
 	if (guiState == "selection") {
@@ -488,9 +499,9 @@ class Piece {
       new SpellIcon(config.hud.spells.x + i * (config.hud.spells.spellSize * 1.1),config.hud.spells.y,config.hud.spells.spellSize,config.hud.spells.spellSize,this.spell[i])
     }
   }
-  
+
   deselect(){
-	
+
   }
 
   viewRanges() {
@@ -551,12 +562,12 @@ class Piece {
   attack(target){
     target.callPassive("onAttacked",{source : this, dmg : this.atk})
 	this.callPassive("onAttacking",{target : target, dmg : this.atk})
-	
+
 	if (joueur[playerTurn].mana >= config.mana.atk){
 		damage(target,this,this.atk)
 		joueur[playerTurn].mana -= config.mana.atk
 	 }
-	 
+
 	target.callPassive("onAttacked",{source : this, dmg : this.atk})
 	this.callPassive("onAttacking",{target : target, dmg : this.atk})
   }
@@ -567,7 +578,7 @@ class Piece {
 		}
 	}
 
-  move(cx,cy) { 	
+  move(cx,cy) {
 	  this.callPassive("onMoved",{x: cx, y: cy})
   	this.cx = cx;
   	this.cy = cy;
@@ -609,7 +620,7 @@ class Pion extends Piece {
 
     //modification des stats en fonction de la position
     this.rawBaseHP = this.baseHP
-    var direction = this.player 
+    var direction = this.player
     this.kyojin = Math.abs(((config.nLig - 1) * -direction) + this.cy)
     this.baseHP = this.rawBaseHP + (this.rawBaseHP/50) * this.kyojin
     this.hp = this.hp * this.baseHP / this.rawBaseHP
@@ -627,15 +638,17 @@ class Pion extends Piece {
 				 if (spell.piece.hp > hpCost){
 					selectPieces(piecesInCases(caseInRangeZ(spell.piece.cx,spell.piece.cy,1),board),
 					   function(target){if (target.player != source.player)damage(target,spell.piece,20)})
-					damage(spell.piece,undefined,hpCost) 
+					damage(spell.piece,undefPiece,hpCost)
 				 }
 			}),
 		new Spell("Hehe boiiiii",12,img.spell.Pion[1],0,0,this,
 			function(spell){
 				var pieces = []
 				var board = examineBoard()
-				selectCases(caseInRangeZ(spell.piece.cx,spell.piece.cy,2),function(x,y){if (board[x][y]) {pieces.push(board[x][y])}})
-				startSelectionHLC(pieces, [255,0,255,50], [255,0,255,100], 
+				selectPiecesConditional(piecesInCases(caseInRangeZ(spell.piece.cx,spell.piece.cy,2),board),
+            function(piece){pieces.push(piece)},
+            [function(piece){ ; if (piece.player == spell.piece.player) return false ; return true}])
+				startSelectionHLC(pieces, [255,0,255,50], [255,0,255,100],
 				function(selected){
 					console.log(selected.name)
 				})
@@ -672,7 +685,7 @@ class Pion extends Piece {
 
   onMovedDone(arg){
       //modification des stats en fonction de la position
-    var direction = this.player 
+    var direction = this.player
     var prevBaseHP = this.baseHP
     this.kyojin = Math.abs(((config.nLig - 1) * -direction) + this.cy)
     this.baseHP = this.rawBaseHP + (this.rawBaseHP/50) * this.kyojin
@@ -992,6 +1005,24 @@ class Roi extends Piece {
   var pieceClass = [Pion,Tour,Fou,Reine,Cavalier,Roi]
 }
 
+class StaticImage {
+  constructor(gui,img,x,y,w = undefined,h = undefined){
+    this.x = x
+    this.y = y
+    this.w = w
+    this.h = h
+    this.img = img
+    this.gui = gui
+
+    chessGUI[gui].push(this)
+  }
+
+  draw(){
+    image(this.img,this.x,this.y,this.w,this.h)
+  }
+
+}
+
 class Button {
   constructor(gui,x,y,w,h,img,hovercallback,callback) {
     this.x = x;
@@ -1201,7 +1232,7 @@ class Spell {
 }
 
 class SpellIcon extends Button {
-  constructor(x,y,w,h,spell){ 
+  constructor(x,y,w,h,spell){
     super("pieceHUD",x,y,w,h,spell.img,0,function(){
       if (guiState == "") this.spell.onUsed(this.spell)
     })
@@ -1212,6 +1243,11 @@ class SpellIcon extends Button {
 // endClass ----------
 
 // reset function
+
+/*function startTitle(){
+  img()
+}*/
+
 function startGame() {
 
   d = new Date();
@@ -1229,7 +1265,7 @@ function startGame() {
        text(joueur[playerTurn].mana + "/" + config.maxMana, this.x + this.w + config.unit * 2, this.y + this.h/2);}
    chessGUI.hud.push(manaGauge)}
   joueur = [new Joueur("blanc", "Gilbert"), new Joueur("noir", "Patrick")];
-  undefPiece = new Piece(0,"undef",0,0,0,0,undefined,0,[])
+  undefPiece = Piece.prototype ; undefPiece.name = "undef"
   playerTurn = 1;
   guiElements.playerTurnText = new Text("hud",config.hud.playerTurnText.x,config.hud.playerTurnText.y,joueur[playerTurn].name + " is playing","Arial",config.unit*3,[0,255,0],LEFT,TOP);
   guiElements.golds = new Text("hud",config.hud.goldText.x,config.hud.goldText.y,joueur[playerTurn].gold + " arjan","Arial",config.unit*3,[255,255,0],LEFT,TOP);
