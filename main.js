@@ -306,7 +306,6 @@ function selectPiecesConditional(pieces,callback,condition = []){
 	}
 }
 
-
 function startSelectionHLC(pieces, color, hoverColor, callback){//démarre un processus de sélection de pièce, en utilisant les Highlight Cases
   if (pieces.length > 0){
     endSelectionHLC()
@@ -340,6 +339,22 @@ function endSelectionHLC(callback,selected){
 	}
 }
 
+var titleView = {
+  mainPage : function(){
+    clearGUI("hud")
+    {let titleW = config.unit * 90, titleH = config.unit * 18
+      new StaticImage("hud",img.title[1],config.canvasW/2 - titleW / 2,config.canvasH/5 - titleH / 2,titleW,titleH)}
+    {let playButtonW = config.unit * 50, playButtonH = config.unit * 20
+      new Button("hud",img.title[2],config.canvasW/2 - playButtonW / 2,config.canvasH/5*3 - playButtonH / 2,playButtonW,playButtonH,
+    function(){fill([200,200,200,50]) ; rect(this.x,this.y,this.w,this.h)},
+    function(){startGame()})}
+  },
+  settings : function(){
+    clearGUI("hud")
+    new Text("hud",config.canvasW/2,config.canvasH/8,"SETTINGS","Verdana",50,200)
+  //  guiElements. new Text("hud",config.canvasW/4,config.canvasH/4,"Joueur 1")
+  }
+}
 // endGlobalFunctions -------------
 
 // globalVars --------------
@@ -350,22 +365,23 @@ var img = {},
     playerTurn = 0, //ID (numérique) du joueur dont c'est le tour
     actTime, //le temps (relatif au 1/1/1970)
     d, //le futur objet date
-    joueur = [],
-    guiElements = {},
-    isPlaying = false,
-    windows = [],
+    joueur = [], //l'objet contenant les joueurs
+    guiElements = {}, //un objet contenant certains objet p55 dont un veut conserver un accès rapide
+    isPlaying = false, //variable indiquant si la partie est en cours (obsolète ?)
+    windows = [], //objet contenant les fenêtres (sera intégré à chessGUI)
     winIMG = [],
     guiState = "", //représente l'action en cours (qui détermine comment certains éléments se comportent)
     victory = false,
-	undefPiece;
+	  undefPiece;
 
 img.piece = { //objet contenant deux tableaux, "blanc" et "noir" : chacun contiendra les images des pi�ces de couleur correspodante
     blanc: [],
     noir: [] };
 img.spell = {};
 img.HUD = [];
+img.title = [];
 
-var chessGUI = { pieces: [], highlightCase: [], hud: [], pieceHUD: [], windows: [] };  //objet fondamental, qui contient tous les éléments gérés par le HUD,
+var chessGUI = {background: [], pieces: [], highlightCase: [], hud: [], pieceHUD: [], windows: []};  //objet fondamental, qui contient tous les éléments gérés par le HUD,
 															//c'est à dire qui seront affichés et/ou qui réagiront au clic
 // endGlobalVars --------------
 
@@ -374,6 +390,10 @@ var chessGUI = { pieces: [], highlightCase: [], hud: [], pieceHUD: [], windows: 
 function preload() { //chargement des images
   config.background = loadImage("img/background.png");
   img.HUD[0] = loadImage("img/HUD/end_turn.png");
+  img.title[0] = loadImage("img/title_background.png")
+  img.title[1] = loadImage("img/logo.png")
+  img.title[2] = loadImage("img/playButton.png")
+
   img.piece.noir[0] = loadImage("img/Pièces/pion_noir.png"); // pion noir
   img.piece.noir[1] = loadImage("img/Pièces/tour_noire.png"); // tour noire
   img.piece.noir[2] = loadImage("img/Pièces/fou_noir.png"); // fou noir
@@ -390,6 +410,7 @@ function preload() { //chargement des images
   img.spell.Pion = [];
   img.spell.Pion[0] = loadImage("img/spells/Pion/0.png")
   img.spell.Pion[1] = loadImage("img/spells/Pion/1.png");
+
 /*
    for (var i = 0; i < pieceClass.length; i++){
     img.spell[pieceClass[i]] = [];
@@ -1001,6 +1022,20 @@ class Roi extends Piece {
 
 }
 
+class PrePiece{
+  constructor(Piece,cx,cy,player){
+    this.Piece = Piece
+    this.cx = cx
+    this.cy = cy
+    this.player = player
+  }
+
+  summon(){
+    new this.Piece(this.cx,this.cy,this.player)
+  }
+
+}
+
 { //création du tableau des classes
   var pieceClass = [Pion,Tour,Fou,Reine,Cavalier,Roi]
 }
@@ -1024,7 +1059,7 @@ class StaticImage {
 }
 
 class Button {
-  constructor(gui,x,y,w,h,img,hovercallback,callback) {
+  constructor(gui,img,x,y,w,h,hovercallback,callback) {
     this.x = x;
     this.y = y;
     this.w = w;
@@ -1233,7 +1268,7 @@ class Spell {
 
 class SpellIcon extends Button {
   constructor(x,y,w,h,spell){
-    super("pieceHUD",x,y,w,h,spell.img,0,function(){
+    super("pieceHUD",spell.img,x,y,w,h,0,function(){
       if (guiState == "") this.spell.onUsed(this.spell)
     })
 	this.spell = spell
@@ -1244,9 +1279,12 @@ class SpellIcon extends Button {
 
 // reset function
 
-/*function startTitle(){
-  img()
-}*/
+function startTitle(){
+  joueur = [{name : "Gilbert", color : "blanc"},{name : "Patrick", color : "noir"}]
+  clearGUI()
+  new StaticImage("background",img.title[0],0,0,config.canvasW,config.canvasH)
+  titleView.mainPage()
+}
 
 function startGame() {
 
@@ -1254,7 +1292,10 @@ function startGame() {
   actTime = d.getTime();
 
   clearGUI();
-  new Button("hud",config.hud.button.x,config.hud.button.y,config.hud.button.w,config.hud.button.h,img.HUD[0],0,function(){joueur[1 - playerTurn].startTurn()})
+  new StaticImage("background",config.background, 0, 0, config.canvasW, config.canvasH);
+  {let chessBoard = {draw : drawBoard}
+  chessGUI.background.push(chessBoard)}
+  new Button("hud",img.HUD[0],config.hud.button.x,config.hud.button.y,config.hud.button.w,config.hud.button.h,0,function(){joueur[1 - playerTurn].startTurn()})
   {let manaGauge = config.hud.manaGauge;
    manaGauge.draw = function(){
        fill(200,200,255);
@@ -1283,22 +1324,14 @@ function setup() {
 
   textFont("Arial");
 
-  startGame();
+  startTitle();
 }
 
 function draw() {
 
-  image(config.background, 0, 0, config.canvasW, config.canvasH);
-
   d = new Date();
   actTime = d.getTime();
 
-  if (!isPlaying) {
-
-  }
-
-  if (isPlaying) {
-  	drawBoard();
     for (var element in chessGUI) {
       if (chessGUI.hasOwnProperty(element)) {
         for (var i = 0; i < chessGUI[element].length; i++) {
@@ -1307,7 +1340,6 @@ function draw() {
           }
         }
       }
-    }
 
   if (victory){
     alert("Victoire de " + victory.name)
