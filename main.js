@@ -351,8 +351,20 @@ var titleView = {
   },
   settings : function(){
     clearGUI("hud")
-    new Text("hud",config.canvasW/2,config.canvasH/8,"SETTINGS","Verdana",50,200)
-  //  guiElements. new Text("hud",config.canvasW/4,config.canvasH/4,"Joueur 1")
+    new Text("hud",config.canvasW/2,config.canvasH/8,"SETTINGS","Verdana",50,176)
+
+    guiElements.settingsPlayerName = []
+    for (let i = 0; i < joueur.length; i++){
+		guiElements.settingsPlayerName[i] = new Text(
+			"hud",config.canvasW/4,config.canvasH/4 + i * config.unit * 4,"Joueur "+(i+1)+" : "+joueur[i].name,"arial",config.unit * 3,176,LEFT,TOP)
+		let butno = new Button(
+			"hud",img.title[3],config.canvasW/4 + config.unit * 40,config.canvasH/4 + i * config.unit * 4,config.unit * 3,config.unit*3,
+			function(){fill([200,200,200,50]) ; rect(this.x,this.y,this.w,this.h)},
+			function(){joueur[this.player].name = prompt("Name") ;
+				guiElements.settingsPlayerName[this.player].text = "Joueur "+(this.player+1)+" : "+joueur[this.player].name})
+			butno.player = i
+    }
+
   }
 }
 // endGlobalFunctions -------------
@@ -372,7 +384,7 @@ var img = {},
     winIMG = [],
     guiState = "", //représente l'action en cours (qui détermine comment certains éléments se comportent)
     victory = false,
-	  undefPiece;
+	undefPiece;
 
 img.piece = { //objet contenant deux tableaux, "blanc" et "noir" : chacun contiendra les images des pi�ces de couleur correspodante
     blanc: [],
@@ -381,7 +393,7 @@ img.spell = {};
 img.HUD = [];
 img.title = [];
 
-var chessGUI = {background: [], pieces: [], highlightCase: [], hud: [], pieceHUD: [], windows: []};  //objet fondamental, qui contient tous les éléments gérés par le HUD,
+var chessGUI = {background: [], pieces: [], highlightCase: [], hud: [], pieceHUD: [], windows: []};  //objet fondamental, qui contient tous les éléments gérés par le GUI,
 															//c'est à dire qui seront affichés et/ou qui réagiront au clic
 // endGlobalVars --------------
 
@@ -393,6 +405,7 @@ function preload() { //chargement des images
   img.title[0] = loadImage("img/title_background.png")
   img.title[1] = loadImage("img/logo.png")
   img.title[2] = loadImage("img/playButton.png")
+  img.title[3] = loadImage("img/edit.png")
 
   img.piece.noir[0] = loadImage("img/Pièces/pion_noir.png"); // pion noir
   img.piece.noir[1] = loadImage("img/Pièces/tour_noire.png"); // tour noire
@@ -1275,6 +1288,7 @@ class SpellIcon extends Button {
   }
 }
 
+
 // endClass ----------
 
 // reset function
@@ -1305,7 +1319,7 @@ function startGame() {
        textAlign(LEFT, CENTER); textSize(config.unit * 4); fill(255);
        text(joueur[playerTurn].mana + "/" + config.maxMana, this.x + this.w + config.unit * 2, this.y + this.h/2);}
    chessGUI.hud.push(manaGauge)}
-  joueur = [new Joueur("blanc", "Gilbert"), new Joueur("noir", "Patrick")];
+  joueur = joueur || [new Joueur("blanc", "Gilbert"), new Joueur("noir", "Patrick")];
   undefPiece = Piece.prototype ; undefPiece.name = "undef"
   playerTurn = 1;
   guiElements.playerTurnText = new Text("hud",config.hud.playerTurnText.x,config.hud.playerTurnText.y,joueur[playerTurn].name + " is playing","Arial",config.unit*3,[0,255,0],LEFT,TOP);
