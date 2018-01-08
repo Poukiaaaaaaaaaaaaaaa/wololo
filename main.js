@@ -305,7 +305,7 @@ function selectPiecesConditional(pieces,callback,condition = []){
 	}
 }
 
-function startSelectionHLC(pieces, color, hoverColor, callback){//démarre un processus de sélection de pièce, en utilisant les Highlight Cases
+function startPieceSelectionHLC(pieces, color, hoverColor, callback){ //démarre un processus de sélection de pièce, en utilisant les Highlight Cases
   if (pieces.length > 0){
     endSelectionHLC()
     guiState = "selection"
@@ -330,6 +330,31 @@ function startSelectionHLC(pieces, color, hoverColor, callback){//démarre un pr
   }
 }
 
+function startCasesSelectionHLC(cases, color, hoverColor, callback){ //démarre un processus de sélection de case, en utilisant les Highlight Cases
+  if (cases.length > 0){
+    endSelectionHLC()
+    guiState = "selection"
+    clearGUI("highlightCase")
+
+    var colorType = typeof color
+    var hoverColorType = typeof hoverColor
+    var caseColor, caseHoverColor
+    var case_ // le _ est là pour faire la différence avec case, qui est un mot-clé JS
+
+    for (var i = 0; i < cases.length; i++){
+    	case_ = cases[i]
+    	if (colorType == "undefined") {caseColor = [200,200,200,50]}
+    	else if (colorType == "function") {caseColor = color(piece)}
+    	else {caseColor = color}
+    	if (hoverColorType == "undefined") {caseHoverColor = [200,200,200,100]}
+    	else if (hoverColorType == "function") {caseHoverColor = hoverColor(piece)}
+    	else {caseHoverColor = hoverColor}
+        new HighlightCase(case_[0],case_[1],
+            caseColor,caseHoverColor,undefPiece,function(){endSelectionHLC(callback,{x : this.x, y: this.y})});
+    }
+  }
+}
+
 function endSelectionHLC(callback,selected){
 	if (guiState == "selection") {
 		guiState = "";
@@ -337,6 +362,7 @@ function endSelectionHLC(callback,selected){
 		if (typeof callback == "function") callback(selected)
 	}
 }
+
 
 var titleView = {
 	mainPage : function(){
@@ -430,9 +456,12 @@ function preload() { //chargement des images
   img.piece.blanc[5] = loadImage("img/Pièces/roi_blanc.png"); // roi blanc
 
   img.spell.Pion = [];
-  img.spell.Pion[0] = loadImage("img/spells/Pion/0.png")
+  img.spell.Pion[0] = loadImage("img/spells/Pion/0.png");
   img.spell.Pion[1] = loadImage("img/spells/Pion/1.png");
   img.spell.Pion[2] = loadImage("img/spells/Pion/2.png");
+  img.spell.Tour = [];
+  img.spell.Tour[0] = loadImage("img/spells/Tour/0.png");
+  img.spell.Tour[1] = loadImage("img/spells/Tour/1.png");
 
 /*
    for (var i = 0; i < pieceClass.length; i++){
@@ -472,7 +501,6 @@ class Joueur {
 		clearSelectedPiece()
 		this.mana = config.maxMana;
 		for (var i = 0; i < this.piece.length; i++) {
-			this.piece[i].deplCD = false;
 			this.piece[i].startTurn();
 		}
 		
@@ -490,19 +518,22 @@ class Piece {
 	  //on passe au constructeur l'image, le nom, les stats, la position initiale, le propri�taire d'une pi�ce
 	  //l'ID d'image, le nom, les stats seront d�termin�s de mani�re fixe lors de l'appel du superconstructeur
 	  //dans le constructeur des classes h�rit�es (= les pi�ces en elles m�mes)
-    this.img = img;
-    this.name = name;
-    this.atk = atk;
-    this.baseHP = hp;
-    this.hp = hp;
-	  this.mp = mp;
-    this.cx = cx;
-    this.cy = cy;
-    this.activeSpells = [];
-    this.color = joueur[player].color;
-    this.player = player;
-    this.deplCD = false;
-	this.spell = spell;
+    this.img = img; //image représentant la pièce : il s'agit d'un numéro, qui indique une entrée du tableau img.piece.[noir/blanc]
+    this.name = name; //nom de la pièce (pas vraiment utilisé)
+    this.atk = atk; //stat d'attaque de la pièce
+	this.baseAtk = atk //stat d'attaque d'origine de la pièce 
+    this.baseHP = hp; //stat de pv max d'origine de la pièce
+	this.maxHP = hp //stat de pv max de la pièce
+    this.hp = hp; //pv actuels de la pièce
+	this.mp = mp; //stat de point de déplacements (obsolète)
+    this.cx = cx; //position x (en cases)
+    this.cy = cy; //position y (en cases)
+    this.color = joueur[player].color; //string représentant le couleur de la pièce
+    this.player = player; //numéro du joueur possédan la pièce
+    this.deplCD = false; //valeur bool indiquant si la pièce peut oui ou non se déplacer (possible une fois par tour)
+	this.spell = spell; //spells (actifs) de la pièce
+	this.effects = [] //effets appliqués à la pièce
+	
     chessGUI.pieces.push(this); //ajout de la pièce au tableau des éléments de la GUI
   }
   
@@ -526,7 +557,7 @@ class Piece {
     0,0,config.border,config.border);
     fill("green");
     rect(this.x,this.y + config.tileSize * 0.8,
-    config.tileSize / this.baseHP * this.hp,config.tileSize * 0.2,
+    config.tileSize / this.maxHP * this.hp,config.tileSize * 0.2,
     0,0,config.border,config.border);
   }
 
@@ -654,33 +685,44 @@ class Piece {
     }
   }
 
-  callPassive(passive,arg){
-  	if (typeof this[passive] == "function"){
-      return this[passive](arg);
-  	}
-  }
+	callPassive(passive,arg){
+		if (typeof this[passive] == "function"){
+			return this[passive](arg);
+		}
+	}
   
 	startTurn(){ //a ne pas confondre avec le passif onStartTurn
+		this.deplCD = false;
+		this.atk = this.baseAtk
+		let prevMaxHP = this.maxHP ;
+		this.maxHP = this.baseHP ;
+		this.hp = this.hp * this.maxHP / prevMaxHP
 		for (var i = 0; i < this.spell.length; i++){
 			if (this.spell[i].actualCooldown > 0) this.spell[i].actualCooldown--
 		}
+		for (var i = 0; i < this.effects.length; i++){
+			this.effects[i].apply()
+		}
+		
+		this.callPassive("onStartTurn")
+		
 	}
+	
+	applyEffect(duration,turn,end){
+		this.effects.push(new Effect(this,duration,turn,end))
+	}
+	
 }
 
 class Pion extends Piece {
   constructor(x, y, player) {
 
     super(0, "Pion", 50, 120, x, y, player, 3);
-
-    //modification des stats en fonction de la position
-    this.rawBaseHP = this.baseHP
-    var direction = this.player
-    this.kyojin = Math.abs(((config.nLig - 1) * -direction) + this.cy)
-    this.baseHP = this.rawBaseHP + (this.rawBaseHP/50) * this.kyojin
-    this.hp = this.hp * this.baseHP / this.rawBaseHP
-	this.baseAtk = this.atk
-	this.atk = this.baseAtk * ( 1 + this.kyojin / config.nLig)
 	
+	var direction = this.player
+	this.kyojin = Math.abs(((config.nLig - 1) * -direction) + this.cy)
+	
+    //modification des stats en fonction de la position
 
 	let spell = [
 		new Spell("Holy Duty",8,1,img.spell.Pion[0],0,0,this,
@@ -706,7 +748,7 @@ class Pion extends Piece {
 				selectPiecesConditional(piecesInCases(caseInRangeZ(this.piece.cx,this.piece.cy,2),board),
 					function(piece){pieces.push(piece)},
 					[function(piece){if (piece.player == spell.piece.player) return false ; return true}])
-				startSelectionHLC(pieces, [255,0,255,50], [255,0,255,100],
+				startPieceSelectionHLC(pieces, [255,0,255,50], [255,0,255,100],
 				function(selected){
 					spell.effect(selected)
 				})
@@ -756,8 +798,8 @@ class Pion extends Piece {
 	var direction = ((this.player == 0) ? 1 : -1);
 	var x,y;
 	for (var i = -1; i < 2;i++){
-		x = this.x + i;
-		y = this.y + direction;
+		x = this.cx + i;
+		y = this.cy + direction;
 		if (x + 1 > 0 && x < config.nCol && y + 1 > 0 && y < config.nLig){
 			atk.push([x,y]);
 		}
@@ -765,20 +807,74 @@ class Pion extends Piece {
 	return atk;
   }
 
-  onMovedDone(arg){
-      //modification des stats en fonction de la position
-    var direction = this.player
-    var prevBaseHP = this.baseHP
-    this.kyojin = Math.abs(((config.nLig - 1) * -direction) + this.cy)
-    this.baseHP = this.rawBaseHP + (this.rawBaseHP/50) * this.kyojin
-    this.hp = this.hp * this.baseHP / prevBaseHP
-	this.atk = this.baseAtk * ( 1 + this.kyojin / config.nLig)
-  }
+	onStartTurn(){
+		var direction = this.player
+		
+		let prevMaxHP = this.maxHP
+		this.maxHP += this.kyojin * (this.baseHP / 50)
+		this.hp = this.hp * this.maxHP / prevMaxHP
+		
+		this.atk += this.baseAtk * (this.kyojin / config.nLig)
+		
+	}
+  
+	onMovedDone(){
+		  //modification des stats en fonction de la position
+		var direction = this.player
+		let prevKyojin = this.kyojin
+		this.kyojin = Math.abs(((config.nLig - 1) * -direction) + this.cy)
+		this.dKyojin = this.kyojin - prevKyojin
+		
+		let prevMaxHP = this.maxHP
+		this.maxHP += this.dKyojin * (this.baseHP / 50)
+		this.hp = this.hp * this.maxHP / prevMaxHP
+		
+		this.atk += this.baseAtk * (this.dKyojin / config.nLig)
+		
+	}
 }
 
 class Tour extends Piece {
   constructor(x, y, player) {
     super(1, "Tour", 20,200, x, y, player, 5);
+	
+	this.spell = [
+		new Spell("Rise of the army",6,3,img.spell.Tour[0],0,0,this,
+			function(){
+				this.effect()
+			},
+			function(){
+				selectPiecesConditional(piecesInCases(caseInRangeZ(this.piece.cx,this.piece.cy,3),examineBoard()),
+					function(pion){
+						pion.applyEffect(4,function(){this.piece.atk += 20})
+					}
+				)	
+			}
+		),
+		new Spell("Rise of the soldier",10,5,img.spell.Tour[1],0,false,this,
+			function(){
+				let cases = []
+				var spell = this
+				let board = examineBoard()
+				selectCases(caseInRangeZ(this.piece.cx,this.piece.cy,3),function(x,y){
+					if (!board[x][y]) cases.push([x,y])
+				});
+				startCasesSelectionHLC(cases, [255,0,255,50], [255,0,255,100],
+					function(targetCase){
+						spell.effect(targetCase)
+					}
+				)
+			},
+			function(targetCase){
+				let pion = new Pion(targetCase.x, targetCase.y, this.piece.player)
+				pion.applyEffect(4,0,function(){
+					kill(this.piece,undefPiece)
+				})
+				pion.name = "Tower Soldier"
+				joueur[this.piece.player].piece.push(pion)
+			}
+		)
+	]
   }
 
   getDepl(board) {
@@ -1333,7 +1429,7 @@ class SpellIcon extends Button {
 		super("pieceHUD",spell.img,x,y,w,h,0,function(){
 			if (guiState == ""){
 				if(joueur[this.spell.piece.player].mana >= this.spell.manaCost){
-					if (this.spell.actualCooldown == 0){
+					if (this.spell.actualCooldown == 0 && !this.spell.locked){
 						this.spell.onUsed(this.spell); //utilisation du spell
 						joueur[this.spell.piece.player].mana -= this.spell.manaCost;
 						this.spell.actualCooldown = this.spell.cooldown
@@ -1348,29 +1444,40 @@ class SpellIcon extends Button {
 		
 		this.draw = function(){
 			this.staticDraw()
-			if (this.spell.actualCooldown){
+			if (this.spell.actualCooldown || this.spell.locked){
 				fill([0,0,0,150]) 
 				rect(this.x,this.y,this.w,this.h)
 				fill(255)
 				textAlign(CENTER,CENTER) ; textSize(this.h * 0.8)
-				text(this.spell.actualCooldown,this.x + this.w/2, this.y + this.h/2)
+				if (this.spell.actualCooldown) text(this.spell.actualCooldown,this.x + this.w/2, this.y + this.h/2)
 			}
 		}
 	}
 }
 
 class Effect{ //classe représentant les effets sur la durée appliqués aux pièces
-	constructor(piece,duration,turnEffect = 0,endEffect = 0){
+	constructor(piece,duration,turnEffect = 0,endEffect = 0,direct = true){
 		this.piece = piece
 		this.turnEffect = turnEffect
 		this.endEffect = endEffect
 		this.duration = duration
 		this.remaining = duration
+		
+		if (direct && this.turnEffect) this.turnEffect()
 	}
 	
 	apply(){
 		this.remaining--
-		// thi
+		if (this.remaining == 0){
+			if(this.endEffect) this.endEffect()
+			this.destroy()
+		}else{
+			if (this.turnEffect) this.turnEffect()
+		}
+	}
+	
+	destroy(){
+		this.piece.effects.spliceItem(this)
 	}
 }
 
@@ -1416,6 +1523,7 @@ function startGame() {
 	guiElements.golds = new Text("hud",config.hud.goldText.x,config.hud.goldText.y,joueur[playerTurn].gold + " arjan","Arial",config.unit*3,[255,255,0],LEFT,TOP);
 	isPlaying = true;
 	initBoard();
+	joueur[playerTurn].startTurn()
 }
 // -------
 
