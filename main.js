@@ -462,6 +462,7 @@ function preload() { //chargement des images
   img.spell.Tour = [];
   img.spell.Tour[0] = loadImage("img/spells/Tour/0.png");
   img.spell.Tour[1] = loadImage("img/spells/Tour/1.png");
+  img.spell.Tour[2] = loadImage("img/spells/Tour/2.png");
 
 /*
    for (var i = 0; i < pieceClass.length; i++){
@@ -872,6 +873,40 @@ class Tour extends Piece {
 				})
 				pion.name = "Tower Soldier"
 				joueur[this.piece.player].piece.push(pion)
+			}
+		),
+		new Spell("Catapult",4,2,img.spell.Tour[2],0,false,this,
+			function(){
+				var spell = this
+				let range = []
+				for (var i = -5; i < 6; i++){
+					if (this.x + i < 0){
+					i = 0;
+					continue
+					}else if (this.x + i >= config.nCol) break
+					
+					range.push([this.x + i, this.y])
+				
+				}
+				for (var i = -5; i < 6; i++){
+					if (this.y + i < 0){
+					i = 0;
+					continue
+					}else if (this.y + i >= config.nLig) break
+					
+					range.push([this.x, this.y + i])
+				
+				}
+				
+				let targetPieces = piecesInCases(range,examineBoard())
+				let target = []
+				
+				selectPieces(targetPieces,
+					function(piece){
+						if ()
+					}
+				)
+				
 			}
 		)
 	]
