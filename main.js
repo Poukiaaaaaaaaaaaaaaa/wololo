@@ -895,29 +895,29 @@ class Tour extends Piece {
 				let range = []
 				for (var i = -5; i < 6; i++){
 					if (this.piece.cx + i < 0){
-					i = 0;
 					continue
 					}else if (this.piece.cx + i >= config.nCol) break
 					
-					range.push([this.piece.cx + i, this.piece.cy])
+					if (i) range.push([this.piece.cx + i, this.piece.cy])
 				
 				}
 				for (var i = -5; i < 6; i++){
 					if (this.piece.cy + i < 0){
-					i = 0;
 					continue
 					}else if (this.piece.cy + i >= config.nLig) break
 					
-					range.push([this.piece.cx, this.piece.cy + i])
+					if (i) range.push([this.piece.cx, this.piece.cy + i])
 				}
 				
+			
 				let inRange = piecesInCases(range,examineBoard())
 				let targetPieces = []
+				
 				
 				selectPieces(inRange,
 					function(target){
 						if (target.player != spell.piece.player){
-							targetPieces.push(piece)
+							targetPieces.push(target)
 						}
 					}
 				)
@@ -928,7 +928,7 @@ class Tour extends Piece {
 				
 			},
 			function(target){
-				damage(target,spell.piece,25)
+				damage(target,this.piece,25)
 			}
 		)
 	]
