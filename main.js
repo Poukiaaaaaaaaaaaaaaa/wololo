@@ -880,33 +880,41 @@ class Tour extends Piece {
 				var spell = this
 				let range = []
 				for (var i = -5; i < 6; i++){
-					if (this.x + i < 0){
+					if (this.piece.cx + i < 0){
 					i = 0;
 					continue
-					}else if (this.x + i >= config.nCol) break
+					}else if (this.piece.cx + i >= config.nCol) break
 					
-					range.push([this.x + i, this.y])
+					range.push([this.piece.cx + i, this.piece.cy])
 				
 				}
 				for (var i = -5; i < 6; i++){
-					if (this.y + i < 0){
+					if (this.piece.cy + i < 0){
 					i = 0;
 					continue
-					}else if (this.y + i >= config.nLig) break
+					}else if (this.piece.cy + i >= config.nLig) break
 					
-					range.push([this.x, this.y + i])
-				
+					range.push([this.piece.cx, this.piece.cy + i])
 				}
 				
-				let targetPieces = piecesInCases(range,examineBoard())
-				let target = []
+				let inRange = piecesInCases(range,examineBoard())
+				let targetPieces = []
 				
-				selectPieces(targetPieces,
-					function(piece){
-						if ()
+				selectPieces(inRange,
+					function(target){
+						if (target.player != spell.piece.player){
+							targetPieces.push(piece)
+						}
 					}
 				)
 				
+				startPieceSelectionHLC(targetPieces, [255,0,255,50], [255,0,255,100], 
+					spell.piece.effect
+				)
+				
+			},
+			function(target){
+				damage(target,spell.piece,25)
 			}
 		)
 	]
