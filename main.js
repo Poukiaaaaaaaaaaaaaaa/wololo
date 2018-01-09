@@ -713,6 +713,10 @@ class Piece {
 		this.effects.push(new Effect(this,duration,turn,end))
 	}
 	
+	showShop() { // à overload dans les classes de pièces
+		return false;
+	}
+	
 }
 
 class Pion extends Piece {
@@ -780,6 +784,12 @@ class Pion extends Piece {
 			})	
     ];
 	this.spell = spell
+	
+	this.shopElements = [
+      [ { type: "button", coord: { x: 0, y: 0, w: 50, h: 50 }, img: 0, hovercallback: function(x, y, w, h){ return false }, callback: function(){ console.log("HAHA") } },
+        { type: "text", coord: { x: 60, y: 0 }, text: "Ce soir au bar", size: 10, color: [255] } ],
+      [ { type: "text", coord: { x: 0, y: 0 }, text: "Trop marrant", size: 30, color: [50, 50, 255] } ]
+    ];
   }
 
   getDepl(board) {
@@ -833,6 +843,10 @@ class Pion extends Piece {
 		this.atk += this.baseAtk * (this.dKyojin / config.nLig)
 		
 	}
+	
+	showShop() {
+    chessGUI.windows.push(new Window(config.boardW + config.border, config.boardS/2, config.boardW/3, config.boardS/5, "Shop", this.shopElements));
+  }
 }
 
 class Tour extends Piece {
@@ -1618,6 +1632,10 @@ function mouseClicked(){
           }
         }
       }
+    }
+	
+	for (let i = 0; i < chessGUI.windows.length; i++) {
+      if (chessGUI.windows[i].shouldClose()) chessGUI.windows.splice(i, 1);
     }
   }
 }
