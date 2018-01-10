@@ -14,7 +14,7 @@ var config = {
   nCol: 8,
   nbGold: 100,
   mana: { depl: 3, atk: 5, newPiece: 3 },
-  maxMana: 10,
+  maxMana: 20,
   gold: 100,
   hud: {},
   background: 0
@@ -28,11 +28,11 @@ var config = {
   config.tileSize = (config.boardS - ((config.nLig>config.nCol) ? config.nLig + 1 : config.nCol + 1) * config.border) / ((config.nLig>config.nCol) ? config.nLig : config.nCol);
   config.boardW = config.nCol * config.tileSize + config.border * (config.nCol+1);
 
-  config.hud.button = {x : config.boardW, y: -config.unit * 4, w: config.unit * 40, h: config.unit * 16 }
-  config.hud.manaGauge = {x: config.boardW + config.border, y: config.unit * 8, w: config.unit * 40, h: config.unit * 6}
-  config.hud.playerTurnText = {x: config.boardW + config.border, y: config.unit * 15}
-  config.hud.goldText = {x: config.boardW + config.border, y: config.unit * 18}
-  config.hud.spells = {x: config.boardW + config.border, y: config.unit * 21, spellSize : config.unit * 8}
+  config.hud.manaGauge = {x: config.boardW + config.border, y: config.border * 4 + config.unit * 16, w: config.unit * 40, h: config.unit * 6}
+  config.hud.button = {x : config.boardW + config.border, y: config.border * 2, w: config.hud.manaGauge.w, h: config.unit * 16 }
+  config.hud.playerTurnText = {x: config.boardW + config.border, y: config.border * 6 + config.unit * 22}
+  config.hud.spells = {x: config.boardW + config.border, y: config.border * 6 + config.unit * 22, spellSize : config.unit * 8}
+  config.hud.info = {x: config.boardW + config.border, y: config.boardS - config.border * 2 - config.unit * 9, w: config.unit * 16, h: config.unit * 9}
 }
 // endConfig -------------
 
@@ -124,7 +124,7 @@ Array.prototype.spliceItem = function(item){
 	//m�thode appartenant au prototype des Arrays, ce qui signifie qu'elle sera pr�sente pour tous les tableaux
 	//elle permet de d�truire un �l�ment du tableau, en sp�cifiant uniquement l'�l�ment en question
 	//(sa cl� est d�termin�e via getArrayID())
-	var array = this
+	var array = this;
 	array.splice(getArrayID(array,item),1)
 }
 
@@ -139,6 +139,7 @@ function kill(target,killer){ //tue une pi�ce -> la supprime des deux tableaux
 }
 
 function damage(target,source,dmg){ //inflig des d�g�ts � une pi�ce
+  clearGUI("windows");
   if (target.callPassive("onDamaged",{source : source, damage : dmg}) == true) return true //si l'un des passifs pré-dégâts renvoie true
   if (source.callPassive("onDamaging",{target : target, damage : dmg}) == true) return true //les dégâts sont annulés et la fonciton renvoie elle aussi true
 
@@ -226,7 +227,8 @@ function applyFadeOut(object,rawColor,initAlpha,speed){
 }
 
 function move(object,speed,xTarget,yTarget){
-  new Movement(object,speed,xTarget,yTarget)
+  new Movement(object,speed,xTarget,yTarget);
+  clearGUI("windows");
 }
 
 function clearGUI(gui){
@@ -244,10 +246,11 @@ function clearGUI(gui){
 
 function clearSelectedPiece(piece){
 	if (selectedPiece) selectedPiece.deselect() ;
-	selectedPiece = piece
-	clearGUI("pieceHUD")
-	clearGUI("highlightCase")
-	guiState = ""
+	selectedPiece = piece;
+	clearGUI("pieceHUD");
+	clearGUI("highlightCase");
+  clearGUI("windows");
+	guiState = "";
 }
 
 function caseInRangeZ(cx,cy,range,includeCenter = false){ //fonction donnant les pièces dans une portée donnée (Z: méthode Zone)
@@ -384,8 +387,8 @@ var titleView = {
 		new Button("hud",img.title[5],config.canvasW / 5 * 4,config.canvasH/8, config.unit * 14, config.unit * 4,
 			function(){fill([200,200,200,50]) ; rect(this.x,this.y,this.w,this.h)},
 			function(){titleView.mainPage()})
-		
-		
+
+
 		guiElements.settingsPlayerName = []
 		for (let i = 0; i < joueur.length; i++){
 			guiElements.settingsPlayerName[i] = new Text(
@@ -418,7 +421,7 @@ var img = {},
     guiState = "", //représente l'action en cours (qui détermine comment certains éléments se comportent)
     victory = false,
 	undefPiece;
-	
+
 img.piece = { //objet contenant deux tableaux, "blanc" et "noir" : chacun contiendra les images des pi�ces de couleur correspodante
     blanc: [],
     noir: [] };
@@ -435,6 +438,7 @@ var chessGUI = {background: [], pieces: [], highlightCase: [], hud: [], pieceHUD
 function preload() { //chargement des images
   config.background = loadImage("img/background.png");
   img.HUD[0] = loadImage("img/HUD/end_turn.png");
+  img.HUD[1] = loadImage("img/HUD/info.png");
   img.title[0] = loadImage("img/title_background.png")
   img.title[1] = loadImage("img/logo.png")
   img.title[2] = loadImage("img/playButton.png")
@@ -493,7 +497,7 @@ class Joueur {
 		this.mana = config.maxMana;
 		this.gold = config.gold;
 	}
-	  
+
 	startTurn() {
 		//méthode permettant de démarrer le tour du joueur: mise à jour de la variable
 		//playerTurn, restauration du mana, réinitialisation des cases color�es
@@ -504,8 +508,8 @@ class Joueur {
 		for (var i = 0; i < this.piece.length; i++) {
 			this.piece[i].startTurn();
 		}
-		
-		guiElements.playerTurnText.text = this.name + " is playing"
+
+		//guiElements.playerTurnText.text = this.name + " is playing"
 		selectedPiece = 0;
 	}
 
@@ -522,7 +526,7 @@ class Piece {
     this.img = img; //image représentant la pièce : il s'agit d'un numéro, qui indique une entrée du tableau img.piece.[noir/blanc]
     this.name = name; //nom de la pièce (pas vraiment utilisé)
     this.atk = atk; //stat d'attaque de la pièce
-	this.baseAtk = atk //stat d'attaque d'origine de la pièce 
+	this.baseAtk = atk //stat d'attaque d'origine de la pièce
     this.baseHP = hp; //stat de pv max d'origine de la pièce
 	this.maxHP = hp //stat de pv max de la pièce
     this.hp = hp; //pv actuels de la pièce
@@ -534,10 +538,10 @@ class Piece {
     this.deplCD = false; //valeur bool indiquant si la pièce peut oui ou non se déplacer (possible une fois par tour)
 	this.spell = spell; //spells (actifs) de la pièce
 	this.effects = [] //effets appliqués à la pièce
-	
+
     chessGUI.pieces.push(this); //ajout de la pièce au tableau des éléments de la GUI
   }
-  
+
   draw() {
   //m�thode affichant la pi�ce
     if (!(this.movement)) {this.x = convertPx(this.cx) ; this.y = convertPx(this.cy)}
@@ -645,10 +649,10 @@ class Piece {
 	if (joueur[playerTurn].mana >= config.mana.atk){
 		if (target.callPassive("onAttacked",{source : this, dmg : this.atk}) == true) return true
 		if (this.callPassive("onAttacking",{target : target, dmg : this.atk}) == true) return true
-		
+
 		damage(target,this,this.atk)
 		joueur[playerTurn].mana -= config.mana.atk
-		
+
 		target.callPassive("onAttacked",{source : this, dmg : this.atk})
 		this.callPassive("onAttacking",{target : target, dmg : this.atk})
 	}
@@ -681,7 +685,7 @@ class Piece {
   }
 
   noManaError(x,y){
-
+    clearGUI("windows");
     {
       let manaTXT = new Text("msg",x,y,"Not enough mana","Arial",config.unit,[0,0,255])
       applyFadeOut(manaTXT,manaTXT.color,255,0.5)
@@ -693,7 +697,7 @@ class Piece {
 			return this[passive](arg);
 		}
 	}
-  
+
 	startTurn(){ //a ne pas confondre avec le passif onStartTurn
 		this.deplCD = false;
 		this.atk = this.baseAtk
@@ -706,29 +710,35 @@ class Piece {
 		for (var i = 0; i < this.effects.length; i++){
 			this.effects[i].apply()
 		}
-		
+
 		this.callPassive("onStartTurn")
-		
+
 	}
-	
+
 	applyEffect(duration,turn,end){
 		this.effects.push(new Effect(this,duration,turn,end))
 	}
-	
-	showShop() { // à overload dans les classes de pièces
-		return false;
+
+	showStats() { // à overload dans les classes de pièces
+    let color = this.player ? "Noir" : "Blanc";
+		this.elements = [
+      [ { type: "text", coord: { x: 0, y: 0 }, text: "Points De Vie: " + Math.floor(this.hp) + "/" + Math.floor(this.maxHP), size: 20, color: [210, 255, 210] },
+        { type: "text", coord: { x: 0, y: 20 }, text: "Points d'Attaque: " + this.atk, size: 20, color: [255, 210, 210] },
+        { type: "text", coord: { x: 0, y: 40 }, text: "Couleur: " + color, size: 20, color: [255, 255, 210] }]
+    ];
+    chessGUI.windows.push(new Window(config.boardW + config.border, config.unit * 30 + config.border * 8, config.boardW/3, config.boardS/5, "Stats", this.elements));
 	}
-	
+
 }
 
 class Pion extends Piece {
   constructor(x, y, player) {
 
     super(0, "Pion", 50, 120, x, y, player, 3);
-	
+
 	var direction = this.player
 	this.kyojin = Math.abs(((config.nLig - 1) * -direction) + this.cy)
-	
+
     //modification des stats en fonction de la position
 
 	let spell = [
@@ -737,7 +747,7 @@ class Pion extends Piece {
 				this.effect()
 			},
 			function(){
-				var spell = this 
+				var spell = this
 				var hpCost = 50
 				var board = examineBoard()
 				var source = this.piece
@@ -765,13 +775,13 @@ class Pion extends Piece {
 				let baseDmg = 20
 				let ppDmg = 5 + this.piece.kyojin
 				let c = 0
-				
+
 				selectPiecesConditional(piecesInCases(caseInRangeZ(this.piece.cx,this.piece.cy,3),examineBoard()),
 					function(piece){c++},
 					[function(piece){if (piece.player == spell.piece.player && piece.constructor.name == "Pion") return true ; return false}])
 
-				let scaleDmg = c * ppDmg	
-					
+				let scaleDmg = c * ppDmg
+
 				damage(selected,this.piece,baseDmg + scaleDmg)
 			}),
 		new Spell("Flash Wave",5,2,img.spell.Pion[2],0,0,this,
@@ -783,15 +793,10 @@ class Pion extends Piece {
 				for (var i = 0; i < targets.length; i++){  //on n'utilise pas selectPiecesConditional car l'action et la condition sont très simples
 					if (targets[i].player != this.piece.player) damage(targets[i],this.piece,20 + this.piece.kyojin * 2)
 				}
-			})	
+			})
     ];
-	this.spell = spell
-	
-	this.shopElements = [
-      [ { type: "button", coord: { x: 0, y: 0, w: 50, h: 50 }, img: 0, hovercallback: function(x, y, w, h){ return false }, callback: function(){ console.log("HAHA") } },
-        { type: "text", coord: { x: 60, y: 0 }, text: "Ce soir au bar", size: 10, color: [255] } ],
-      [ { type: "text", coord: { x: 0, y: 0 }, text: "Trop marrant", size: 30, color: [50, 50, 255] } ]
-    ];
+	this.spell = spell;
+
   }
 
   getDepl(board) {
@@ -822,50 +827,46 @@ class Pion extends Piece {
 
 	onStartTurn(){
 		var direction = this.player
-		
+
 		let prevMaxHP = this.maxHP
 		this.maxHP += this.kyojin * (this.baseHP / 50)
 		this.hp = this.hp * this.maxHP / prevMaxHP
-		
+
 		this.atk += this.baseAtk * (this.kyojin / config.nLig)
-		
+
 	}
-  
+
 	onMovedDone(){
 		  //modification des stats en fonction de la position
 		var direction = this.player
 		let prevKyojin = this.kyojin
 		this.kyojin = Math.abs(((config.nLig - 1) * -direction) + this.cy)
 		this.dKyojin = this.kyojin - prevKyojin
-		
+
 		let prevMaxHP = this.maxHP
 		this.maxHP += this.dKyojin * (this.baseHP / 50)
 		this.hp = this.hp * this.maxHP / prevMaxHP
-		
+
 		this.atk += this.baseAtk * (this.dKyojin / config.nLig)
-		
+
 	}
-	
-	showShop() {
-    chessGUI.windows.push(new Window(config.boardW + config.border, config.boardS/2, config.boardW/3, config.boardS/5, "Shop", this.shopElements));
-  }
 }
 
 class Tour extends Piece {
   constructor(x, y, player) {
     super(1, "Tour", 20,200, x, y, player, 5);
-	
+
 	this.spell = [
 		new Spell("Rise of the army",6,3,img.spell.Tour[0],0,0,this,
 			function(){
-				this.effect()
+				this.effect();
 			},
 			function(){
 				selectPiecesConditional(piecesInCases(caseInRangeZ(this.piece.cx,this.piece.cy,3),examineBoard()),
 					function(pion){
 						pion.applyEffect(4,function(){this.piece.atk += 20})
 					}
-				)	
+				)
 			}
 		),
 		new Spell("Rise of the soldier",10,5,img.spell.Tour[1],0,false,this,
@@ -898,24 +899,23 @@ class Tour extends Piece {
 				for (var i = -5; i < 6; i++){
 					if (this.piece.cx + i < 0){
 					continue
-					}else if (this.piece.cx + i >= config.nCol) break
-					
+					} else if (this.piece.cx + i >= config.nCol) break
+
 					if (i) range.push([this.piece.cx + i, this.piece.cy])
-				
 				}
 				for (var i = -5; i < 6; i++){
 					if (this.piece.cy + i < 0){
 					continue
 					}else if (this.piece.cy + i >= config.nLig) break
-					
+
 					if (i) range.push([this.piece.cx, this.piece.cy + i])
 				}
-				
-			
+
+
 				let inRange = piecesInCases(range,examineBoard())
 				let targetPieces = []
-				
-				
+
+
 				selectPieces(inRange,
 					function(target){
 						if (target.player != spell.piece.player){
@@ -923,13 +923,13 @@ class Tour extends Piece {
 						}
 					}
 				)
-				
-				startPieceSelectionHLC(targetPieces, [255,0,255,50], [255,0,255,100], 
+
+				startPieceSelectionHLC(targetPieces, [255,0,255,50], [255,0,255,100],
 					function(target){
 						spell.effect(target)
 					}
 				)
-				
+
 			},
 			function(target){
 				damage(target,this.piece,25)
@@ -1028,14 +1028,14 @@ class Fou extends Piece {
 
     return atk;
   }
-  
+
 	onAttacked(arg){
 		if (arg.dmg < this.hp/2){ //l'attaque réçue est faible (moins de la moitié des hp du fou)
-			if Math.random() 
+			if (Math.random()) {}
 		}
 	}
-  
-  
+
+
 }
 
 class Reine extends Piece {
@@ -1502,7 +1502,7 @@ class SpellIcon extends Button {
 						this.spell.onUsed(this.spell); //utilisation du spell
 						joueur[this.spell.piece.player].mana -= this.spell.manaCost;
 						this.spell.actualCooldown = this.spell.cooldown
-					}	
+					}
 				}else{
 					this.spell.piece.noManaError(this.x + this.w/2, this.y + this.h/2)
 				}
@@ -1510,11 +1510,11 @@ class SpellIcon extends Button {
 		})
 		this.spell = spell
 		this.staticDraw = this.draw
-		
+
 		this.draw = function(){
 			this.staticDraw()
 			if (this.spell.actualCooldown || this.spell.locked){
-				fill([0,0,0,150]) 
+				fill([0,0,0,150])
 				rect(this.x,this.y,this.w,this.h)
 				fill(255)
 				textAlign(CENTER,CENTER) ; textSize(this.h * 0.8)
@@ -1531,12 +1531,12 @@ class Effect{ //classe représentant les effets sur la durée appliqués aux pi�
 		this.endEffect = endEffect
 		this.duration = duration
 		this.remaining = duration
-		
+
 		if (direct && this.turnEffect) this.turnEffect()
 	}
-	
+
 	apply(){
-		this.remaining--
+		this.remaining--;
 		if (this.remaining == 0){
 			if(this.endEffect) this.endEffect()
 			this.destroy()
@@ -1544,7 +1544,7 @@ class Effect{ //classe représentant les effets sur la durée appliqués aux pi�
 			if (this.turnEffect) this.turnEffect()
 		}
 	}
-	
+
 	destroy(){
 		this.piece.effects.spliceItem(this)
 	}
@@ -1568,6 +1568,11 @@ function startGame() {
 
 	clearGUI();
 	new StaticImage("background",config.background, 0, 0, config.canvasW, config.canvasH);
+  {let hudBG = {};
+    hudBG.draw = function() {
+      fill(80, 80, 80, 200); rect(0, 0, config.boardW + config.hud.manaGauge.w + config.border * 3, config.canvasH);
+    }
+  chessGUI.background.push(hudBG);}
 	{let chessBoard = {draw : drawBoard}
 	chessGUI.background.push(chessBoard)}
 	new Button("hud",img.HUD[0],config.hud.button.x,config.hud.button.y,config.hud.button.w,config.hud.button.h,0,function(){joueur[1 - playerTurn].startTurn()})
@@ -1577,19 +1582,32 @@ function startGame() {
 	   rect(this.x+1,this.y+1,this.w-1,this.h-1);
 	   fill(80,80,255);
 	   rect(this.x,this.y,joueur[playerTurn].mana / config.maxMana * this.w,this.h);
-	   textAlign(LEFT, CENTER); textSize(config.unit * 4); fill(255);
-	   text(joueur[playerTurn].mana + "/" + config.maxMana, this.x + this.w + config.unit * 2, this.y + this.h/2);}
+	   textAlign(LEFT, CENTER); textSize(config.unit * 4); fill(255);}
 	chessGUI.hud.push(manaGauge)}
-	  
+  {let info = config.hud.info;
+    info.draw = function() {
+      image(img.HUD[1], config.hud.info.x, config.hud.info.y, config.hud.info.w, config.hud.info.h);
+      if (!selectedPiece) { fill(50, 50, 50, 180); rect(config.hud.info.x, config.hud.info.y, config.hud.info.w, config.hud.info.h); }
+    }
+    info.isHovered = function() {
+      if (mouseX > config.hud.info.x &&
+          mouseX < config.hud.info.x + config.hud.info.w &&
+          mouseY > config.hud.info.y &&
+          mouseY < config.hud.info.y + config.hud.info.h) { return true } else { return false };
+    }
+    info.onLeftClick = function(){
+      if (selectedPiece && this.isHovered()) { selectedPiece.showStats(); }
+    }
+    chessGUI.hud.push(info);}
+
 	for (let i = 0; i < joueur.length; i++){
-		joueur[i].initGame()
+		joueur[i].initGame();
 	}
-	  
-	  
+
+
 	undefPiece = Piece.prototype ; undefPiece.name = "undef"
 	playerTurn = 1;
-	guiElements.playerTurnText = new Text("hud",config.hud.playerTurnText.x,config.hud.playerTurnText.y,joueur[playerTurn].name + " is playing","Arial",config.unit*3,[0,255,0],LEFT,TOP);
-	guiElements.golds = new Text("hud",config.hud.goldText.x,config.hud.goldText.y,joueur[playerTurn].gold + " arjan","Arial",config.unit*3,[255,255,0],LEFT,TOP);
+	//guiElements.playerTurnText = new Text("hud",config.hud.playerTurnText.x,config.hud.playerTurnText.y,joueur[playerTurn].name + " is playing","Arial",config.unit*3,[0,255,0],LEFT,TOP);
 	isPlaying = true;
 	initBoard();
 	joueur[playerTurn].startTurn()
@@ -1645,7 +1663,7 @@ function mouseClicked(){
         }
       }
     }
-	
+
 	for (let i = 0; i < chessGUI.windows.length; i++) {
       if (chessGUI.windows[i].shouldClose()) chessGUI.windows.splice(i, 1);
     }
