@@ -139,8 +139,8 @@ function kill(target,killer){ //tue une pi�ce -> la supprime des deux tableaux
 }
 
 function damage(target,source,dmg){ //inflig des d�g�ts � une pi�ce
-  target.callPassive("onDamaged",{source : source, damage : dmg})
-  source.callPassive("onDamaging",{target : target, damage : dmg})
+  if (target.callPassive("onDamaged",{source : source, damage : dmg}) == true) return true //si l'un des passifs pré-dégâts renvoie true
+  if (source.callPassive("onDamaging",{target : target, damage : dmg}) == true) return true //les dégâts sont annulés et la fonciton renvoie elle aussi true
 
   target.hp = target.hp - dmg
   if (target.hp < 1){
@@ -641,16 +641,18 @@ class Piece {
   }
 
   attack(target){
-    target.callPassive("onAttacked",{source : this, dmg : this.atk})
-	this.callPassive("onAttacking",{target : target, dmg : this.atk})
 
 	if (joueur[playerTurn].mana >= config.mana.atk){
+		if (target.callPassive("onAttacked",{source : this, dmg : this.atk}) == true) return true
+		if (this.callPassive("onAttacking",{target : target, dmg : this.atk}) == true) return true
+		
 		damage(target,this,this.atk)
 		joueur[playerTurn].mana -= config.mana.atk
-	 }
+		
+		target.callPassive("onAttacked",{source : this, dmg : this.atk})
+		this.callPassive("onAttacking",{target : target, dmg : this.atk})
+	}
 
-	target.callPassive("onAttacked",{source : this, dmg : this.atk})
-	this.callPassive("onAttacking",{target : target, dmg : this.atk})
   }
 
 	depl(cx,cy){
@@ -923,7 +925,9 @@ class Tour extends Piece {
 				)
 				
 				startPieceSelectionHLC(targetPieces, [255,0,255,50], [255,0,255,100], 
-					spell.piece.effect
+					function(target){
+						spell.effect(target)
+					}
 				)
 				
 			},
@@ -1024,6 +1028,14 @@ class Fou extends Piece {
 
     return atk;
   }
+  
+	onAttacked(arg){
+		if (arg.dmg < this.hp/2){ //l'attaque réçue est faible (moins de la moitié des hp du fou)
+			if Math.random() 
+		}
+	}
+  
+  
 }
 
 class Reine extends Piece {
