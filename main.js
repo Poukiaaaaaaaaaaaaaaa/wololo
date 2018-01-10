@@ -1,6 +1,6 @@
 // CHESS++ ISN PROJECT
 // Téo Tinarrage // Amaël Marquez
-// TODO: terminer les animations, s'occuper du balancing, écran titre
+// TODO: les animations bon hein ça va, écran titre
 
 // debug
 var debug = false;
@@ -369,30 +369,34 @@ function endSelectionHLC(callback,selected){
 
 var titleView = {
 	mainPage : function(){
-		clearGUI("hud")
-		{let titleW = config.unit * 90, titleH = config.unit * 18
-		new StaticImage("hud",img.title[1],config.canvasW/2 - titleW / 2,config.canvasH/5 - titleH / 2,titleW,titleH)}
-		{let playButtonW = config.unit * 50, playButtonH = config.unit * 20
-		new Button("hud",img.title[2],config.canvasW/2 - playButtonW / 2,config.canvasH/5*3 - playButtonH / 2,playButtonW,playButtonH,
-			function(){fill([200,200,200,50]) ; rect(this.x,this.y,this.w,this.h)},
-			function(){startGame()})}
-		{let setButtonS = config.unit * 20
-		new Button("hud",img.title[4],config.canvasW/4 - setButtonS/2,config.canvasH/5*3 - setButtonS / 2,setButtonS,setButtonS,
-		function(){fill([200,200,200,50]) ; rect(this.x,this.y,this.w,this.h)},
-		function(){titleView.settings()})}
+    clearGUI("hud")
+    {let titleW = config.unit * 90, titleH = config.unit * 18
+    new StaticImage("hud",img.title[1],config.canvasW/2 - titleW / 2,config.canvasH/5 - titleH / 2,titleW,titleH)}
+    {let playButtonW = config.unit * 50, playButtonH = config.unit * 20
+    new Button("hud",img.title[2],config.canvasW/2 - playButtonW / 2,config.canvasH/5*3 - playButtonH / 2,playButtonW,playButtonH,
+      function(){fill([200,200,200,50]); rect(this.x,this.y,this.w,this.h,config.unit*3)},
+      function(){startGame()})}
+    {let setButtonS = config.unit * 20
+    new Button("hud",img.title[4],config.canvasW/4 - setButtonS/2,config.canvasH/5*3 - setButtonS / 2,setButtonS,setButtonS,
+    function(){fill([200,200,200,50]); rect(this.x,this.y,this.w,this.h,config.unit*3)},
+    function(){titleView.settings()})}
+    {let helpButtonS = config.unit * 20
+    new Button("hud",img.title[4],config.canvasW/4 - helpButtonS/2,config.canvasH/5*3 - helpButtonS / 2,helpButtonS,helpButtonS,
+    function(){fill([200,200,200,50]); rect(this.x,this.y,this.w,this.h,config.unit*3)},
+    function(){titleView.settings()})}
 	},
 	settings : function(){
 		clearGUI("hud")
-		new Text("hud",config.canvasW/2,config.canvasH/8,"SETTINGS","Verdana",50,176)
-		new Button("hud",img.title[5],config.canvasW / 5 * 4,config.canvasH/8, config.unit * 14, config.unit * 4,
-			function(){fill([200,200,200,50]) ; rect(this.x,this.y,this.w,this.h)},
-			function(){titleView.mainPage()})
+		new Text("hud",config.canvasW/2,config.canvasH/8,"SETTINGS","Verdana",50,[255, 178, 0])
+		new Button("hud",img.title[5],config.canvasW / 5 * 4,config.canvasH/8, config.unit * 16, config.unit * 9,
+			function(){fill([200,200,200,50]); rect(this.x,this.y,this.w,this.h)},
+			function(){titleView.mainPage()});
 
 
-		guiElements.settingsPlayerName = []
+		guiElements.settingsPlayerName = [];
 		for (let i = 0; i < joueur.length; i++){
 			guiElements.settingsPlayerName[i] = new Text(
-				"hud",config.canvasW/4,config.canvasH/4 + i * config.unit * 4,"Joueur "+(i+1)+" : "+joueur[i].name,"arial",config.unit * 3,176,LEFT,TOP)
+				"hud",config.canvasW/4,config.canvasH/4 + i * config.unit * 4,"Joueur "+(i+1)+": "+joueur[i].name,"Verdana",config.unit * 3,[255, 251, 0],LEFT,TOP)
 			let butno = new Button(
 				"hud",img.title[3],config.canvasW/4 + config.unit * 40,config.canvasH/4 + i * config.unit * 4,config.unit * 3,config.unit*3,
 				function(){fill([200,200,200,50]) ; rect(this.x,this.y,this.w,this.h)},
@@ -536,6 +540,7 @@ class Piece {
     this.color = joueur[player].color; //string représentant le couleur de la pièce
     this.player = player; //numéro du joueur possédan la pièce
     this.deplCD = false; //valeur bool indiquant si la pièce peut oui ou non se déplacer (possible une fois par tour)
+    this.atkCD = false; //valeur bool indiquant si la pièce peut oui ou non attaquer (possible une fois par tour)
 	this.spell = spell; //spells (actifs) de la pièce
 	this.effects = [] //effets appliqués à la pièce
 
@@ -586,7 +591,7 @@ class Piece {
   }
 
   deselect(){
-
+    clearGUI("pieceHUD")
   }
 
   viewRanges() {
@@ -604,37 +609,40 @@ class Piece {
   	var atk = this.getAtkRange(board);
   	var HLCase;
 
-  	if (joueur[playerTurn].mana >= config.mana.atk){
-  		color = [255,0,0,120];
-  		hoverColor = [255,100,100,120];
-  		callback = function(){ this.piece.attack(this.target) }
-  	} else {
-  		color = [190,0,0,50];
-  		hoverColor = [190,100,100,50];
-  		callback = function(){ this.piece.noManaError(convertPx(this.x) + config.tileSize / 2,convertPx(this.y) + config.tileSize / 2)}
-  	}
+    clearGUI("highlightCase")
 
-  	for (var i = 0; i < atk.length; i++) {
-  		if (typeof board[atk[i][0]][atk[i][1]] != "undefined"){
-  			if (board[atk[i][0]][atk[i][1]].player == 1 - this.player){
-  				HLCase = new HighlightCase(atk[i][0],atk[i][1],
-  				color,hoverColor,this,callback);
-  				HLCase.target = board[atk[i][0]][atk[i][1]];
-  			}
-  		}
-  	}
+    if (this.atkCD == false){
+    	if (joueur[playerTurn].mana >= config.mana.atk){
+    		color = [255,0,0,120];
+    		hoverColor = [255,100,100,120];
+    		callback = function(){ this.piece.attack(this.target); this.piece.atkCD = true ; this.piece.viewRanges() }
+    	} else {
+    		color = [190,0,0,50];
+    		hoverColor = [190,100,100,50];
+    		callback = function(){ this.piece.noManaError(convertPx(this.x) + config.tileSize / 2,convertPx(this.y) + config.tileSize / 2) ; this.piece.viewRanges()}
+    	}
 
+    	for (var i = 0; i < atk.length; i++) {
+    		if (typeof board[atk[i][0]][atk[i][1]] != "undefined"){
+    			if (board[atk[i][0]][atk[i][1]].player == 1 - this.player){
+    				HLCase = new HighlightCase(atk[i][0],atk[i][1],
+    				color,hoverColor,this,callback);
+    				HLCase.target = board[atk[i][0]][atk[i][1]];
+    			}
+    		}
+    	}
+    }
 
     //D�PLACEMENTS
     if (this.deplCD == false){
     	if (joueur[playerTurn].mana >= config.mana.depl){
     		color = [0,0,255,120];
     		hoverColor = [100,100,255,120];
-    		callback = function(){ this.piece.move(this.x,this.y); this.piece.deplCD = true }
+    		callback = function(){ this.piece.move(this.x,this.y); this.piece.deplCD = true ; this.piece.viewRanges()}
     	} else {
     		color = [0,0,190,50]
     		hoverColor = [100,100,190,50]
-    		callback = function(){this.piece.noManaError(convertPx(this.x) + config.tileSize / 2,convertPx(this.y) + config.tileSize / 2) }
+    		callback = function(){this.piece.noManaError(convertPx(this.x) + config.tileSize / 2,convertPx(this.y) + config.tileSize / 2) ; this.piece.viewRanges()}
     	}
 
       for (var i = 0; i < depl.length; i++) {
@@ -700,6 +708,7 @@ class Piece {
 
 	startTurn(){ //a ne pas confondre avec le passif onStartTurn
 		this.deplCD = false;
+    this.atkCD = false
 		this.atk = this.baseAtk
 		let prevMaxHP = this.maxHP ;
 		this.maxHP = this.baseHP ;
@@ -744,7 +753,7 @@ class Pion extends Piece {
 	let spell = [
 		new Spell("Holy Duty",8,1,img.spell.Pion[0],0,0,this,
 			function(){
-				this.effect()
+				this.cast()
 			},
 			function(){
 				var spell = this
@@ -767,7 +776,7 @@ class Pion extends Piece {
 					[function(piece){if (piece.player == spell.piece.player) return false ; return true}])
 				startPieceSelectionHLC(pieces, [255,0,255,50], [255,0,255,100],
 				function(selected){
-					spell.effect(selected)
+					spell.cast(selected)
 				})
 			},
 			function(selected){
@@ -786,7 +795,7 @@ class Pion extends Piece {
 			}),
 		new Spell("Flash Wave",5,2,img.spell.Pion[2],0,0,this,
 			function(){
-				this.effect()
+				this.cast()
 			},
 			function(){
 				let targets = piecesInCases( this.piece.getAtkRange(), examineBoard())
@@ -859,7 +868,7 @@ class Tour extends Piece {
 	this.spell = [
 		new Spell("Rise of the army",6,3,img.spell.Tour[0],0,0,this,
 			function(){
-				this.effect();
+				this.cast();
 			},
 			function(){
 				selectPiecesConditional(piecesInCases(caseInRangeZ(this.piece.cx,this.piece.cy,3),examineBoard()),
@@ -879,7 +888,7 @@ class Tour extends Piece {
 				});
 				startCasesSelectionHLC(cases, [255,0,255,50], [255,0,255,100],
 					function(targetCase){
-						spell.effect(targetCase)
+						spell.cast(targetCase)
 					}
 				)
 			},
@@ -926,7 +935,7 @@ class Tour extends Piece {
 
 				startPieceSelectionHLC(targetPieces, [255,0,255,50], [255,0,255,100],
 					function(target){
-						spell.effect(target)
+						spell.cast(target)
 					}
 				)
 
@@ -1031,7 +1040,7 @@ class Fou extends Piece {
 
 	onAttacked(arg){
 		if (arg.dmg < this.hp/2){ //l'attaque réçue est faible (moins de la moitié des hp du fou)
-			if (Math.random()) {}
+			if (Math.random() * 100 > 100) {return false}
 		}
 	}
 
@@ -1338,9 +1347,8 @@ class HighlightCase {
 
   onLeftClick() {
      if (isCaseHovered(this.x,this.y)) {
+      clearGUI("highlightCase")
       this.callback();
-      chessGUI.highlightCase = [];
-      selectedPiece = 0;
     }
   }
 }
@@ -1491,6 +1499,12 @@ class Spell {
 	this.actualCooldown = 0;
   }
 
+  cast(arg){
+    this.effect(arg)
+    joueur[this.spell.piece.player].mana -= this.spell.manaCost;
+    this.spell.actualCooldown = this.spell.cooldown
+  }
+
 }
 
 class SpellIcon extends Button {
@@ -1500,8 +1514,6 @@ class SpellIcon extends Button {
 				if(joueur[this.spell.piece.player].mana >= this.spell.manaCost){
 					if (this.spell.actualCooldown == 0 && !this.spell.locked){
 						this.spell.onUsed(this.spell); //utilisation du spell
-						joueur[this.spell.piece.player].mana -= this.spell.manaCost;
-						this.spell.actualCooldown = this.spell.cooldown
 					}
 				}else{
 					this.spell.piece.noManaError(this.x + this.w/2, this.y + this.h/2)
@@ -1556,9 +1568,9 @@ class Effect{ //classe représentant les effets sur la durée appliqués aux pi�
 
 function startTitle(){
   joueur = [new Joueur("blanc","Gilbert"), new Joueur("noir","Patrick")]
-  clearGUI()
+  clearGUI();
   new StaticImage("background",img.title[0],0,0,config.canvasW,config.canvasH)
-  titleView.mainPage()
+  titleView.mainPage();
 }
 
 function startGame() {
