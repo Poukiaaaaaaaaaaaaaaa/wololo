@@ -45,45 +45,25 @@ var config = {
 // 3 -> Reine
 // 4 -> Cavalier
 // 5 -> Roi
-function initBoard() { // placement de toutes les pièces sur le plateau
-  var c = 0; // compte le nombre de pièces placées (utilisé pour l'index de joueur[].piece[c])
+function initPrePieces() {
   var layout = [
-    [1, 4, 2, 3, 5, 2, 4, 1],
-    [0, 0, 0, 0, 0, 0, 0, 0]
+    [Tour, Cavalier, Fou, Reine, Roi, Fou, Cavalier, Tour],
+    [Pion, Pion, Pion, Pion, Pion, Pion, Pion, Pion]
   ];
 
-  for (var i = 0; i < layout.length; i++) {
-    for (var j = 0; j < layout[i].length; j++) {
-      switch (layout[i][j]) {
-        case 0: joueur[0].piece[c] = new Pion(j, i, 0); break;
-        case 1: joueur[0].piece[c] = new Tour(j, i, 0); break;
-        case 2: joueur[0].piece[c] = new Fou(j, i, 0); break;
-        case 3: joueur[0].piece[c] = new Reine(j, i, 0); break;
-        case 4: joueur[0].piece[c] = new Cavalier(j, i, 0); break;
-        case 5: joueur[0].piece[c] = new Roi(j, i, 0); break;
-      }
-
-      c++;
+  for (let i = 0; i < layout.length; i++) {
+    for (let j = 0; j < layout[i].length; j++) {
+      joueur[0].prePiece.push(new PrePiece(layout[i][j], j, i, 0));
+      joueur[1].prePiece.push(new PrePiece(layout[i][j], j, config.nLig - i - 1, 1));
     }
   }
+}
 
-  c = 0;
-
-  for (var i = 0; i < layout.length; i++) {
-    for (var j = 0; j < layout[i].length; j++) {
-      switch (layout[i][j]) {
-        case 0: joueur[1].piece[c] = new Pion(j, config.nLig - i - 1, 1); break;
-        case 1: joueur[1].piece[c] = new Tour(j, config.nLig - i - 1, 1); break;
-        case 2: joueur[1].piece[c] = new Fou(j, config.nLig - i - 1, 1); break;
-        case 3: joueur[1].piece[c] = new Reine(j, config.nLig - i - 1, 1); break;
-        case 4: joueur[1].piece[c] = new Cavalier(j, config.nLig - i - 1, 1); break;
-        case 5: joueur[1].piece[c] = new Roi(j, config.nLig - i - 1, 1); break;
-      }
-
-      c++;
-    }
+function initBoard() { // placement de toutes les pièces sur le plateau
+  for (let i = 0; i < joueur[0].prePiece.length; i++) {
+    joueur[0].prePiece[i].summon();
+    joueur[1].prePiece[i].summon();
   }
-
 }
 
 function addDepl(board,depl,x,y){
@@ -497,7 +477,7 @@ class Joueur {
 		//les paramètres passés au contruceur sont la couleur et le nom; les autre propriétés dépendront de la partie (ressources, pièces)
 		this.color = color;
 		this.piece = [];
-		this.prePiece = []
+		this.prePiece = [];
 		this.name = name;
 	}
 
@@ -534,22 +514,22 @@ class Piece {
     this.img = img; //image représentant la pièce : il s'agit d'un numéro, qui indique une entrée du tableau img.piece.[noir/blanc]
     this.name = name; //nom de la pièce (pas vraiment utilisé)
     this.atk = atk; //stat d'attaque de la pièce
-	this.baseAtk = atk //stat d'attaque d'origine de la pièce
+	  this.baseAtk = atk //stat d'attaque d'origine de la pièce
     this.baseHP = hp; //stat de pv max d'origine de la pièce
-	this.maxHP = hp //stat de pv max de la pièce
+	  this.maxHP = hp //stat de pv max de la pièce
     this.hp = hp; //pv actuels de la pièce
-	this.mp = mp; //stat de point de déplacements (obsolète)
+	  this.mp = mp; //stat de point de déplacements (obsolète)
     this.cx = cx; //position x (en cases)
     this.cy = cy; //position y (en cases)
     this.color = joueur[player].color; //string représentant le couleur de la pièce
     this.player = player; //numéro du joueur possédan la pièce
     this.deplCD = false; //valeur bool indiquant si la pièce peut oui ou non se déplacer (possible une fois par tour)
     this.atkCD = false; //valeur bool indiquant si la pièce peut oui ou non attaquer (possible une fois par tour)
-	this.spell = spell; //spells (actifs) de la pièce
-	this.effects = [] //effets appliqués à la pièce
-	this.exp = 0 //expérience de la pièce
-	this.level = 0 //niveau de la pièce
-	this.expValue = expValue //quantité d'exp obtenue en tuant la pièce
+	  this.spell = spell; //spells (actifs) de la pièce
+	  this.effects = [] //effets appliqués à la pièce
+	  this.exp = 0 //expérience de la pièce
+	  this.level = 0 //niveau de la pièce
+	  this.expValue = expValue //quantité d'exp obtenue en tuant la pièce
 	
     chessGUI.pieces.push(this); //ajout de la pièce au tableau des éléments de la GUI
   }
@@ -1302,14 +1282,14 @@ class Roi extends Piece {
 
 class PrePiece{
   constructor(Piece,cx,cy,player){
-    this.Piece = Piece
-    this.cx = cx
-    this.cy = cy
-    this.player = player
+    this.Piece = Piece;
+    this.cx = cx;
+    this.cy = cy;
+    this.player = player;
   }
 
   summon(){
-    new this.Piece(this.cx,this.cy,this.player)
+    joueur[this.player].piece.push(new this.Piece(this.cx,this.cy,this.player));
   }
 
 }
@@ -1614,7 +1594,8 @@ class Effect{ //classe représentant les effets sur la durée appliqués aux pi�
 // reset function
 
 function startTitle(){
-  joueur = [new Joueur("blanc","Gilbert"), new Joueur("noir","Patrick")]
+  joueur = [new Joueur("blanc","Gilbert"), new Joueur("noir","Patrick")];
+  initPrePieces();
   clearGUI();
   new StaticImage("background",img.title[0],0,0,config.canvasW,config.canvasH)
   titleView.mainPage();
