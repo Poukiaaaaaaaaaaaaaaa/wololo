@@ -1,0 +1,19 @@
+/* monStyle.css */
+h1,h2,h3,h4,h5,h6 { /* propriétés des titres */
+	font-weight: bold;
+	clear: both;
+	color: #e3c600;
+}
+p { /* saut de 18 pixels en fin de paragraphe */
+	margin-bottom: 10px;
+  padding-left: 10px;
+}
+body {
+    line-height: 1;
+    background: #696969 ;
+    font-family: Consolas, Verdana, Arial, Helvetica, sans-serif;
+    color: #fdf5e6;
+    font-size: 20px;
+    line-height: 23px;
+    padding-right: 100px
+  }

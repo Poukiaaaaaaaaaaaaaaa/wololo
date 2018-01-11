@@ -1,0 +1,147 @@
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<link rel="stylesheet" href="help.css" type="text/css"/>
+		<title>Chess++ Help</title>
+	</head>
+	<body>
+		<center><img src="img/logo.png" alt="" align="middle" width="500" height="100"></center>
+		<center>
+			<br/>Chess++ est un jeu de stratégie au tour-par-tour<br/>
+			inspiré des échecs mais présentant beaucoup de nouveaux<br/>
+			éléments de gameplay et de stratégie (sorts, mana, etc ..)
+		</center>
+		<br/><br/>
+		<h1>Le jeu</h1>
+			Si le jeu peu ressembler à un jeu d'échecs classique à première vue et sur certains
+			aspects : les pièces restent les mêmes (en tout cas en apparence), de même que l'échiquer
+			(qui n'a néanmoins pas la même taille), de plus la victoire s'obtient toujours en vaincant
+			le roi (ici, pas d'échec et mat).
+			Cependant de nombreuses différences fondamentales apparaissent :
+			<ul>
+				<li>Il est possible d'effectuer plusieurs actions par tour. Les actions restents cependant limitées chaque joueur possède une certaine quantité de Mana,
+					qui se réduit à chaque action affectuée. Le Mana est entièrement restauré à chaque début de tour (20 points de mana), et est indiqué par la jauge bleue.
+					<br/><img src="img/Help/manaGaugeExample.png">
+				<li>Les actions des pièces sont également bien plus larges :
+			</ul>
+
+
+
+		<h1>Les pièces</h1>
+			<p>
+				Les pièces sont à première vue les mêmes que pour un jeu d'échecs classique.
+				Elles présentent cependant de nombreuses caractéristiques supplémentaires.
+				<ul>
+					<li><h3>Points de vie</h2>
+						<p>
+							Dans Chess++, les pièces ne sont pas toutes détruites en un coup.
+							Chaque pièce possède un certain nombre de points de vie, réduits
+							lorsqu'elle subit des dégâts, et n'est détruite qu'après les avoir
+							épuisés. Il existe plusieurs moyens d'infliger des dégâts à une pièce.
+							Les PV sont indiqués par la jauge située sous chaque pièce.
+
+						</p>
+					<li><h3>Déplacements</h2>
+						<p>
+							Les déplacements sont probablement la partie la plus proche des échecs
+							classiques : la manière dont chaque pièce peut se déplacer dépend de sa
+							classe. Il n'est possible de se déplacer qu'une seule fois par tour, chaque
+							déplacement coûtant 3 points de mana.
+							Lorsqu'une pièce est sélectionnée, les cases où il est possible de la déplacer sont bleutées, il suffit alors de cliquer dessus pour s'y déplacer.
+						</p>
+					<li><h3>Attaque</h2>
+						<p>
+							Contrairement aux échecs classiques, attaquer une pièce ennemie (en plus de ne pas forcément la tuer) n'impique pas de se déplacer.
+							Les attaques se font donc à distance. Il n'est possible d'attaquer qu'une seule fois par tour, chaque
+							attaque coûtant 5 points de mana.
+							Lorsqu'une pièce est sélectionnée, les pièces qu'elle peut attaquer sont indiquées en rouge, il suffit alors de cliquer dessus pour les attaquer.
+						</p>
+					<li><h3>Sorts</h2>
+						<p>
+							Chaque pièce possède une certain nombre de sorts, d'effets divers.<br/>
+							Les sorts actifs peuvent être utilisés durant le tour,
+							coûtent une quantité variable de mana, et possèdent un délai de récupération, devenant inutilisables jusqu'à la fin de ce délai.<br/>
+							Les sorts passifs s'activent d'eux mêmes à divers moments (lorque la pièce est attaquée, se déplace, etc)
+						</p>
+				</ul>
+
+			</p>
+
+
+			<h1>Liste des pièces</h1>
+			<ul>
+				<li><h3>Pion</h3><img src="img/Pièces/pion_blanc.png" alt="" align="middle" width="100" height="100">
+					<img src="img/Pièces/pion_noir.png" alt="" align="middle" width="100" height="100">
+					<p><b>- Description</b>: Le pion constitue la pièce de base du jeu. Le pion constitue une défense convenable grâce à ses points de vie relativement hauts.<br/><br/>
+						<b>- Sorts</b>: Le pion possède 3 sorts:<br/>
+						<ul>
+							<li><b>Vent Divin</b>: (une utilisation par tour) Le pion rassemble ses forces, consommant ses points de vie, afin de relacher une puissante explosion blessant les pièces ennemies à proximité.</li>
+							<li><b>Unity</b>: (une utilisation tous les 3 tours) La cible du pion subit des dégats plus ou moins conséquents en fonction du nombre de pions présents à côté d'elle.</li>
+							<li><b>Flash Wave</b>: (une utilisation tous les 2 tours) Le pion fait <b>trembler la terre</b> et inflige des dégats sur une ligne en face de lui.</li>
+						</ul><br/>
+						<b>- Sort Passif</b>: Les points de vie et d'attaque du pion augmentent en fonction de son avancée sur le plateau.
+					</p>
+				</li>
+				<li><h3>Tour</h3><img src="img/Pièces/tour_blanche.png" alt="" align="middle" width="100" height="100">
+					<img src="img/Pièces/tour_noire.png" alt="" align="middle" width="100" height="100">
+					<p><b>- Description</b>: La tour agit en tant que support. Ses sorts lui permettent d'aider les pièces alliés en améliorant leurs caractéristiques.<br/>
+					<b>- Sorts</b>: La tour possède 3 sorts:<br/>
+					<ul>
+						<li><b>Rise Of The Army</b>: (une utilisation tous les 3 tours) La tour augmente l'attaque des pions alliés à proximité.</li>
+						<li><b>Rise Of The Soldier</b>: (une utilisation tous les 5 tours) La tour invoque un pion ayant les même caractéristiques que les pions normaux et disparaissant au bout de 4 tours.</li>
+						<li><b>Catapult</b>: (une utilisation tous les 2 tours) La tour un projectile sur une pièce éloignée, lui infligeant des dégats. Ce sort ne possède pas de ligne de vue.</li>
+					</ul><br/>
+					<b>- Sort Passif</b>: (wip) La tour réduit dans une zone autour d'elle les dégats infligés par les pièces ennemies.
+					</p>
+				</li>
+				<li><h3>Work In Progress</h3>
+					<p>Par manque de temps, les pièces suivantes n'ont pas pu être abouties, notamment concernant les sorts et passifs.</p>
+				<li><h3>Cavalier</h3><img src="img/Pièces/cavalier_blanc.png" alt="" align="middle" width="100" height="100">
+					<img src="img/Pièces/cavalier_noir.png" alt="" align="middle" width="100" height="100">
+					<p><b>- Description</b>: Le cavalier (dans l'idée originale) est un pièce relativement mobile, possédant des sort de déplacement et pouvant améliorer le mouvement des pièces alliées.<br/>
+						<b>- Sorts</b>: Le cavalier possède 3 sorts:<br/>
+						<ul>
+							<li><b>Stomp</b>: (une utilisation tous les 2 tours) Après utilisation, le prochain déplacement du cavalier infligera des dégats de une zone.</li>
+							<li><b>Charge</b>: (une utilisation par tour) Le cavalier traverse une pièce lui infligeant des dégats et se positionnant derrière elle.</li>
+							<li><b>En-Chasse</b>: (une utilisation tous les 3 tours) Le cavalier augment de 1 les points de déplacements des pièces alliées proches pour 2 tours.</li>
+						</ul><br/>
+						<b>- Sort Passif</b>: Après avoir tué une pièce ennemie, le cavalier peut se déplacer une fois de plus.
+					</p>
+				</li>
+				<li><h3>Fou</h3><img src="img/Pièces/fou_blanc.png" alt="" align="middle" width="100" height="100">
+					<img src="img/Pièces/fou_noir.png" alt="" align="middle" width="100" height="100">
+					<p><b>- Description</b>: Le fou est une pièce ayant été conçue comme possédant peu de points de vie mais pouvant faire des dégats conséquent.<br/>
+						<b>- Sorts</b>: Le fou possède 3 sorts:<br/>
+						<ul>
+							<li><b>Madness</b>: (une utilisation par tour) Le fou se téléporte sur une case aléatoire à proximité et inflige des dégats de zone.</li>
+							<li><b>Echo</b>: (une utilisation tous les 3 tours) Le fou frappe la pièce ennemie sélectionnée et les dégats re bondissent sur une des pièces adjacentes (s'il y en a).</li>
+							<li><b>Ultrasound</b>: (une utilisation tous les 5 tours) Le fou étourdit une pièce pendant 1 tour, une pièce étourdie a 1 chance sur 2 de s'infliger des dégats à elle même en attanquant.</li>
+						</ul><br/>
+						<b>- Sort Passif</b>: Lorsque le fou est attaqué, il a 1 chance sur 2 d'esquiver si les dégats sont faibles.
+					</p>
+				</li>
+				<li><h3>Reine</h3><img src="img/Pièces/reine_blanche.png" alt="" align="middle" width="100" height="100">
+					<img src="img/Pièces/reine_noire.png" alt="" align="middle" width="100" height="100">
+					<p><b>- Description</b>: La reine, comme dans les échecs classiques, est la plus puissante des pièces. Elle peut infliger d'importants dégats de zone et peut immobiliser des pièces ennemies.<br/>
+						<br/><b>- Sorts</b>: La reine possède 3 sorts:<br/>
+						<ul>
+							<li><b>Météore</b>: (une utilisation tous les 4 tours) Un météore s'écrase sur le plateau, infligeant des dégats sur un carré de 3 cases de côté.</li>
+							<li><b>Thunderbolt</b>: (une utilisation tous les 3 tours) La reine inflige des dégats sur une ligne verticale en face d'elle.</li>
+							<li><b>Petrifying Wave</b>: (une utilisation tous les 5 tours) Le reine immobilise une pièce ennemie pendant 1 tour.</li>
+						</ul><br/>
+						<b>- Sort Passif</b>: Lorsque la reine attaque, elle se régénère une portion des dégats infligés.
+					</p>
+				</li>
+				<li><h3>Roi</h3><img src="img/Pièces/roi_blanc.png" alt="" align="middle" width="100" height="100">
+					<img src="img/Pièces/roi_noir.png" alt="" align="middle" width="100" height="100">
+				<p><b>- Description</b>: Le roi, comme dans les échecs classiques, doit tout faire pour se préserver. Il possède pour cela une panoplie de sorts pour la plupart très intéressants.</br>
+					<br/><b>- Sorts</b>: Le roi possède 2 sorts:<br/>
+					<ul>
+						<li><b>Arrêtez de vous battez</b>: Le roi régénère les points de vie de pièces allièes proche.</li>
+						<li><b>Colère Royale</b>: Le roi inflige 1 point de dégats à une pièce ennemie aléatoire.</li>
+					</ul><br/>
+					<b>- Sort Passif</b>: Plus les points de vies du roi sont faibles, plus les points d'attaque des pièces alliées sont forts.
+				</p>
+				</li>
+			</ul>
+	</body>

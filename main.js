@@ -381,9 +381,9 @@ var titleView = {
     function(){fill([200,200,200,50]); rect(this.x,this.y,this.w,this.h,config.unit*3)},
     function(){titleView.settings()})}
     {let helpButtonS = config.unit * 20
-    new Button("hud",img.title[4],config.canvasW/4 - helpButtonS/2,config.canvasH/5*3 - helpButtonS / 2,helpButtonS,helpButtonS,
+    new Button("hud",img.title[6],config.canvasW/4 * 3 - helpButtonS/2,config.canvasH/5*3 - helpButtonS / 2,helpButtonS,helpButtonS,
     function(){fill([200,200,200,50]); rect(this.x,this.y,this.w,this.h,config.unit*3)},
-    function(){titleView.settings()})}
+    function(){let win = window.open("help.html", '_blank') ; win.focus()})}
 	},
 	settings : function(){
 		clearGUI("hud")
@@ -401,8 +401,8 @@ var titleView = {
 				"hud",img.title[3],config.canvasW/4 + config.unit * 40,config.canvasH/4 + i * config.unit * 4,config.unit * 3,config.unit*3,
 				function(){fill([200,200,200,50]) ; rect(this.x,this.y,this.w,this.h)},
 				function(){joueur[this.player].name = prompt("Name") ;
-					guiElements.settingsPlayerName[this.player].text = "Joueur "+(this.player+1)+" : "+joueur[this.player].name})
-			butno.player = i
+					guiElements.settingsPlayerName[this.player].text = "Joueur "+(this.player+1)+": "+joueur[this.player].name})
+			butno.player = i;
     }
 
   }
@@ -449,6 +449,7 @@ function preload() { //chargement des images
   img.title[3] = loadImage("img/edit.png")
   img.title[4] = loadImage("img/settings.png")
   img.title[5] = loadImage("img/backToMenu.png")
+  img.title[6] = loadImage("img/help.png")
 
   img.piece.noir[0] = loadImage("img/Pièces/pion_noir.png"); // pion noir
   img.piece.noir[1] = loadImage("img/Pièces/tour_noire.png"); // tour noire
@@ -731,9 +732,9 @@ class Piece {
 	showStats() { // à overload dans les classes de pièces
     let color = this.player ? "Noir" : "Blanc";
 		this.elements = [
-      [ { type: "text", coord: { x: 0, y: 0 }, text: "Points De Vie: " + Math.floor(this.hp) + "/" + Math.floor(this.maxHP), size: 20, color: [210, 255, 210] },
-        { type: "text", coord: { x: 0, y: 20 }, text: "Points d'Attaque: " + this.atk, size: 20, color: [255, 210, 210] },
-        { type: "text", coord: { x: 0, y: 40 }, text: "Couleur: " + color, size: 20, color: [255, 255, 210] }]
+      [ { type: "text", coord: { x: 0, y: 0 }, text: "Points De Vie: " + Math.floor(this.hp) + "/" + Math.floor(this.maxHP), size: config.unit*2, color: [210, 255, 210] },
+        { type: "text", coord: { x: 0, y: config.unit*2 }, text: "Points d'Attaque: " + this.atk, size: config.unit*2, color: [255, 210, 210] },
+        { type: "text", coord: { x: 0, y: config.unit*4 }, text: "Couleur: " + color, size: config.unit*2, color: [255, 255, 210] }]
     ];
     chessGUI.windows.push(new Window(config.boardW + config.border, config.unit * 30 + config.border * 8, config.boardW/3, config.boardS/5, "Stats", this.elements));
 	}
@@ -751,7 +752,7 @@ class Pion extends Piece {
     //modification des stats en fonction de la position
 
 	let spell = [
-		new Spell("Holy Duty",8,1,img.spell.Pion[0],0,0,this,
+		new Spell("Vent Divin",8,1,img.spell.Pion[0],0,0,this,
 			function(){
 				this.cast()
 			},
@@ -1349,9 +1350,12 @@ class HighlightCase {
      if (isCaseHovered(this.x,this.y)) {
       clearGUI("highlightCase")
       this.callback();
+      return true //si un onLeftClick renvoie true, alors on quitte la boucle qui teste les onLeftClick() de tous les éléments
+      //cela permet d'éviter que plusieurs éléments réagissent au même clic4
     }
   }
 }
+
 
 class Text {
   constructor(gui,x,y,text,font,size,color,xalign = CENTER,yalign = CENTER){
@@ -1501,8 +1505,8 @@ class Spell {
 
   cast(arg){
     this.effect(arg)
-    joueur[this.spell.piece.player].mana -= this.spell.manaCost;
-    this.spell.actualCooldown = this.spell.cooldown
+    joueur[this.piece.player].mana -= this.manaCost;
+    this.actualCooldown = this.cooldown
   }
 
 }
@@ -1666,11 +1670,11 @@ function draw() {
 
 function mouseClicked(){
   if (mouseButton == LEFT){
-    for (var element in chessGUI){ // TROP DE IF LOL
+    clickLoop: for (var element in chessGUI){ // TROP DE IF LOL
       if (chessGUI.hasOwnProperty(element)){
         for (var i = 0; i < chessGUI[element].length; i++){
           if (typeof chessGUI[element][i].onLeftClick === "function"){
-            chessGUI[element][i].onLeftClick();
+            if (chessGUI[element][i].onLeftClick()) break clickLoop;
           }
         }
       }
