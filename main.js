@@ -17,7 +17,8 @@ var config = {
   maxMana: 10,
   gold: 100,
   hud: {},
-  background: 0
+  background: 0,
+  expLevels : [100,250,400]
 }
 
 
@@ -129,13 +130,15 @@ Array.prototype.spliceItem = function(item){
 }
 
 function kill(target,killer){ //tue une pi�ce -> la supprime des deux tableaux dont elle fait partie :
-  target.callPassive("onDying",killer)
-  killer.callPassive("onKilling",target)
-
-  joueur[target.player].piece.spliceItem(target) //le tableau des pi�ces du propri�taire
+	target.callPassive("onDying",killer)
+	killer.callPassive("onKilling",target)
+	let xp = target.expValue
+	
+	joueur[target.player].piece.spliceItem(target) //le tableau des pi�ces du propri�taire
 	chessGUI.pieces.spliceItem(target) //le tableau des �l�ments g�r�s par la GUI
-
-  killer.callPassive("onKillingDone",target)
+	
+	killer.callPassive("onKillingDone",target)
+	killer.gainExp(xp)
 }
 
 function damage(target,source,dmg){ //inflig des d�g�ts � une pi�ce
@@ -515,7 +518,7 @@ class Joueur {
 class Piece {
 	//classe repr�sentant une pi�ce en g�n�ral
 	//les diff�rentes pi�ces seront des classes h�rit�es de celle-ci
-  constructor(img,name,atk,hp,cx,cy,player,mp,spell = []) {
+  constructor(img,name,atk,hp,cx,cy,player,mp, expValue,spell = []) {
 	  //on passe au constructeur l'image, le nom, les stats, la position initiale, le propri�taire d'une pi�ce
 	  //l'ID d'image, le nom, les stats seront d�termin�s de mani�re fixe lors de l'appel du superconstructeur
 	  //dans le constructeur des classes h�rit�es (= les pi�ces en elles m�mes)
@@ -534,6 +537,9 @@ class Piece {
     this.deplCD = false; //valeur bool indiquant si la pièce peut oui ou non se déplacer (possible une fois par tour)
 	this.spell = spell; //spells (actifs) de la pièce
 	this.effects = [] //effets appliqués à la pièce
+	this.exp = 0
+	this.level = 0
+	this.expValue = expValue
 	
     chessGUI.pieces.push(this); //ajout de la pièce au tableau des éléments de la GUI
   }
@@ -719,12 +725,35 @@ class Piece {
 		return false;
 	}
 	
+	gainExp(exp){
+		this.exp += exp //ajout de l'exp
+		
+		if (this.exp >= config.expLevels[this.level]) this.levelUp(this.level + 1)  //on teste si l'exp
+																					//a dépassé un nouveau niveau 
+	}
+
+	levelUp(){
+		this.level += 1
+		
+		let prevBaseAtk = this.baseAtk
+		this.baseAtk *= 1.1
+		this.atk = this.atk * this.baseAtk / prevBaseAtk
+
+		let prevBaseHP = this.baseHP
+		this.baseHP *= 1.1
+		this.maxHP = this.maxHP * this.baseHP / prevBaseHP
+		this.this.maxHP = this.maxHP * this.baseHP / prevBaseHP
+		
+		if (this.exp >= config.expLevels[this.level]) this.levelUp(this.level + 1) //si l'exp a dépassé un autre niveau, on répète l'opération
+		
+	}
+	
 }
 
 class Pion extends Piece {
   constructor(x, y, player) {
 
-    super(0, "Pion", 50, 120, x, y, player, 3);
+    super(0, "Pion", 50, 120, x, y, player, 3, 60);
 	
 	var direction = this.player
 	this.kyojin = Math.abs(((config.nLig - 1) * -direction) + this.cy)
@@ -853,7 +882,7 @@ class Pion extends Piece {
 
 class Tour extends Piece {
   constructor(x, y, player) {
-    super(1, "Tour", 20,200, x, y, player, 5);
+    super(1, "Tour", 20,200, x, y, player, 5, 80);
 	
 	this.spell = [
 		new Spell("Rise of the army",6,3,img.spell.Tour[0],0,0,this,
@@ -983,7 +1012,7 @@ class Tour extends Piece {
 
 class Fou extends Piece {
   constructor(x, y, player) {
-    super(2, "Fou", 50, 70, x, y, player, 5);
+    super(2, "Fou", 50, 70, x, y, player, 5, 60);
   }
 
   getDepl(board) {
@@ -1040,7 +1069,7 @@ class Fou extends Piece {
 
 class Reine extends Piece {
 	constructor(x, y, player) {
-		super(3, "Reine", 120, 400, x, y, player, 5);
+		super(3, "Reine", 120, 400, x, y, player, 5, 150);
 	}
 
 	getDepl(board) {
@@ -1119,7 +1148,7 @@ class Reine extends Piece {
 
 class Cavalier extends Piece {
 	constructor(x, y, player) {
-		super(4, "Cavalier", 80, 50, x, y, player,2);
+		super(4, "Cavalier", 80, 50, x, y, player,2, 80);
 	}
 
 	getDepl(board) {
@@ -1167,7 +1196,7 @@ class Cavalier extends Piece {
 
 class Roi extends Piece {
   constructor(x, y, player) {
-    super(5, "Roi", 30, 400, x, y, player, 2);
+    super(5, "Roi", 30, 400, x, y, player, 2, 999);
   }
 
   getDepl(board) {
@@ -1523,6 +1552,8 @@ class SpellIcon extends Button {
 		}
 	}
 }
+
+
 
 class Effect{ //classe représentant les effets sur la durée appliqués aux pièces
 	constructor(piece,duration,turnEffect = 0,endEffect = 0,direct = true){
