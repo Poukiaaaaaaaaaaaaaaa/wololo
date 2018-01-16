@@ -46,6 +46,8 @@ var config = {
   config.hud.playerTurnText = {x: config.boardW + config.border, y: config.border * 6 + config.unit * 22}
   config.hud.spells = {x: config.boardW + config.border, y: config.border * 6 + config.unit * 22, spellSize : config.unit * 8}
   config.hud.info = {x: config.boardW + config.border, y: config.boardS - config.border * 2 - config.unit * 9, w: config.unit * 16, h: config.unit * 9}
+  config.hud.statsWindow = {x: config.boardW + config.border, y: config.boardS - config.border * 4 - config.boardS/5 - config.hud.info.h, w: config.boardW/3, h: config.boardS/5}
+  config.hud.spellInfo = {x : config.boardW + config.border, y: config.hud.spells.y + config.hud.spells.h + config.border * 2, size: config.unit * 2}
 }
 // endConfig -------------
 
@@ -724,14 +726,18 @@ class Piece {
 		this.effects.push(new Effect(this,duration,turn,end))
 	}
 
-	showStats() { // à overload dans les classes de pièces
-    let color = this.player ? "Noir" : "Blanc";
-		this.elements = [
-      [ { type: "text", coord: { x: 0, y: 0 }, text: "Points De Vie: " + Math.floor(this.hp) + "/" + Math.floor(this.maxHP), size: config.unit*2, color: [210, 255, 210] },
-        { type: "text", coord: { x: 0, y: config.unit*2 }, text: "Points d'Attaque: " + this.atk, size: config.unit*2, color: [255, 210, 210] },
-        { type: "text", coord: { x: 0, y: config.unit*4 }, text: "Couleur: " + color, size: config.unit*2, color: [255, 255, 210] }]
-    ];
-    new Window(config.boardW + config.border, config.unit * 30 + config.border * 8, config.boardW/3, config.boardS/5, "Stats", this.elements);
+	showStats() {
+		let expText = (this.level >= config.expLevels.length) ? "" :"/" + config.expLevels[this.level]
+		let color = this.player ? "Noir" : "Blanc";
+			this.elements = [
+		  [ { type: "text", coord: { x: 0, y: 0 }, text: "Points De Vie: " + Math.floor(this.hp) + "/" + Math.floor(this.maxHP), size: config.unit*2, color: [210, 255, 210] },
+			{ type: "text", coord: { x: 0, y: config.unit*2 }, text: "Points d'Attaque: " + Math.floor(this.atk), size: config.unit*2, color: [255, 210, 210] },
+			{ type: "text", coord: { x: 0, y: config.unit*4 }, text: "Couleur: " + color, size: config.unit*2, color: [255, 255, 210] },
+			{ type: "text", coord: { x: 0, y: config.unit*6 }, text: "Level "+this.level, size: config.unit*2, color: [150,150,255] },
+			{ type: "text", coord: { x: 0, y: config.unit*8 }, text: "Experience: "+this.exp + expText, size: config.unit*2, color: [150,150,255]}]
+		];
+		clearGUI("windows")
+		new Window(config.hud.statsWindow.x, config.hud.statsWindow.y,config.hud.statsWindow.w,config.hud.statsWindow.h, "Stats", this.elements);
 	}
 	
 	gainExp(exp){
@@ -1546,7 +1552,10 @@ class Spell {
 
 class SpellIcon extends Button {
 	constructor(x,y,w,h,spell){
-		super("pieceHUD",spell.img,x,y,w,h,0,function(){
+		super("pieceHUD",spell.img,x,y,w,h,
+		function(){
+		},
+		function(){
 			if (guiState == ""){
 				if(joueur[this.spell.piece.player].mana >= this.spell.manaCost){
 					if (this.spell.actualCooldown == 0 && !this.spell.locked){
