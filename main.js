@@ -423,7 +423,9 @@ var img = {},
 
 img.piece = { //objet contenant deux tableaux, "blanc" et "noir" : chacun contiendra les images des pi�ces de couleur correspodante
     blanc: [],
-    noir: [] };
+    noir: [],
+    selection: null
+  };
 img.spell = {};
 img.HUD = [];
 img.title = [];
@@ -458,6 +460,7 @@ function preload() { //chargement des images
   img.piece.blanc[3] = loadImage("img/Pièces/reine_blanche.png"); // reine blanche
   img.piece.blanc[4] = loadImage("img/Pièces/cavalier_blanc.png"); // cavalier blanc
   img.piece.blanc[5] = loadImage("img/Pièces/roi_blanc.png"); // roi blanc
+  img.piece.selection = loadImage("img/Pièces/selection.png"); // image de séléction
 
   img.spell.Pion = [];
   img.spell.Pion[0] = loadImage("img/spells/Pion/0.png");
@@ -476,8 +479,8 @@ function preload() { //chargement des images
     }
   }*/
 
-  winIMG[0] = loadImage("img/Window/window_left");
-  winIMG[1] = loadImage("img/Window/window_right");
+  winIMG[0] = loadImage("img/Window/window_left.png");
+  winIMG[1] = loadImage("img/Window/window_right.png");
 }
 // endImages -------------
 
@@ -522,13 +525,65 @@ class Joueur {
 
 }
 
+function facepunch() { //hehe
+  config.background = loadImage("img/no/facepunch.jpg");
+  img.HUD[0] = loadImage("img/no/facepunch.jpg");
+  img.HUD[1] = loadImage("img/no/facepunch.jpg");
+  img.title[0] = loadImage("img/no/facepunch.jpg")
+  img.title[1] = loadImage("img/no/facepunch.jpg")
+  img.title[2] = loadImage("img/no/facepunch.jpg")
+  img.title[3] = loadImage("img/no/facepunch.jpg")
+  img.title[4] = loadImage("img/no/facepunch.jpg")
+  img.title[5] = loadImage("img/no/facepunch.jpg")
+  img.title[6] = loadImage("img/no/facepunch.jpg")
+
+  img.piece.noir[0] = loadImage("img/no/facepunch.jpg"); // pion noir
+  img.piece.noir[1] = loadImage("img/no/facepunch.jpg"); // tour noire
+  img.piece.noir[2] = loadImage("img/no/facepunch.jpg"); // fou noir
+  img.piece.noir[3] = loadImage("img/no/facepunch.jpg") // reine noire
+  img.piece.noir[4] = loadImage("img/no/facepunch.jpg") // cavalier noir
+  img.piece.noir[5] = loadImage("img/no/facepunch.jpg") // roi noir
+  img.piece.blanc[0] = loadImage("img/no/facepunch.jpg"); // pion blanc
+  img.piece.blanc[1] = loadImage("img/no/facepunch.jpg"); // tour blanche
+  img.piece.blanc[2] = loadImage("img/no/facepunch.jpg"); // fou blanc
+  img.piece.blanc[3] = loadImage("img/no/facepunch.jpg"); // reine blanche
+  img.piece.blanc[4] = loadImage("img/no/facepunch.jpg"); // cavalier blanc
+  img.piece.blanc[5] = loadImage("img/no/facepunch.jpg"); // roi blanc
+
+  img.spell.Pion = [];
+  img.spell.Pion[0] = loadImage("img/no/facepunch.jpg");
+  img.spell.Pion[1] = loadImage("img/no/facepunch.jpg");
+  img.spell.Pion[2] = loadImage("img/no/facepunch.jpg");
+  img.spell.Tour = [];
+  img.spell.Tour[0] = loadImage("img/no/facepunch.jpg");
+  img.spell.Tour[1] = loadImage("img/no/facepunch.jpg");
+  img.spell.Tour[2] = loadImage("img/no/facepunch.jpg");
+
+/*
+   for (var i = 0; i < pieceClass.length; i++){
+    img.spell[pieceClass[i]] = [];
+    while (true) {
+      loadImage("img/"+)
+    }
+  }
+  */
+
+  winIMG[0] = loadImage("img/no/facepunch.jpg");
+  winIMG[1] = loadImage("img/no/facepunch.jpg");
+  startGame();
+}
+
+function deFacepunch() {
+  preload(); startGame();
+}
+
 class Piece {
-	//classe repr�sentant une pi�ce en g�n�ral
-	//les diff�rentes pi�ces seront des classes h�rit�es de celle-ci
+	//classe représentant une pièce en général
+	//les différentes pièces seront des classes héritées de celle-ci
   constructor(img,name,atk,hp,cx,cy,player,mp, expValue,spell = []) {
-	  //on passe au constructeur l'image, le nom, les stats, la position initiale, le propri�taire d'une pi�ce
-	  //l'ID d'image, le nom, les stats seront d�termin�s de mani�re fixe lors de l'appel du superconstructeur
-	  //dans le constructeur des classes h�rit�es (= les pi�ces en elles m�mes)
+	  //on passe au constructeur l'image, le nom, les stats, la position initiale, le propriétaire d'une pièce
+	  //l'ID d'image, le nom, les stats seront déterminés de manière fixe lors de l'appel du superconstructeur
+	  //dans le constructeur des classes héritées (= les pièces en elles mêmes)
     this.img = img; //image représentant la pièce : il s'agit d'un numéro, qui indique une entrée du tableau img.piece.[noir/blanc]
     this.name = name; //nom de la pièce (pas vraiment utilisé)
     this.atk = atk; //stat d'attaque de la pièce
@@ -553,13 +608,17 @@ class Piece {
   }
 
   draw() {
-  //m�thode affichant la pi�ce
+  //méthode affichant la pièce
     if (!(this.movement)) {this.x = convertPx(this.cx) ; this.y = convertPx(this.cy)}
       image(img.piece[this.color][this.img],
             this.x + config.border, this.y + config.border,
             config.tileSize - 2*config.border, config.tileSize - 2*config.border);
+      if (selectedPiece == this)
+        image(img.piece.selection,
+              this.x + config.border, this.y + config.border,
+              config.tileSize - 2*config.border, config.tileSize - 2*config.border);
       if (playerTurn == this.player && isCaseHovered(this.cx,this.cy) && guiState == ""){
-    		// si le curseur est sur la pi�ce et qu'on peut la s�lectionner, affichage d'un indicateur
+    		// si le curseur est sur la pièce et qu'on peut la sélectionner, affichage d'un indicateur
         fill(255,255,255,50);
         rect(convertPx(this.cx),convertPx(this.cy),
         config.tileSize, config.tileSize, config.border);
@@ -1658,7 +1717,7 @@ function startGame() {
 	{let info = config.hud.info;
 		info.draw = function() {
 			image(img.HUD[1], config.hud.info.x, config.hud.info.y, config.hud.info.w, config.hud.info.h);
-			if (!selectedPiece) { fill(50, 50, 50, 180); rect(config.hud.info.x, config.hud.info.y, config.hud.info.w, config.hud.info.h);
+			if (!selectedPiece) { fill(50, 50, 50, 180); rect(config.hud.info.x, config.hud.info.y, config.hud.info.w, config.hud.info.h, config.unit/4);
 			} else { if (isObjectHovered(this)) {fill(255,255,255,50) ; rect(this.x,this.y,this.w,this.h,config.unit/4)}}
 		}
 		info.onLeftClick = function(){
@@ -1698,14 +1757,15 @@ function draw() {
   d = new Date();
   actTime = d.getTime();
 
-    for (var element in chessGUI) {
-      if (chessGUI.hasOwnProperty(element)) {
-        for (var i = 0; i < chessGUI[element].length; i++) {
-          if (typeof chessGUI[element][i].draw === "function"){
-            chessGUI[element][i].draw(); }
-          }
+  for (var element in chessGUI) {
+    if (chessGUI.hasOwnProperty(element)) {
+      for (var i = 0; i < chessGUI[element].length; i++) {
+        if (typeof chessGUI[element][i].draw === "function"){
+          chessGUI[element][i].draw();
         }
       }
+    }
+  }
 
   if (victory){
     alert("Victoire de " + victory.name)
@@ -1734,7 +1794,21 @@ function mouseClicked(){
   }
 }
 
-function keyPressed() {
+var fpunch = 0, isFacepunch = false;
 
+function keyPressed() { //hehe
+  if (keyCode == 70 && !fpunch) fpunch = 1;                                                   //f
+  if (keyCode == 65 && fpunch == 1) fpunch = 2;                                               //a
+  if (keyCode == 67 && fpunch == 2) fpunch = 3;                                               //c
+  if (keyCode == 69 && fpunch == 3) fpunch = 4;                                               //e
+  if (keyCode == 80 && fpunch == 4) fpunch = 5;                                               //p
+  if (keyCode == 85 && fpunch == 5) fpunch = 6;                                               //u
+  if (keyCode == 78 && fpunch == 6) fpunch = 7;                                               //n
+  if (keyCode == 67 && fpunch == 7) fpunch = 8;                                               //c
+  if (keyCode == 72 && fpunch == 8) {                                                         //h
+    fpunch = 0; isFacepunch = isFacepunch ? false : true;
+    if (isFacepunch) facepunch();
+    if (!isFacepunch) deFacepunch();
+  }
 }
 // end of main functions
