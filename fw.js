@@ -1,62 +1,62 @@
 class Window {
 	constructor(x,y,w,h,title,elements) {
-		this.id = chessGUI.windows.length;
-    this.x = x;
-    this.y = y;
-    this.w = w;
-    this.h = h;
-		this.headerSize = h/7;
-		this.cross = {
-			x: x + w - h/7, y: y, s: h/7,
-    	isHovered: function(){
-				if (mouseX > this.x &&
-				    mouseX < this.x + this.s &&
-				    mouseY > this.y &&
-				    mouseY < this.y + this.s) { return true } else { return false }
-				}
-		};
-	this.eleBorder = h/25;
-	this.title = title;
-	this.titleSize = h/9;
-	this.titleOffset = h/60;
-	this.nPages = elements.length;
-	this.pageCounter = 0;
-  this.footer = { buttons: [], text: [] };
-  this.footerOffset = h/80;
-  this.footerHeight = h/12;
-  this.closed = false;
-  this.elements = [];
+			this.id = chessGUI.windows.length;
+		this.x = x;
+		this.y = y;
+		this.w = w;
+		this.h = h;
+			this.headerSize = h/7;
+			this.cross = {
+				x: x + w - h/7, y: y, s: h/7,
+			isHovered: function(){
+					if (mouseX > this.x &&
+						mouseX < this.x + this.s &&
+						mouseY > this.y &&
+						mouseY < this.y + this.s) { return true } else { return false }
+					}
+			};
+		this.eleBorder = h/25;
+		this.title = title;
+		this.titleSize = h/9;
+		this.titleOffset = h/60;
+		this.nPages = elements.length;
+		this.pageCounter = 0;
+	  this.footer = { buttons: [], text: [] };
+	  this.footerOffset = h/80;
+	  this.footerHeight = h/12;
+	  this.closed = false;
+	  this.elements = [];
 
-  for (let i = 0; i < this.nPages; i++) {
-    this.elements[i] = { buttons: [], text: [] };
-  }
+	  for (let i = 0; i < this.nPages; i++) {
+		this.elements[i] = { buttons: [], text: [] };
+	  }
 
-  for (let i = 0; i < elements.length; i++) {
-    for (let j = 0; j < elements[i].length; j++) {
-      if (elements[i][j].type === "button") {
-        this.elements[i].buttons.push(new WButton(this, elements[i][j].coord.x, elements[i][j].coord.y,
-                                                  elements[i][j].coord.w, elements[i][j].coord.h,
-                                                  elements[i][j].img, elements[i][j].hovercallback, elements[i][j].callback));
-      }
+	  for (let i = 0; i < elements.length; i++) {
+		for (let j = 0; j < elements[i].length; j++) {
+		  if (elements[i][j].type === "button") {
+			this.elements[i].buttons.push(new WButton(this, elements[i][j].coord.x, elements[i][j].coord.y,
+													  elements[i][j].coord.w, elements[i][j].coord.h,
+													  elements[i][j].img, elements[i][j].hovercallback, elements[i][j].callback));
+		  }
 
-      if (elements[i][j].type === "text") {
-        this.elements[i].text.push(new WText(this, elements[i][j].coord.x, elements[i][j].coord.y,
-                                             elements[i][j].text, elements[i][j].size, elements[i][j].color));
-      }
-    }
-  }
+		  if (elements[i][j].type === "text") {
+			this.elements[i].text.push(new WText(this, elements[i][j].coord.x, elements[i][j].coord.y,
+												 elements[i][j].text, elements[i][j].size, elements[i][j].color));
+		  }
+		}
+	  }
 
 
-    for (var i = 0; i < 3; i++) {
-      if (i == 0) this.footer.buttons[0] = new WButton(this,-this.eleBorder + this.footerOffset,this.h - this.eleBorder - this.footerHeight - this.headerSize - this.footerOffset,
-                                           this.footerHeight,this.footerHeight,0,null,function(){if (this.win.pageCounter > 0) this.win.pageCounter -= 1});
-      if (i == 1) this.footer.buttons[1] = new WButton(this,this.w - this.eleBorder - this.footerHeight - this.footerOffset,this.h - this.eleBorder - this.footerHeight - this.headerSize - this.footerOffset,
-                                           this.footerHeight,this.footerHeight,1,null,function(){if (this.win.pageCounter < this.win.nPages-1) this.win.pageCounter += 1});
-      if (i == 2) this.footer.text[0] = new FText(this,-this.eleBorder + this.w/2, this.h - this.footerHeight - this.headerSize, this.pageCounter+1 + "/" + this.nPages, this.footerHeight, [255]);
-    }
+		for (var i = 0; i < 3; i++) {
+		  if (i == 0) this.footer.buttons[0] = new WButton(this,-this.eleBorder + this.footerOffset,this.h - this.eleBorder - this.footerHeight - this.headerSize - this.footerOffset,
+											   this.footerHeight,this.footerHeight,0,null,function(){if (this.win.pageCounter > 0) this.win.pageCounter -= 1});
+		  if (i == 1) this.footer.buttons[1] = new WButton(this,this.w - this.eleBorder - this.footerHeight - this.footerOffset,this.h - this.eleBorder - this.footerHeight - this.headerSize - this.footerOffset,
+											   this.footerHeight,this.footerHeight,1,null,function(){if (this.win.pageCounter < this.win.nPages-1) this.win.pageCounter += 1});
+		  if (i == 2) this.footer.text[0] = new FText(this,-this.eleBorder + this.w/2, this.h - this.footerHeight - this.headerSize, this.pageCounter+1 + "/" + this.nPages, this.footerHeight, [255]);
+		}
+		
+		chessGUI.windows.push(this)
 	}
-
-  shouldClose(){ if (this.cross.isHovered()) { return true } else { return false; } }
 
   clearElements() {
     this.elements[this.pageCounter] = { buttons: [], text: [] };
@@ -68,6 +68,8 @@ class Window {
         this.elements[i].buttons[j].onLeftClick();
       }
     }
+	
+	if (this.cross.isHovered()) chessGUI.windows.spliceItem(this)
 
     for (let i = 0; i < this.footer.buttons.length; i++) {
       this.footer.buttons[i].onLeftClick();

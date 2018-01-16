@@ -1,6 +1,18 @@
 // CHESS++ ISN PROJECT
 // Téo Tinarrage // Amaël Marquez
-// TODO: les animations bon hein ça va, écran titre
+// TODO (avant la présentation)
+// - Intégrer les changements du à la séparation en fichiers multiples (INTEGRER P55.DRAW ET DEFINITION DE P55.GUI)
+// TODO (non terminé au moment de la présentation) :
+// - Sorts de certaines pièces
+// - Système de monnaie
+
+
+//Disclaimer :
+//Si ChessPP est actuellement fonctionnel bien que légèrement incomplet, il reste
+//peu jouable ; l'équilibrage n'a pas pu être travaillé en profondeur, il est donc fort possible
+//que les stratégies n'aient que peu de d'intérêt actuellement. Si nous n'avons pas pu créer un jeu
+//réellement intéressant (bien que fonctionnel encore une fois), son développement ne s'arrête pas au
+//rendu du projet, et il sera à terme un jeu de stratégie à part entière.
 
 // debug
 var debug = false;
@@ -38,13 +50,7 @@ var config = {
 // endConfig -------------
 
 // globalFunctions -----------
-// Initialise les positions de toutes les pi�ces en d�but de partie
-// 0 -> Pion
-// 1 -> Tour
-// 2 -> Fou
-// 3 -> Reine
-// 4 -> Cavalier
-// 5 -> Roi
+
 function initPrePieces() {
   var layout = [
     [Tour, Cavalier, Fou, Reine, Roi, Fou, Cavalier, Tour],
@@ -156,7 +162,7 @@ function examineBoard() {
 }
 
 function examineBoardHLC() { //même effet de examine board, mais remplit les cases avec les highlightCase au lieu des pièces
-
+//sur le moment ça m'avait l'air utile mais je crois que cette fonction sert à rien au final
 	var board = []; //cr�e un tableau
 
 	for (var i = 0; i < config.nCol; i++){ //y place autant de sous tableaux qu'il y a de colonnes,
@@ -194,6 +200,10 @@ function isHovered(x,y,w,h) { //teste si le curseur de la souris se trouve au de
       mouseY > y && mouseY < y + h ){
         return true;
       } else { return false; }
+}
+
+function isObjectHovered(object){
+	return isHovered(object.x,object.y,object.w,object.h)
 }
 
 function isCaseHovered(x,y){ //teste si le curseur de la souris se trouve au dessus de la case sp�cifi�e
@@ -366,7 +376,7 @@ var titleView = {
     {let helpButtonS = config.unit * 20
     new Button("hud",img.title[6],config.canvasW/4 * 3 - helpButtonS/2,config.canvasH/5*3 - helpButtonS / 2,helpButtonS,helpButtonS,
     function(){fill([200,200,200,50]); rect(this.x,this.y,this.w,this.h,config.unit*3)},
-    function(){let win = window.open("help.html", '_blank') ; win.focus()})}
+    function(){let win = window.open("help/help.html", '_blank') ; win.focus()})}
 	},
 	settings : function(){
 		clearGUI("hud")
@@ -680,7 +690,6 @@ class Piece {
   }
 
   noManaError(x,y){
-    clearGUI("windows");
     {
       let manaTXT = new Text("msg",x,y,"Not enough mana","Arial",config.unit,[0,0,255])
       applyFadeOut(manaTXT,manaTXT.color,255,0.5)
@@ -722,7 +731,7 @@ class Piece {
         { type: "text", coord: { x: 0, y: config.unit*2 }, text: "Points d'Attaque: " + this.atk, size: config.unit*2, color: [255, 210, 210] },
         { type: "text", coord: { x: 0, y: config.unit*4 }, text: "Couleur: " + color, size: config.unit*2, color: [255, 255, 210] }]
     ];
-    chessGUI.windows.push(new Window(config.boardW + config.border, config.unit * 30 + config.border * 8, config.boardW/3, config.boardS/5, "Stats", this.elements));
+    new Window(config.boardW + config.border, config.unit * 30 + config.border * 8, config.boardW/3, config.boardS/5, "Stats", this.elements);
 	}
 	
 	gainExp(exp){
@@ -753,6 +762,9 @@ class Piece {
 				}
 			}
 		}
+		
+        let levelUpTXT = new Text("msg", convertPx(this.cx) + config.tileSize / 2, convertPx(this.cy) + config.tileSize / 2, "Level Up","Arial",config.unit * 4,[0,0,255])
+        applyFadeOut(levelUpTXT,levelUpTXT.color,255,0.3)
 		
 		if (this.exp >= config.expLevels[this.level]) this.levelUp(this.level + 1) //si l'exp a dépassé un autre niveau, on répète l'opération
 		
@@ -1615,7 +1627,9 @@ function startGame() {
   chessGUI.background.push(hudBG);}
 	{let chessBoard = {draw : drawBoard}
 	chessGUI.background.push(chessBoard)}
-	new Button("hud",img.HUD[0],config.hud.button.x,config.hud.button.y,config.hud.button.w,config.hud.button.h,0,function(){joueur[1 - playerTurn].startTurn()})
+	new Button("hud",img.HUD[0],config.hud.button.x,config.hud.button.y,config.hud.button.w,config.hud.button.h,
+		function(){fill([255,255,255,50]) ; rect(this.x,this.y,this.w,this.h)},
+		function(){joueur[1 - playerTurn].startTurn()})
 	{let manaGauge = config.hud.manaGauge;
 	manaGauge.draw = function(){
 	   fill(200,200,255);
@@ -1624,21 +1638,18 @@ function startGame() {
 	   rect(this.x,this.y,joueur[playerTurn].mana / config.maxMana * this.w,this.h);
 	   textAlign(LEFT, CENTER); textSize(config.unit * 4); fill(255);}
 	chessGUI.hud.push(manaGauge)}
-  {let info = config.hud.info;
-    info.draw = function() {
-      image(img.HUD[1], config.hud.info.x, config.hud.info.y, config.hud.info.w, config.hud.info.h);
-      if (!selectedPiece) { fill(50, 50, 50, 180); rect(config.hud.info.x, config.hud.info.y, config.hud.info.w, config.hud.info.h); }
-    }
-    info.isHovered = function() {
-      if (mouseX > config.hud.info.x &&
-          mouseX < config.hud.info.x + config.hud.info.w &&
-          mouseY > config.hud.info.y &&
-          mouseY < config.hud.info.y + config.hud.info.h) { return true } else { return false };
-    }
-    info.onLeftClick = function(){
-      if (selectedPiece && this.isHovered()) { selectedPiece.showStats(); }
-    }
-    chessGUI.hud.push(info);}
+  
+	{let info = config.hud.info;
+		info.draw = function() {
+			image(img.HUD[1], config.hud.info.x, config.hud.info.y, config.hud.info.w, config.hud.info.h);
+			if (!selectedPiece) { fill(50, 50, 50, 180); rect(config.hud.info.x, config.hud.info.y, config.hud.info.w, config.hud.info.h); 
+			}else{ if (isObjectHovered(this)) {fill(255,255,255,50) ; rect(this.x,this.y,this.w,this.h)}}
+		}
+		info.onLeftClick = function(){
+			if (selectedPiece && isObjectHovered(this)) { selectedPiece.showStats(); }
+		}
+		chessGUI.hud.push(info);
+	}
 
 	for (let i = 0; i < joueur.length; i++){
 		joueur[i].initGame();
@@ -1702,10 +1713,6 @@ function mouseClicked(){
           }
         }
       }
-    }
-
-	for (let i = 0; i < chessGUI.windows.length; i++) {
-      if (chessGUI.windows[i].shouldClose()) chessGUI.windows.splice(i, 1);
     }
   }
 }
