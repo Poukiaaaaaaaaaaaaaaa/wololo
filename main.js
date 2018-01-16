@@ -47,7 +47,7 @@ var config = {
   config.hud.spells = {x: config.boardW + config.border, y: config.border * 6 + config.unit * 22, spellSize : config.unit * 8}
   config.hud.info = {x: config.boardW + config.border, y: config.boardS - config.border * 2 - config.unit * 9, w: config.unit * 16, h: config.unit * 9}
   config.hud.statsWindow = {x: config.boardW + config.border, y: config.boardS - config.border * 4 - config.boardS/5 - config.hud.info.h, w: config.boardW/3, h: config.boardS/5}
-  config.hud.spellInfo = {x : config.boardW + config.border, y: config.hud.spells.y + config.hud.spells.h + config.border * 2, size: config.unit * 2}
+  config.hud.spellInfo = {x : config.boardW + config.border, y: config.hud.spells.y + config.hud.spells.spellSize + config.border * 2, size: config.unit * 2}
 }
 // endConfig -------------
 
@@ -402,6 +402,28 @@ var titleView = {
 
   }
 }
+
+function fuckThisShitImOut(){
+	guiState = "boi"
+	let objects = []
+	for (var element in chessGUI) {
+		if (chessGUI.hasOwnProperty(element)) {
+			for (var i = 0; i < chessGUI[element].length; i++) {
+				if (typeof chessGUI[element][i].draw === "function"){
+					objects.push(chessGUI[element][i])
+				}
+			}
+        }
+    }
+	let bgCleaner = {draw: function(){background(0)}} ; chessGUI.background.splice(0,0,bgCleaner)
+	let targetAngle
+	for (let i = 0; i < objects.length; i++){
+		targetAngle = Math.random() * 2 * Math.PI
+		move(objects[i],0.2,objects[i].x + Math.cos(targetAngle) * 2000, objects[i].y + Math.sin(targetAngle) * 2000)
+	}
+	
+}
+
 // endGlobalFunctions -------------
 
 // globalVars --------------
@@ -560,14 +582,25 @@ class Piece {
     }
 
 	//affichage de la barre de vie
-    fill("red");
-    rect(this.x,this.y + config.tileSize * 0.8,
-    config.tileSize,config.tileSize*0.2,
-    0,0,config.border,config.border);
-    fill("green");
-    rect(this.x,this.y + config.tileSize * 0.8,
-    config.tileSize / this.maxHP * this.hp,config.tileSize * 0.2,
-    0,0,config.border,config.border);
+		fill("red");
+		rect(this.x,this.y + config.tileSize * 0.8,
+		config.tileSize,config.tileSize*0.2,
+		0,0,config.border,config.border);
+		fill("green");
+		rect(this.x,this.y + config.tileSize * 0.8,
+		config.tileSize / this.maxHP * this.hp,config.tileSize * 0.2,
+		0,0,config.border,config.border);
+	//affichage des barres d'xp
+	/*	fill(0,0,150);
+		rect(this.x,this.y + config.tileSize * 0.75,
+		config.tileSize,config.tileSize*0.05,
+		0,0,config.border,config.border);
+		fill(100,100,255);
+		let deltaExp = (this.level === 0) ? config.expLevels[this.level] : (config.expLevels[this.level] - config.expLevels[this.level - 1]) * this.exp - config.expLevels 
+		deltaExp = (this.level === config.expLevels.length) ? this.Exp : deltaExp
+		rect(this.x,this.y + config.tileSize * 0.75,
+		config.tileSize / deltaExp ,config.tileSize * 0.05,
+		0,0,config.border,config.border); */
   }
 
   onLeftClick() {
@@ -800,18 +833,23 @@ class Pion extends Piece {
 				var hpCost = 50
 				var board = examineBoard()
 				var source = this.piece
-				 if (spell.piece.hp > hpCost){
-					selectPieces(piecesInCases(caseInRangeZ(spell.piece.cx,spell.piece.cy,1),board),
+				if (spell.piece.hp > hpCost){
+					selectPieces(piecesInCases(this.getRange(),board),
 					   function(target){if (target.player != source.player)damage(target,spell.piece,20)})
 					damage(spell.piece,undefPiece,hpCost)
-				 }
-			}),
+				}
+				 
+			},
+			function(){
+				return caseInRangeZ(this.piece.cx,this.piece.cy,1)
+			}
+		),
 		new Spell("Unity",8,3,img.spell.Pion[1],0,0,this,
 			function(){
 				let spell = this
 				var pieces = []
 				var board = examineBoard()
-				selectPiecesConditional(piecesInCases(caseInRangeZ(this.piece.cx,this.piece.cy,2),board),
+				selectPiecesConditional(piecesInCases(this.getRange(),board),
 					function(piece){pieces.push(piece)},
 					[function(piece){if (piece.player == spell.piece.player) return false ; return true}])
 				startPieceSelectionHLC(pieces, [255,0,255,50], [255,0,255,100],
@@ -832,17 +870,24 @@ class Pion extends Piece {
 				let scaleDmg = c * ppDmg
 
 				damage(selected,this.piece,baseDmg + scaleDmg)
-			}),
+			},
+			function(){
+				return caseInRangeZ(this.piece.cx,this.piece.cy,2)
+			}
+		),
 		new Spell("Flash Wave",5,2,img.spell.Pion[2],0,0,this,
 			function(){
 				this.cast()
 			},
 			function(){
-				let targets = piecesInCases( this.piece.getAtkRange(), examineBoard())
+				let targets = piecesInCases( this.getRange(), examineBoard())
 				for (var i = 0; i < targets.length; i++){  //on n'utilise pas selectPiecesConditional car l'action et la condition sont très simples
 					if (targets[i].player != this.piece.player) damage(targets[i],this.piece,20 + this.piece.kyojin * 2)
 				}
-			})
+			},
+			function() this.piece.getAtkRange()
+			
+		)
     ];
 	this.spell = spell;
 
@@ -911,11 +956,14 @@ class Tour extends Piece {
 				this.cast();
 			},
 			function(){
-				selectPiecesConditional(piecesInCases(caseInRangeZ(this.piece.cx,this.piece.cy,3),examineBoard()),
+				selectPiecesConditional(piecesInCases(this.getRange(),examineBoard()),
 					function(pion){
 						pion.applyEffect(4,function(){this.piece.atk += 20})
 					}
 				)
+			},
+			function(){
+				return caseInRangeZ(this.piece.cx,this.piece.cy,3)
 			}
 		),
 		new Spell("Rise of the soldier",10,5,img.spell.Tour[1],0,false,this,
@@ -923,7 +971,7 @@ class Tour extends Piece {
 				let cases = []
 				var spell = this
 				let board = examineBoard()
-				selectCases(caseInRangeZ(this.piece.cx,this.piece.cy,3),function(x,y){
+				selectCases(this.getRange(),function(x,y){
 					if (!board[x][y]) cases.push([x,y])
 				});
 				startCasesSelectionHLC(cases, [255,0,255,50], [255,0,255,100],
@@ -939,27 +987,17 @@ class Tour extends Piece {
 				})
 				pion.name = "Tower Soldier"
 				joueur[this.piece.player].piece.push(pion)
+			},
+			function(){
+				return caseInRangeZ(this.piece.cx,this.piece.cy,3)
 			}
+			
 		),
 		new Spell("Catapult",4,2,img.spell.Tour[2],0,false,this,
 			function(){
 				var spell = this
-				let range = []
-				for (var i = -5; i < 6; i++){
-					if (this.piece.cx + i < 0){
-					continue
-					} else if (this.piece.cx + i >= config.nCol) break
-
-					if (i) range.push([this.piece.cx + i, this.piece.cy])
-				}
-				for (var i = -5; i < 6; i++){
-					if (this.piece.cy + i < 0){
-					continue
-					}else if (this.piece.cy + i >= config.nLig) break
-
-					if (i) range.push([this.piece.cx, this.piece.cy + i])
-				}
-
+				
+				let range = this.getRange()
 
 				let inRange = piecesInCases(range,examineBoard())
 				let targetPieces = []
@@ -982,6 +1020,24 @@ class Tour extends Piece {
 			},
 			function(target){
 				damage(target,this.piece,25)
+			},
+			function(){
+				let range = []
+				for (var i = -5; i < 6; i++){
+					if (this.piece.cx + i < 0){
+					continue
+					} else if (this.piece.cx + i >= config.nCol) break
+
+					if (i) range.push([this.piece.cx + i, this.piece.cy])
+				}
+				for (var i = -5; i < 6; i++){
+					if (this.piece.cy + i < 0){
+					continue
+					}else if (this.piece.cy + i >= config.nLig) break
+
+					if (i) range.push([this.piece.cx, this.piece.cy + i])
+				}
+				return range
 			}
 		)
 	]
@@ -1353,7 +1409,7 @@ class Button {
           this.x, this.y,
           this.w, this.h);
           if (typeof this.hovercallback == "function" && isHovered(this.x,this.y,this.w,this.h)){
-            this.hovercallback(this.x,this.y,this.w,this.h)
+            this.hovercallback()
           }
   }
 
@@ -1529,7 +1585,7 @@ class Movement{
 }
 
 class Spell {
-  constructor(name,manaCost,cooldown,img,helpImg,baseLocked,piece,onUsed,effect){
+  constructor(name,manaCost,cooldown,img,helpImg,baseLocked,piece,onUsed,effect,getRange){
     this.name = name;
     this.manaCost = manaCost;
     this.img = img;
@@ -1540,6 +1596,7 @@ class Spell {
 	this.piece = piece;
 	this.cooldown = cooldown;
 	this.actualCooldown = 0;
+	this.getRange = getRange;
   }
 
   cast(arg){
@@ -1554,6 +1611,23 @@ class SpellIcon extends Button {
 	constructor(x,y,w,h,spell){
 		super("pieceHUD",spell.img,x,y,w,h,
 		function(){
+			textSize(config.hud.spellInfo.size)
+			textFont("Verdana")
+			textAlign(LEFT,TOP)
+			fill(255)
+			text(this.spell.name, config.hud.spellInfo.x, config.hud.spellInfo.y)
+			fill(150,150,150)
+			text("Cooldown : " + this.spell.cooldown, config.hud.spellInfo.x, config.hud.spellInfo.y + config.hud.spellInfo.size)
+			fill(150,150,255)
+			text("Mana cost : " + this.spell.manaCost, config.hud.spellInfo.x, config.hud.spellInfo.y + config.hud.spellInfo.size * 2)
+			
+			if (this.spell.getRange){
+				let range = this.spell.getRange()
+				for (var i = 0; i < range.length; i++){
+					fill(255,200,200,100)
+					rect(convertPx(range[i][0]),convertPx(range[i][1]),config.tileSize,config.tileSize,config.border)
+				}
+			}
 		},
 		function(){
 			if (guiState == ""){
@@ -1655,7 +1729,13 @@ function startGame() {
 			}else{ if (isObjectHovered(this)) {fill(255,255,255,50) ; rect(this.x,this.y,this.w,this.h)}}
 		}
 		info.onLeftClick = function(){
-			if (selectedPiece && isObjectHovered(this)) { selectedPiece.showStats(); }
+			if (selectedPiece) { 
+				if (isObjectHovered(this)) { 
+					selectedPiece.showStats(); 
+					this.ftsioCounter ++; if (this.ftsioCounter >= 50) fuckThisShitImOut()
+					
+				} else {this.ftsioCounter = 0}
+			}
 		}
 		chessGUI.hud.push(info);
 	}
