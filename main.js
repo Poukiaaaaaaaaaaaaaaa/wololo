@@ -20,17 +20,16 @@ var debug = false;
 
 // config : objet contenant toutes les valeurs constantes qui définiront le fonctionnement du jeu
 var config = {
-  canvasW: window.innerWidth,
+  canvasW: window.innerWidth,    //tailles du canvas
   canvasH: window.innerHeight,
-  nLig: 10,
-  nCol: 8,
-  nbGold: 100,
-  mana: { depl: 3, atk: 5, newPiece: 3 },
-  maxMana: 20,
-  gold: 100,
-  hud: {},
-  background: 0,
-  expLevels : [100,250,500]
+  nLig: 10, //nombres de lignes/colones
+  nCol: 8, 
+  mana: { depl: 3, atk: 5, newPiece: 3 },  //coûts en mana des différentes actions de base
+  maxMana: 20,  //mana maximal
+  gold: 100,   //monnaie au début de la partie. Au final, n'est pas utilisé (le sera ... un jour)
+  hud: {},  //objet qui contiendra des informations sur différents éléments du hud
+  background: 0,  //couleur de background
+  expLevels : [100,250,500]   //valeurs d'expérience auxquelles les pièces gagnent un niveau
 }
 
 
@@ -41,35 +40,39 @@ var config = {
   config.tileSize = (config.boardS - ((config.nLig>config.nCol) ? config.nLig + 1 : config.nCol + 1) * config.border) / ((config.nLig>config.nCol) ? config.nLig : config.nCol);
   config.boardW = config.nCol * config.tileSize + config.border * (config.nCol+1);
 
-  config.hud.manaGauge = {x: config.boardW + config.border, y: config.border * 4 + config.unit * 16, w: config.unit * 40, h: config.unit * 6}
-  config.hud.button = {x : config.boardW + config.border, y: config.border * 2, w: config.hud.manaGauge.w, h: config.unit * 16 }
-  config.hud.playerTurnText = {x: config.boardW + config.border, y: config.border * 6 + config.unit * 22}
-  config.hud.spells = {x: config.boardW + config.border, y: config.border * 6 + config.unit * 22, spellSize : config.unit * 8}
-  config.hud.info = {x: config.boardW + config.border, y: config.boardS - config.border * 2 - config.unit * 9, w: config.unit * 16, h: config.unit * 9}
-  config.hud.statsWindow = {x: config.boardW + config.border, y: config.boardS - config.border * 4 - config.boardS/5 - config.hud.info.h, w: config.boardW/3, h: config.boardS/5}
-  config.hud.spellInfo = {x : config.boardW + config.border, y: config.hud.spells.y + config.hud.spells.spellSize + config.border * 2, size: config.unit * 2}
+	//coordonnées des éléments du HUD
+  config.hud.manaGauge = {x: config.boardW + config.border, y: config.border * 4 + config.unit * 16, w: config.unit * 40, h: config.unit * 6} //jauge de mana
+  config.hud.button = {x : config.boardW + config.border, y: config.border * 2, w: config.hud.manaGauge.w, h: config.unit * 16 } //bouton de fin de tour
+  config.hud.spells = {x: config.boardW + config.border, y: config.border * 6 + config.unit * 22, spellSize : config.unit * 8} //icônes des sorts
+  config.hud.info = {x: config.boardW + config.border, y: config.boardS - config.border * 2 - config.unit * 9, w: config.unit * 16, h: config.unit * 9} //bouton d'infomartions sur les pièces
+  config.hud.statsWindow = {x: config.boardW + config.border, y: config.boardS - config.border * 4 - config.boardS/5 - config.hud.info.h, w: config.boardW/3, h: config.boardS/5} //fenêtre affichant les infos
+  config.hud.spellInfo = {x : config.boardW + config.border, y: config.hud.spells.y + config.hud.spells.spellSize + config.border * 2, size: config.unit * 2} //zone où sont affichées les infos sur chaque pièce
+  config.hud.playerTurnText = {x: config.hud.info.x + config.hud.info.w + config.border, y: config.hud.info.y + config.hud.info.h - config.unit * 4 , size: config.unit * 4} //texte indiquant le joueur en train de jouer
 }
 // endConfig -------------
 
 // globalFunctions -----------
 
-function initPrePieces() {
-  var layout = [
-    [Tour, Cavalier, Fou, Reine, Roi, Fou, Cavalier, Tour],
-    [Pion, Pion, Pion, Pion, Pion, Pion, Pion, Pion]
-  ];
+function initPrePieces() { //initialise les "prePieces" de chaque joueur selon la configuration de base des pièces d'échecs
+	//Les prePieces sont des objets présents avant le début de la partie, contenant les infos de base d'un pièce,
+	//indiquant quelles pièces seront créées où au début (leur position, etc)
+	var layout = [  //Tableau contenant les classes de chaque pièce présente en début de partie
+		[Tour, Cavalier, Fou, Reine, Roi, Fou, Cavalier, Tour], //On suit la configuration de base des échecs
+		[Pion, Pion, Pion, Pion, Pion, Pion, Pion, Pion]
+	];
 
-  for (let i = 0; i < layout.length; i++) {
-    for (let j = 0; j < layout[i].length; j++) {
-      joueur[0].prePiece.push(new PrePiece(layout[i][j], j, i, 0));
-      joueur[1].prePiece.push(new PrePiece(layout[i][j], j, config.nLig - i - 1, 1));
-    }
-  }
+	//Pour chaque joueur, ajoute à son tableau prePieces les prePieces correspondant aux pièces et la configuration de base des échecs
+		for (let i = 0; i < layout.length; i++) {
+			for (let j = 0; j < layout[i].length; j++) {
+				joueur[0].prePiece.push(new PrePiece(layout[i][j], j, i, 0));
+				joueur[1].prePiece.push(new PrePiece(layout[i][j], j, config.nLig - i - 1, 1));
+		}
+	}
 }
 
-function initBoard() { // placement de toutes les pièces sur le plateau
+function initBoard() { // création de toutes les pièces (réelles) sur le plateau, à partir des prePieces de chque joueur
   for (let i = 0; i < joueur[0].prePiece.length; i++) {
-    joueur[0].prePiece[i].summon();
+    joueur[0].prePiece[i].summon(); //pour chaque prePiece de chaque joueur, on éxécute sa méthode summon(), qui crée une pièce à partir de la prePiece
     joueur[1].prePiece[i].summon();
   }
 }
@@ -101,12 +104,12 @@ function getArrayID(array,element){
 	//fonction générique renvoyant la clé d'un élément dans un tableau.
 	//ne foncitonne correctement que si chaque élément est unique
 	for (var i = 0; i < array.length; i++){
-		if (array[i] == element){
-			return i;
+		if (array[i] === element){ //Pour chaque élément du tableau, teste si c'est l'élément spécifié
+			return i; //si oui, le retourne
 		}
 	}
 
-	return false;
+	return false; //si aucun n'a été trouvé, renvoie false
 }
 
 Array.prototype.spliceItem = function(item){
@@ -117,26 +120,27 @@ Array.prototype.spliceItem = function(item){
 	array.splice(getArrayID(array,item),1)
 }
 
-function kill(target,killer){ //tue une pi�ce -> la supprime des deux tableaux dont elle fait partie :
-	target.callPassive("onDying",killer)
+function kill(target,killer){ //tue une pièce 
+	target.callPassive("onDying",killer) //Appelle les passifs s'activant au moment où une pièce meurt (voir Sorts Passifs/ Piece.callPassive() )
 	killer.callPassive("onKilling",target)
-	let xp = target.expValue
+	let xp = target.expValue //Calcul de l'expérience raaportée par la mort de la pièce
 
-	joueur[target.player].piece.spliceItem(target) //le tableau des pi�ces du propri�taire
-	chessGUI.pieces.spliceItem(target) //le tableau des �l�ments g�r�s par la GUI
+	//on retire la pièce des tableaux dont elle fait partie (on la supprime totalement)
+	joueur[target.player].piece.spliceItem(target) //le tableau des pièces du propriétaire
+	chessGUI.pieces.spliceItem(target) //le tableau des éléments gérés par la GUI
 
-	killer.callPassive("onKillingDone",target)
-	killer.gainExp(xp)
+	killer.callPassive("onKillingDone",target) 
+	killer.gainExp(xp) //Le tueur gagne de l'expérience
 }
 
-function damage(target,source,dmg){ //inflig des d�g�ts � une pi�ce
-  clearGUI("windows");
+function damage(target,source,dmg){ //inflig des dégâts à une pièce
+	//Appel des passifs s'activant quand une pièce subit des dégâts
   if (target.callPassive("onDamaged",{source : source, damage : dmg}) == true) return true //si l'un des passifs pré-dégâts renvoie true
-  if (source.callPassive("onDamaging",{target : target, damage : dmg}) == true) return true //les dégâts sont annulés et la fonciton renvoie elle aussi true
+  if (source.callPassive("onDamaging",{target : target, damage : dmg}) == true) return true //les dégâts sont annulés et la fonction renvoie elle aussi true (permet à un passif d'annuler des dégâts)
 
-  target.hp = target.hp - dmg
+  target.hp = target.hp - dmg //retrait des points de vie à la pièce subissant des dégâts
   if (target.hp < 1){
-    kill(target,source) //si es PV de la pi�ce tombent à 0, la tue
+    kill(target,source) //si es PV de la pièce tombent à 0, la tue
   }
 
   target.callPassive("onDamagedDone",{source : source, damage : dmg})
@@ -172,19 +176,19 @@ function examineBoardHLC() { //même effet de examine board, mais remplit les ca
 	}
 
   for (var i = 0; i < chessGUI.highlightCase.length;i++){
-    var hlc = chessGUI.highlightCase[i]		//r�cup�re les coordonn�es de chaque pi�ce et place une r�f�rence � cette pi�ce
+    var hlc = chessGUI.highlightCase[i]		//r�cup�re les coordonn�es de chaque piéce et place une référence à cette piéce
     board[hlc.x][hlc.y] = hlc		//dans la case correspodante dans le tableau
   }
 
 	return board;
 }
 
-function convertPx(x) { //convertit une coordonn�e exprim�e en cases en une coordonn�e en pixels, pour l'affichage
+function convertPx(x) { //convertit une coordonnée exprimée en cases en une coordonnée en pixels, pour l'affichage
   return x*config.tileSize + (x+1)*config.border;
 }
 
 function drawBoard(dx = 0) {
- //dessine case par case l'�chiquier
+ //dessine case par case l'échiquier
   for (var i = 0; i < config.nCol; i++) {
     for (var j = 0; j < config.nLig; j++) {
       if ((i + j) % 2 == 0) { fill(50); } else { fill(255); }
@@ -197,19 +201,19 @@ function drawBoard(dx = 0) {
   }
 }
 
-function isHovered(x,y,w,h) { //teste si le curseur de la souris se trouve au dessus de la zone sp�cifi�e
+function isHovered(x,y,w,h) { //Teste si le curseur de la souris se trouve au dessus de la zone sp�cifi�e
   if (mouseX > x && mouseX < x + w &&
       mouseY > y && mouseY < y + h ){
-        return true;
+        return true; //Si oui, retourne true, sinon false
       } else { return false; }
 }
 
-function isObjectHovered(object){
-	return isHovered(object.x,object.y,object.w,object.h)
+function isObjectHovered(object){ //Teste si un objet graphique est survolé par la souris.  Utilise ses propriétés x, y, w et h, ne fonctionne donc que si elles sont définies
+	return isHovered(object.x,object.y,object.w,object.h) //Teste simplement isHovered avec les coordonnées de l'objet
 }
 
-function isCaseHovered(x,y){ //teste si le curseur de la souris se trouve au dessus de la case sp�cifi�e
-  return isHovered(convertPx(x),convertPx(y),config.tileSize,config.tileSize,config.border);
+function isCaseHovered(x,y){ //teste si le curseur de la souris se trouve au dessus de la case spécifiée
+  return isHovered(convertPx(x),convertPx(y),config.tileSize,config.tileSize,config.border); //Teste isHovered avec les coordonées de la case (x et y sont en nombre de case par rapport à l'échiquier)
 }
 
 function deltaVarSpeed(time,speed){
@@ -217,17 +221,16 @@ function deltaVarSpeed(time,speed){
   return delta;
 }
 
-function applyFadeOut(object,rawColor,initAlpha,speed){
-	new FadeOut(object,rawColor,initAlpha,speed);
+function applyFadeOut(object,rawColor,initAlpha,speed){ //Fait disparaître un objet graphique en fondu.
+	new FadeOut(object,rawColor,initAlpha,speed); //Pour cela, lui ajoute un objet fadeOut (voir "class FadeOut"). Celui-ci utilise la propriété color d'un objet, qui doit être définie sous forme de tableau
 }
 
-function move(object,speed,xTarget,yTarget){
-  new Movement(object,speed,xTarget,yTarget);
-  clearGUI("windows");
+function move(object,speed,xTarget,yTarget){ //Déplace un objet graphique
+  new Movement(object,speed,xTarget,yTarget); //Pour cela, lui ajoute un objet Movemet (voir "class Movement"). Celui-ci utilise les propriété x et y d'un objet, qui doivent être définies.
 }
 
-function clearGUI(gui){
-  if (typeof gui == "undefined"){
+function clearGUI(gui){ //Vide un des éléments de l'objet GUI (voir "chessGUI")
+  if (typeof gui == "undefined"){ //si aucun paramètre n'est passé, on vide tout
     for (var element in chessGUI){
       if (chessGUI.hasOwnProperty(element)){
         chessGUI[element] = []
@@ -239,45 +242,45 @@ function clearGUI(gui){
 
 }
 
-function clearSelectedPiece(piece){
-	if (selectedPiece) selectedPiece.deselect() ;
-	selectedPiece = piece;
-	clearGUI("pieceHUD");
+function clearSelectedPiece(piece){  //Reset la pièce sélectionnée
+	if (selectedPiece) selectedPiece.deselect() ; //Effectue les opérations de déseleciton de la pièce sélectionnée
+	selectedPiece = piece; //Si une pièce est passé en paramètre, elle est la nouvelle pièce sélectionnée, sinon selectedP Hiiece est vide (undefined)
+	clearGUI("pieceHUD"); //Vide plusieurs éléments de la GUI : le HUD lié aux pièces, les cases colorées (voir "class HighlightCase") et les fenètres
 	clearGUI("highlightCase");
-  clearGUI("windows");
-	guiState = "";
+	clearGUI("windows");
+ 	guiState = ""; //Si la GUI était dans un état particulier (opération en cours modifiant son comportement, etc), elle revient à la normale
 }
 
-function caseInRangeZ(cx,cy,range,includeCenter = false){ //fonction donnant les pièces dans une portée donnée (Z: méthode Zone)
+function caseInRangeZ(cx,cy,range,includeCenter = false){ //Renvoie (dans un tableau) les cases (sous la forme [x,y]) se trouvant dans une portée spécifiée
+	//le Z signifie qu'on utilise la méthode de Zone : on prend un carré dont on sait qu'il contient toutes les cases à portée, et on teste toutes les cases de ce carré
 	var cases = []
 	var dist
-	var xStart = (cx - range >= 0) ? cx - range  : 0
+	var xStart = (cx - range >= 0) ? cx - range  : 0  //calcul des coordonnées du carré (de manière à ce qu'il ne sorte pas de l'échiquier)
 	var xEnd = (cx + range < config.nCol) ? cx + range : config.nCol - 1
 	var yStart = (cy - range >= 0) ? cy - range  : 0
 	var yEnd = (cy + range < config.nLig) ? cy + range : config.nLig - 1
 
-	for (var i = xStart; i <= xEnd; i++){
+	for (var i = xStart; i <= xEnd; i++){ //Pour chacune des cases du carré
 		for (var j = yStart ; j <= yEnd ; j++){
-			dist =  Math.sqrt(Math.pow(i - cx,2)+pow(j - cy,2));
+			dist =  Math.sqrt(Math.pow(i - cx,2)+pow(j - cy,2)); //On teste si sa distance (distance entre les centres) avec la case d'origine est en dessous de la portée max
 			if (Math.round(dist) <= range && !(i == cx && j == cy && !includeCenter) ) {
-				cases.push([i,j])
+				cases.push([i,j]) //Si c'est le cas on l'ajoute au tableau cases
 			}
 		}
 	}
 
-
-	return cases
+return cases //que l'on renvoie
 
 }
 
-function piecesInCases(cases,board){ //renvoie un tableau contenant les pièces se trouvant sur les cases représentées par le tableau cases
+function piecesInCases(cases,board){ //renvoie un tableau contenant les pièces se trouvant sur les cases contenues le tableau cases
 	var x,y
 	var pieces = []
 	for (var i = 0; i < cases.length; i++){
-		x = cases[i][0] ; y = cases[i][1]
-		if (board[x][y]) pieces.push(board[x][y])
+		x = cases[i][0] ; y = cases[i][1] //Pour chacune des cases, on teste si elle contient une pièce, grâce à l'objet board (passé en paramètre, obtenu via examineBoard() ) contenant, pour chaque case,
+		if (board[x][y]) pieces.push(board[x][y]) //undefined s'il n'y a pas de pièce, ou la pièce s'il y en a une. Si oui, on ajoute cette pièce au tableau pices
 	}
-	return pieces
+	return pieces //que l'on renvoie
 }
 
 function selectCases(cases,callback){ //appelle un même callback(x,y) avec les coordonnées des cases du tableau cases
@@ -295,34 +298,35 @@ function selectPieces(pieces,callback){ //appelle un même callback(piece) pour 
 function selectPiecesConditional(pieces,callback,condition = []){
   //Appelle un même callback(piece) pour chaque pièce du tableau pieces qui remplit les conditions
   //les conditions sont des fonctions prenant en paramètre piece[i] et renvoient true ou false
-	pieceLoop:for (var i = 0 ; i < pieces.length ; i++){
-    for (var j = 0 ; j < condition.length; j++){
-        if (!condition[j](pieces[i])) continue pieceLoop
-    }
-    callback(pieces[i])
+	pieceLoop:for (var i = 0 ; i < pieces.length ; i++){ //Pour chaque pièce
+		for (var j = 0 ; j < condition.length; j++){ //On teste toutes les conditions (array condition)
+			if (!condition[j](pieces[i])) continue pieceLoop 
+		}
+		callback(pieces[i]) //Si elles sont toutes vérifiées, on éxécute le callback
 	}
 }
 
-function startPieceSelectionHLC(pieces, color, hoverColor, callback){ //démarre un processus de sélection de pièce, en utilisant les Highlight Cases
-  if (pieces.length > 0){
-    endSelectionHLC()
-    guiState = "selection"
-    clearGUI("highlightCase")
+function startPieceSelectionHLC(pieces, color, hoverColor, callback){ //démarre un processus de sélection de pièce (pieces), en utilisant des cases colorées (voir "class HighlightCase")
+//pieces : pièces pouvant être sélecctionnées, color et hovercolor : couleurs des HighlightCase, callback: fonction éxécutée lorsqu'une pièce est sélectionnée
+  if (pieces.length > 0){ //Si aucune pièce n'est dans la liste des pièces, rien ne se passe
+    endSelectionHLC() //Si une sélection était en cours, elle se termine
+    guiState = "selection" //le GUISTATE passe à "selection" : toutes les interactions des objets de la GUI qui nécessitent que la GUI soient à son état normal ne fonctionneront pas
+    clearGUI("highlightCase") //On supprime toutes les cases colorées.
 
-    var colorType = typeof color
-    var hoverColorType = typeof hoverColor
+    var colorType = typeof color //Le paramètre color, la couleur des cases de couleur de la sélection, peut être indéfini, une couleur p5 ou une fonction
+    var hoverColorType = typeof hoverColor //Idem pour la couleur "hover" (si la souris passe dessus) des HighlightCase.
     var caseColor, caseHoverColor
     var piece
-
-    for (var i = 0; i < pieces.length; i++){
-    	piece = pieces[i]
-    	if (colorType == "undefined") {caseColor = [200,200,200,50]}
-    	else if (colorType == "function") {caseColor = color(piece)}
+	
+    for (var i = 0; i < pieces.length; i++){  //Pour chaque pièce pouvant être sélectionnée
+    	piece = pieces[i] 
+    	if (colorType == "undefined") {caseColor = [200,200,200,50]}  //Si la couleur des cases n'est pas définie, elle est choisie par défaut
+    	else if (colorType == "function") {caseColor = color(piece)}  //Si c'est une fonction, on l'éxécute en lui passant la pièce actuelle pour qu'elle retourne la couleur de sa Highlight Case
     	else {caseColor = color}
     	if (hoverColorType == "undefined") {caseHoverColor = [200,200,200,100]}
     	else if (hoverColorType == "function") {caseHoverColor = hoverColor(piece)}
     	else {caseHoverColor = hoverColor}
-        new HighlightCase(piece.cx,piece.cy,
+        new HighlightCase(piece.cx,piece.cy, //On crée une highlightCase sur la pièce, avec pour callback une fonction mettant fin à la sélection en éxécutant le callback de cette sléection (voir "endSelectionHLC")
             caseColor,caseHoverColor,piece,function(){endSelectionHLC(callback,this.piece)});
     }
   }
@@ -540,7 +544,7 @@ class Joueur {
 			this.piece[i].startTurn();
 		}
 
-		//guiElements.playerTurnText.text = this.name + " is playing"
+		guiElements.playerTurnText.text = this.name + " is playing"
 		selectedPiece = 0;
 	}
 
@@ -1337,7 +1341,7 @@ class Cavalier extends Piece {
 
 class Roi extends Piece {
   constructor(x, y, player) {
-    super(5, "Roi", 30, 400, x, y, player, 2, 999);
+    super(5, "Roi", 30, 400, x, y, player, 2, 0);
   }
 
   getDepl(board) {
@@ -1813,7 +1817,7 @@ function startGame() {
 
 	undefPiece = Piece.prototype ; undefPiece.name = "undef"
 	playerTurn = 1;
-	//guiElements.playerTurnText = new Text("hud",config.hud.playerTurnText.x,config.hud.playerTurnText.y,joueur[playerTurn].name + " is playing","Arial",config.unit*3,[0,255,0],LEFT,TOP);
+	guiElements.playerTurnText = new Text("hud",config.hud.playerTurnText.x,config.hud.playerTurnText.y,joueur[playerTurn].name + " is playing","Arial",config.unit*3,[255,255,255],LEFT,TOP);
 	isPlaying = true;
 	initBoard();
 	joueur[playerTurn].startTurn()
