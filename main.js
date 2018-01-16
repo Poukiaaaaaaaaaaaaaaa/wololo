@@ -2,7 +2,7 @@
 // Téo Tinarrage // Amaël Marquez
 // TODO (avant la présentation)
 // - Intégrer les changements du à la séparation en fichiers multiples (INTEGRER P55.DRAW ET DEFINITION DE P55.GUI)
-// TODO (non terminé au moment de la présentation) :
+// TODO (non terminé au moment de la présentation):
 // - Sorts de certaines pièces
 // - Système de monnaie
 
@@ -18,7 +18,7 @@
 var debug = false;
 // endDebug
 
-// config : objet contenant toutes les valeurs constantes qui d�finiront le fonctionnement du jeu
+// config : objet contenant toutes les valeurs constantes qui définiront le fonctionnement du jeu
 var config = {
   canvasW: window.innerWidth,
   canvasH: window.innerHeight,
@@ -121,10 +121,10 @@ function kill(target,killer){ //tue une pi�ce -> la supprime des deux tableaux
 	target.callPassive("onDying",killer)
 	killer.callPassive("onKilling",target)
 	let xp = target.expValue
-	
+
 	joueur[target.player].piece.spliceItem(target) //le tableau des pi�ces du propri�taire
 	chessGUI.pieces.spliceItem(target) //le tableau des �l�ments g�r�s par la GUI
-	
+
 	killer.callPassive("onKillingDone",target)
 	killer.gainExp(xp)
 }
@@ -415,11 +415,11 @@ var img = {},
     joueur = [], //l'objet contenant les joueurs
     guiElements = {}, //un objet contenant certains objet p55 dont un veut conserver un accès rapide
     isPlaying = false, //variable indiquant si la partie est en cours (obsolète ?)
-    windows = [], //objet contenant les fenêtres (sera intégré à chessGUI)
-    winIMG = [],
+    winIMG = [], //images utilisées par les fenètres
     guiState = "", //représente l'action en cours (qui détermine comment certains éléments se comportent)
     victory = false,
-	undefPiece;
+	  undefPiece,
+    sEffects = []; //array contenant tous les effets audio
 
 img.piece = { //objet contenant deux tableaux, "blanc" et "noir" : chacun contiendra les images des pi�ces de couleur correspodante
     blanc: [],
@@ -428,7 +428,7 @@ img.spell = {};
 img.HUD = [];
 img.title = [];
 
-var chessGUI = {background: [], pieces: [], highlightCase: [], hud: [], pieceHUD: [], msg: [], windows: []};  //objet fondamental, qui contient tous les éléments gérés par le GUI,
+var chessGUI = { background: [], pieces: [], highlightCase: [], hud: [], pieceHUD: [], msg: [], windows: [] };  //objet fondamental, qui contient tous les éléments gérés par le GUI,
 															//c'est à dire qui seront affichés et/ou qui réagiront au clic
 // endGlobalVars --------------
 
@@ -476,11 +476,17 @@ function preload() { //chargement des images
     }
   }*/
 
-  winIMG[0] = loadImage("img/Window/window_left_arrow.png");
-  winIMG[1] = loadImage("img/Window/window_right_arrow.png");
-  winIMG[2] = loadImage("img/Window/window_right_arrow.png");
+  winIMG[0] = loadImage("img/Window/window_left");
+  winIMG[1] = loadImage("img/Window/window_right");
 }
 // endImages -------------
+
+function soundPreLoad() {
+  sEffects[0] = new Audio("audio/click1.wav");
+  sEffects[1] = new Audio("audio/click2.wav");
+  sEffects[2] = new Audio("audio/click3.wav");
+  sEffects[3] = new Audio("audio/loop.mp3"); sEffects[3].loop = true;
+}
 
 // class
 class Joueur {
@@ -542,7 +548,7 @@ class Piece {
 	  this.exp = 0 //expérience de la pièce
 	  this.level = 0 //niveau de la pièce
 	  this.expValue = expValue //quantité d'exp obtenue en tuant la pièce
-	
+
     chessGUI.pieces.push(this); //ajout de la pièce au tableau des éléments de la GUI
   }
 
@@ -733,25 +739,25 @@ class Piece {
 		  [ { type: "text", coord: { x: 0, y: 0 }, text: "Points De Vie: " + Math.floor(this.hp) + "/" + Math.floor(this.maxHP), size: config.unit*2, color: [210, 255, 210] },
 			{ type: "text", coord: { x: 0, y: config.unit*2 }, text: "Points d'Attaque: " + Math.floor(this.atk), size: config.unit*2, color: [255, 210, 210] },
 			{ type: "text", coord: { x: 0, y: config.unit*4 }, text: "Couleur: " + color, size: config.unit*2, color: [255, 255, 210] },
-			{ type: "text", coord: { x: 0, y: config.unit*6 }, text: "Level "+this.level, size: config.unit*2, color: [150,150,255] },
-			{ type: "text", coord: { x: 0, y: config.unit*8 }, text: "Experience: "+this.exp + expText, size: config.unit*2, color: [150,150,255]}]
+			{ type: "text", coord: { x: 0, y: config.unit*11.6 }, text: "Niveau: "+this.level, size: config.unit*2, color: [150,150,255] },
+			{ type: "text", coord: { x: 0, y: config.unit*13.6 }, text: "Experience: "+this.exp + expText, size: config.unit*2, color: [150,150,255]}]
 		];
 		clearGUI("windows")
 		new Window(config.hud.statsWindow.x, config.hud.statsWindow.y,config.hud.statsWindow.w,config.hud.statsWindow.h, "Stats", this.elements);
 	}
-	
+
 	gainExp(exp){
 		this.exp += exp //ajout de l'exp
-		
+
 		if (this.exp >= config.expLevels[this.level]) this.levelUp(this.level + 1)  //on teste si l'exp
-																					//a dépassé un nouveau niveau 
+																					//a dépassé un nouveau niveau
 	}
 
 	levelUp(){
 		this.level += 1
 		console.log(this.level)
 		console.log(this.exp)
-		
+
 		let prevBaseAtk = this.baseAtk
 		this.baseAtk *= 1.1
 		this.atk = this.atk * this.baseAtk / prevBaseAtk
@@ -760,7 +766,7 @@ class Piece {
 		this.baseHP *= 1.1
 		this.maxHP = this.maxHP * this.baseHP / prevBaseHP
 		this.hp = this.hp * this.baseHP / prevBaseHP
-		
+
 		for (var i = 0; i < this.spell.length; i++){
 			if (this.spell[i].locked){
 				if (typeof this.spell[i].locked == "number" && this.level >= this.spell[i].locked){
@@ -768,14 +774,14 @@ class Piece {
 				}
 			}
 		}
-		
+
         let levelUpTXT = new Text("msg", convertPx(this.cx) + config.tileSize / 2, convertPx(this.cy) + config.tileSize / 2, "Level Up","Arial",config.unit * 4,[0,0,255])
         applyFadeOut(levelUpTXT,levelUpTXT.color,255,0.3)
-		
+
 		if (this.exp >= config.expLevels[this.level]) this.levelUp(this.level + 1) //si l'exp a dépassé un autre niveau, on répète l'opération
-		
+
 	}
-	
+
 }
 
 class Pion extends Piece {
@@ -902,9 +908,9 @@ class Pion extends Piece {
 }
 
 class Tour extends Piece {
-  constructor(x, y, player) {	
+  constructor(x, y, player) {
     super(1, "Tour", 20,200, x, y, player, 5, 80);
-	
+
 	this.spell = [
 		new Spell("Rise of the army",6,3,img.spell.Tour[0],0,0,this,
 			function(){
@@ -1615,6 +1621,7 @@ class Effect{ //classe représentant les effets sur la durée appliqués aux pi�
 // reset function
 
 function startTitle(){
+  soundPreLoad(); sEffects[3].play();
   joueur = [new Joueur("blanc","Gilbert"), new Joueur("noir","Patrick")];
   initPrePieces();
   clearGUI();
@@ -1637,7 +1644,7 @@ function startGame() {
 	{let chessBoard = {draw : drawBoard}
 	chessGUI.background.push(chessBoard)}
 	new Button("hud",img.HUD[0],config.hud.button.x,config.hud.button.y,config.hud.button.w,config.hud.button.h,
-		function(){fill([255,255,255,50]) ; rect(this.x,this.y,this.w,this.h)},
+		function(){fill([255,255,255,50]) ; rect(this.x,this.y,this.w,this.h,config.unit)},
 		function(){joueur[1 - playerTurn].startTurn()})
 	{let manaGauge = config.hud.manaGauge;
 	manaGauge.draw = function(){
@@ -1647,12 +1654,12 @@ function startGame() {
 	   rect(this.x,this.y,joueur[playerTurn].mana / config.maxMana * this.w,this.h);
 	   textAlign(LEFT, CENTER); textSize(config.unit * 4); fill(255);}
 	chessGUI.hud.push(manaGauge)}
-  
+
 	{let info = config.hud.info;
 		info.draw = function() {
 			image(img.HUD[1], config.hud.info.x, config.hud.info.y, config.hud.info.w, config.hud.info.h);
-			if (!selectedPiece) { fill(50, 50, 50, 180); rect(config.hud.info.x, config.hud.info.y, config.hud.info.w, config.hud.info.h); 
-			}else{ if (isObjectHovered(this)) {fill(255,255,255,50) ; rect(this.x,this.y,this.w,this.h)}}
+			if (!selectedPiece) { fill(50, 50, 50, 180); rect(config.hud.info.x, config.hud.info.y, config.hud.info.w, config.hud.info.h);
+			} else { if (isObjectHovered(this)) {fill(255,255,255,50) ; rect(this.x,this.y,this.w,this.h,config.unit/4)}}
 		}
 		info.onLeftClick = function(){
 			if (selectedPiece && isObjectHovered(this)) { selectedPiece.showStats(); }
@@ -1723,9 +1730,11 @@ function mouseClicked(){
         }
       }
     }
+    sEffects[Math.floor(random(0,3))].play();
   }
 }
 
+function keyPressed() {
 
+}
 // end of main functions
-
