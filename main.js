@@ -41,7 +41,6 @@ var config = {
   config.boardW = config.nCol * config.tileSize + config.border * (config.nCol+1);
   config.hud.manaGauge = {x: config.boardW + config.border, y: config.border * 4 + config.unit * 16, w: config.unit * 40, h: config.unit * 6}
   config.hud.button = {x : config.boardW + config.border, y: config.border * 2, w: config.hud.manaGauge.w, h: config.unit * 16}
-  config.hud.playerTurnText = {x: config.boardW + config.border, y: config.border * 6 + config.unit * 22}
   config.hud.spells = {x: config.boardW + config.border, y: config.border * 6 + config.unit * 22, spellSize : config.unit * 8}
   config.hud.info = {x: config.boardW + config.border, y: config.boardS - config.border * 2 - config.unit * 9, w: config.unit * 16, h: config.unit * 9}
   config.hud.statsWindow = {x: config.boardW + config.border, y: config.boardS - config.border * 4 - config.boardS/5 - config.hud.info.h, w: config.boardW/3, h: config.boardS/5}
@@ -55,7 +54,6 @@ var config = {
   config.hud.info = {x: config.boardW + config.border, y: config.boardS - config.border * 2 - config.unit * 9, w: config.unit * 16, h: config.unit * 9} //bouton d'infomartions sur les pièces
   config.hud.statsWindow = {x: config.boardW + config.border, y: config.boardS - config.border * 4 - config.boardS/5 - config.hud.info.h, w: config.boardW/3, h: config.boardS/5} //fenêtre affichant les infos
   config.hud.spellInfo = {x : config.boardW + config.border, y: config.hud.spells.y + config.hud.spells.spellSize + config.border * 2, size: config.unit * 2} //zone où sont affichées les infos sur chaque pièce
-  config.hud.playerTurnText = {x: config.hud.info.x + config.hud.info.w + config.border, y: config.hud.info.y + config.hud.info.h - config.unit * 4 , size: config.unit * 4} //texte indiquant le joueur en train de jouer
 }
 // endConfig -------------
 
@@ -482,6 +480,8 @@ function preload() { //chargement des images. La fonction Preload est lancée pa
   img.HUD[1] = loadImage("img/HUD/info.png");
   img.HUD[2] = loadImage("img/HUD/unmuted.png");
   img.HUD[3] = loadImage("img/HUD/muted.png");
+  img.HUD[4] = loadImage("img/HUD/player_up.png");
+  img.HUD[5] = loadImage("img/HUD/player_down.png");
   img.title[0] = loadImage("img/title_background.png")
   img.title[1] = loadImage("img/logo.png")
   img.title[2] = loadImage("img/playButton.png")
@@ -561,7 +561,7 @@ class Joueur {
 			this.piece[i].startTurn();
 		}
 
-		guiElements.playerTurnText.text = this.name + " is playing" //Met à jour le texte indiquant le nom du joueur en train de jouer
+		guiElements.player_arrow.update(); //Met à jour la flèche indiquant le joueur en train de jouer
 		selectedPiece = 0;
 	}
 
@@ -574,6 +574,8 @@ function facepunch() { //hehe
   img.HUD[1] = loadImage("img/no/facepunch.jpg");
   img.HUD[2] = loadImage("img/no/facepunch.jpg");
   img.HUD[3] = loadImage("img/no/facepunch.jpg");
+  img.HUD[4] = loadImage("img/no/facepunch.jpg");
+  img.HUD[5] = loadImage("img/no/facepunch.jpg");
   img.title[0] = loadImage("img/no/facepunch.jpg")
   img.title[1] = loadImage("img/no/facepunch.jpg")
   img.title[2] = loadImage("img/no/facepunch.jpg")
@@ -686,7 +688,7 @@ class Piece {
       if (selectedPiece == this) {
         clearSelectedPiece(); return;
       } else { this.select() }
-	  
+
 	//affichage de la jauge de vie
 		fill("red");
 		rect(this.x,this.y + config.tileSize * 0.8, //Affiche un rectangle rouge sur toute la longueur de la jauge
@@ -1717,7 +1719,7 @@ class SpellIcon extends Button {
 			if (this.spell.getRange){
 				let range = this.spell.getRange()
 				for (var i = 0; i < range.length; i++){
-					fill(255,200,200,100)
+					fill(255,120,120,100);
 					rect(convertPx(range[i][0]),convertPx(range[i][1]),config.tileSize,config.tileSize,config.border)
 				}
 			}
@@ -1861,10 +1863,11 @@ function startGame() {
 
 	undefPiece = Piece.prototype ; undefPiece.name = "undef";
 	playerTurn = 1;
-	guiElements.playerTurnText = new Text("hud",config.hud.playerTurnText.x,config.hud.playerTurnText.y,joueur[playerTurn].name + " is playing","Arial",config.unit*3,[255,255,255],LEFT,TOP);
+	guiElements.player_arrow = new StaticImage("hud",img.HUD[playerTurn ? 4 : 5],config.hud.manaGauge.x + config.border, config.hud.manaGauge.y + config.border, config.hud.manaGauge.h - config.border*2, config.hud.manaGauge.h - config.border*2);
+  guiElements.player_arrow.update = function() { this.img = img.HUD[playerTurn ? 5 : 4] }
 	isPlaying = true;
 	initBoard();
-	joueur[playerTurn].startTurn()
+	joueur[playerTurn].startTurn();
 }
 // -------
 
