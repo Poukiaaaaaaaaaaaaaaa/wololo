@@ -1,52 +1,56 @@
 class Window {
 	constructor(x,y,w,h,title,elements) {
-			this.id = chessGUI.windows.length;
-		this.x = x;
-		this.y = y;
-		this.w = w;
-		this.h = h;
+		this.x = x; //coordonnées
+		this.y = y; //^
+		this.w = w; //^
+		this.h = h; //^
 			this.headerSize = h/7;
-			this.cross = {
+			this.cross = { //"croix" de la fenêtre
 				x: x + w - h/7, y: y, s: h/7,
-			isHovered: function(){
+			isHovered: function(){ //utilisation de cette fonction dans la méthode onLeftClick() > fermeture de la fenêtre
 					if (mouseX > this.x &&
 						mouseX < this.x + this.s &&
 						mouseY > this.y &&
 						mouseY < this.y + this.s) { return true } else { return false }
 					}
 			};
-		this.eleBorder = h/25;
+		//calcul des coordonnées et de la taille du titre de la fenêtre
 		this.title = title;
 		this.titleSize = h/9;
 		this.titleOffset = h/60;
+
+		//éléments du "footer" > nombre de pages, etc...
 		this.nPages = elements.length;
 		this.pageCounter = 0;
 	  this.footer = { buttons: [], text: [] };
 	  this.footerOffset = h/80;
 	  this.footerHeight = h/12;
-	  this.closed = false;
+
+		//éléments nécessaires à la gestion des éléments de chaque page
+		this.eleBorder = h/25;
 	  this.elements = [];
 
+		//ajout des éléments à partir du tableau d'éléments fourni dans le constructeur
 	  for (let i = 0; i < this.nPages; i++) {
-		this.elements[i] = { buttons: [], text: [] };
+			this.elements[i] = { buttons: [], text: [] };
 	  }
 
 	  for (let i = 0; i < elements.length; i++) {
-		for (let j = 0; j < elements[i].length; j++) {
-		  if (elements[i][j].type === "button") {
-			this.elements[i].buttons.push(new WButton(this, elements[i][j].coord.x, elements[i][j].coord.y,
-													  elements[i][j].coord.w, elements[i][j].coord.h,
-													  elements[i][j].img, elements[i][j].hovercallback, elements[i][j].callback));
-		  }
+			for (let j = 0; j < elements[i].length; j++) {
+			  if (elements[i][j].type === "button") {
+				this.elements[i].buttons.push(new WButton(this, elements[i][j].coord.x, elements[i][j].coord.y,
+														  elements[i][j].coord.w, elements[i][j].coord.h,
+														  elements[i][j].img, elements[i][j].hovercallback, elements[i][j].callback));
+			  }
 
-		  if (elements[i][j].type === "text") {
-			this.elements[i].text.push(new WText(this, elements[i][j].coord.x, elements[i][j].coord.y,
-												 elements[i][j].text, elements[i][j].size, elements[i][j].color));
-		  }
-		}
+			  if (elements[i][j].type === "text") {
+				this.elements[i].text.push(new WText(this, elements[i][j].coord.x, elements[i][j].coord.y,
+													 elements[i][j].text, elements[i][j].size, elements[i][j].color));
+			  }
+			}
 	  }
 
-
+		//ajout des éléments du "footer"
 		for (var i = 0; i < 3; i++) {
 		  if (i == 0) this.footer.buttons[0] = new WButton(this,-this.eleBorder + this.footerOffset,this.h - this.eleBorder - this.footerHeight - this.headerSize - this.footerOffset,
 											   this.footerHeight,this.footerHeight,0,null,function(){if (this.win.pageCounter > 0) this.win.pageCounter -= 1});
@@ -54,29 +58,35 @@ class Window {
 											   this.footerHeight,this.footerHeight,1,null,function(){if (this.win.pageCounter < this.win.nPages-1) this.win.pageCounter += 1});
 		  if (i == 2) this.footer.text[0] = new FText(this,-this.eleBorder + this.w/2, this.h - this.footerHeight - this.headerSize, this.pageCounter+1 + "/" + this.nPages, this.footerHeight, [255]);
 		}
-		
-		chessGUI.windows.push(this)
+
+		//ajout de la fenêtre dans la GUI
+		chessGUI.windows.push(this);
 	}
 
   clearElements() {
+		//fonction supprimant les éléments de la page actuelle
     this.elements[this.pageCounter] = { buttons: [], text: [] };
   }
 
   onLeftClick() {
     for (let i = 0; i < this.elements.length; i++) {
       for (let j = 0; j < this.elements[i].buttons.length; j++) {
+				//appelle la méthode onLeftClick() de tous les boutons de l'array 'elements' affichés
         this.elements[i].buttons[j].onLeftClick();
       }
     }
-	
-	if (this.cross.isHovered()) chessGUI.windows.spliceItem(this)
+
+		//condition de fermeture de la fenêtre
+		if (this.cross.isHovered()) chessGUI.windows.spliceItem(this);
 
     for (let i = 0; i < this.footer.buttons.length; i++) {
+			//appelle le onLeftClick() des éléments du "footer"
       this.footer.buttons[i].onLeftClick();
     }
   }
 
 	draw() {
+		// Draw de la window, incluant les footer, la window elle-même et les éléments de la page actuelle
 		// Tout ce qui concerne le framework
 			noStroke(); textSize(this.titleSize);
 			textAlign(LEFT, TOP);
@@ -114,6 +124,7 @@ class Window {
 }
 
 class WindowElement {
+	// Classe de base d'un élément de la window, classe mère de tous les différents types d'éléments de la window
 	constructor(win, x, y) {
 		this.win = win;
 		this.x = x + this.win.x + this.win.eleBorder;

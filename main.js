@@ -33,7 +33,8 @@ var config = {
 }
 
 
-{// Définition de certains éléments de configuration calculés
+{
+  // Définition de certains éléments de configuration calculés
   config.boardS = config.canvasH > config.canvasW ? config.canvasW : config.canvasH;
   config.unit = config.boardS/100;  //unité de distance dépendant de la taille du plateau
   config.border = config.boardS / (15*((config.nLig>config.nCol) ? config.nLig : config.nCol));
@@ -47,7 +48,7 @@ var config = {
   config.hud.spellInfo = {x : config.boardW + config.border, y: config.hud.spells.y + config.hud.spells.h + config.border * 2, size: config.unit * 2}
   config.hud.mute = {x: config.boardW + config.border * 3 + config.hud.info.w, y: config.hud.info.y, w: config.hud.info.h, h: config.hud.info.h}
 
-	//coordonnées des éléments du HUD
+	// Coordonnées des éléments du HUD
   config.hud.manaGauge = {x: config.boardW + config.border, y: config.border * 4 + config.unit * 16, w: config.unit * 40, h: config.unit * 6} //jauge de mana
   config.hud.button = {x : config.boardW + config.border, y: config.border * 2, w: config.hud.manaGauge.w, h: config.unit * 16 } //bouton de fin de tour
   config.hud.spells = {x: config.boardW + config.border, y: config.border * 6 + config.unit * 22, spellSize : config.unit * 8} //icônes des sorts
