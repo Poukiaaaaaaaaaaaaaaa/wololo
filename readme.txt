@@ -2,6 +2,6 @@ Alors c'est un jeu d'échecs mais pas vraiment genre y a des trucs en plus et to
 Versions actuelle : 0.3
 
 By :
-Amael "Pouki" Marquez 
+Amaël "Pouki" Marquez 
 Téo "TwilCynder" Tinarrage
 (Lycée Louis Rascol -- Projet ISN Terminale)
