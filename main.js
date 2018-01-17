@@ -23,7 +23,7 @@ var config = {
   canvasW: window.innerWidth,    //tailles du canvas
   canvasH: window.innerHeight,
   nLig: 10, //nombres de lignes/colones
-  nCol: 8, 
+  nCol: 8,
   mana: { depl: 3, atk: 5, newPiece: 3 },  //coûts en mana des différentes actions de base
   maxMana: 20,  //mana maximal
   gold: 100,   //monnaie au début de la partie. Au final, n'est pas utilisé (le sera ... un jour)
@@ -39,8 +39,6 @@ var config = {
   config.border = config.boardS / (15*((config.nLig>config.nCol) ? config.nLig : config.nCol));
   config.tileSize = (config.boardS - ((config.nLig>config.nCol) ? config.nLig + 1 : config.nCol + 1) * config.border) / ((config.nLig>config.nCol) ? config.nLig : config.nCol);
   config.boardW = config.nCol * config.tileSize + config.border * (config.nCol+1);
-
-<<<<<<< HEAD
   config.hud.manaGauge = {x: config.boardW + config.border, y: config.border * 4 + config.unit * 16, w: config.unit * 40, h: config.unit * 6}
   config.hud.button = {x : config.boardW + config.border, y: config.border * 2, w: config.hud.manaGauge.w, h: config.unit * 16}
   config.hud.playerTurnText = {x: config.boardW + config.border, y: config.border * 6 + config.unit * 22}
@@ -49,7 +47,7 @@ var config = {
   config.hud.statsWindow = {x: config.boardW + config.border, y: config.boardS - config.border * 4 - config.boardS/5 - config.hud.info.h, w: config.boardW/3, h: config.boardS/5}
   config.hud.spellInfo = {x : config.boardW + config.border, y: config.hud.spells.y + config.hud.spells.h + config.border * 2, size: config.unit * 2}
   config.hud.mute = {x: config.boardW + config.border * 3 + config.hud.info.w, y: config.hud.info.y, w: config.hud.info.h, h: config.hud.info.h}
-=======
+
 	//coordonnées des éléments du HUD
   config.hud.manaGauge = {x: config.boardW + config.border, y: config.border * 4 + config.unit * 16, w: config.unit * 40, h: config.unit * 6} //jauge de mana
   config.hud.button = {x : config.boardW + config.border, y: config.border * 2, w: config.hud.manaGauge.w, h: config.unit * 16 } //bouton de fin de tour
@@ -58,7 +56,6 @@ var config = {
   config.hud.statsWindow = {x: config.boardW + config.border, y: config.boardS - config.border * 4 - config.boardS/5 - config.hud.info.h, w: config.boardW/3, h: config.boardS/5} //fenêtre affichant les infos
   config.hud.spellInfo = {x : config.boardW + config.border, y: config.hud.spells.y + config.hud.spells.spellSize + config.border * 2, size: config.unit * 2} //zone où sont affichées les infos sur chaque pièce
   config.hud.playerTurnText = {x: config.hud.info.x + config.hud.info.w + config.border, y: config.hud.info.y + config.hud.info.h - config.unit * 4 , size: config.unit * 4} //texte indiquant le joueur en train de jouer
->>>>>>> d8cf079fcc8c1f7e23016fbc66044220382f739a
 }
 // endConfig -------------
 
@@ -131,7 +128,7 @@ Array.prototype.spliceItem = function(item){
 	array.splice(getArrayID(array,item),1)
 }
 
-function kill(target,killer){ //tue une pièce 
+function kill(target,killer){ //tue une pièce
 	target.callPassive("onDying",killer) //Appelle les passifs s'activant au moment où une pièce meurt (voir Sorts Passifs/ Piece.callPassive() )
 	killer.callPassive("onKilling",target)
 	let xp = target.expValue //Calcul de l'expérience raaportée par la mort de la pièce
@@ -140,7 +137,7 @@ function kill(target,killer){ //tue une pièce
 	joueur[target.player].piece.spliceItem(target) //le tableau des pièces du propriétaire
 	chessGUI.pieces.spliceItem(target) //le tableau des éléments gérés par la GUI
 
-	killer.callPassive("onKillingDone",target) 
+	killer.callPassive("onKillingDone",target)
 	killer.gainExp(xp) //Le tueur gagne de l'expérience
 }
 
@@ -312,7 +309,7 @@ function selectPiecesConditional(pieces,callback,condition = []){
   //les conditions sont des fonctions prenant en paramètre piece[i] et renvoient true ou false
 	pieceLoop:for (var i = 0 ; i < pieces.length ; i++){ //Pour chaque pièce
 		for (var j = 0 ; j < condition.length; j++){ //On teste toutes les conditions (array condition)
-			if (!condition[j](pieces[i])) continue pieceLoop 
+			if (!condition[j](pieces[i])) continue pieceLoop
 		}
 		callback(pieces[i]) //Si elles sont toutes vérifiées, on éxécute le callback
 	}
@@ -320,7 +317,7 @@ function selectPiecesConditional(pieces,callback,condition = []){
 
 //Fonctions de sélection via HighlightCase : crée des HighlightCase sur les objets pouvant être sélectionés, et éxécute un callback quand l'utilisateur a cliqué sur l'un d'eux
 function startPieceSelectionHLC(pieces, color, hoverColor, callback){ //démarre un processus de sélection de pièce (pieces), en utilisant des cases colorées (voir "class HighlightCase")
-//pieces : pièces pouvant être sélecctionnées, color et hovercolor : couleurs des HighlightCase, callback: fonction éxécutée lorsqu'une pièce est 
+//pieces : pièces pouvant être sélecctionnées, color et hovercolor : couleurs des HighlightCase, callback: fonction éxécutée lorsqu'une pièce est
   if (pieces.length > 0){ //Si aucune pièce n'est dans la liste des pièces, rien ne se passe
     endSelectionHLC() //Si une sélection était en cours, elle se termine
     guiState = "selection" //le GUISTATE passe à "selection" : toutes les interactions des objets de la GUI qui nécessitent que la GUI soient à son état normal ne fonctionneront pas
@@ -330,9 +327,9 @@ function startPieceSelectionHLC(pieces, color, hoverColor, callback){ //démarre
     var hoverColorType = typeof hoverColor //Idem pour la couleur "hover" (si la souris passe dessus) des HighlightCase.
     var caseColor, caseHoverColor
     var piece
-	
+
     for (var i = 0; i < pieces.length; i++){  //Pour chaque pièce pouvant être sélectionnée
-    	piece = pieces[i] 
+    	piece = pieces[i]
     	if (colorType == "undefined") {caseColor = [200,200,200,50]}  //Si la couleur des cases n'est pas définie, elle est choisie par défaut
     	else if (colorType == "function") {caseColor = color(piece)}  //Si c'est une fonction, on l'éxécute en lui passant la pièce actuelle pour qu'elle retourne la couleur de sa Highlight Case
     	else {caseColor = color}
@@ -384,7 +381,7 @@ function endSelectionHLC(callback,selected){ //Met fin au processus de sélectio
 var titleView = { //Objet contenant plusieurs fonctions : chacune sert à initialiser une "page" de l'écran titre : elles créent les éléments à afficher pour chaque page
 	mainPage : function(){ //Page d'accueil
     clearGUI("hud") //Vide les éléments de hud (dans l'écran-titre, l'élément de gui "hud" contient tous les objets affichés sauf le l'image de fond)
-    {let titleW = config.unit * 90, titleH = config.unit * 18 
+    {let titleW = config.unit * 90, titleH = config.unit * 18
     new StaticImage("hud",img.title[1],config.canvasW/2 - titleW / 2,config.canvasH/5 - titleH / 2,titleW,titleH)}  //Logo de chess++
     {let playButtonW = config.unit * 50, playButtonH = config.unit * 20
     new Button("hud",img.title[2],config.canvasW/2 - playButtonW / 2,config.canvasH/5*3 - playButtonH / 2,playButtonW,playButtonH, //Bouton play
@@ -440,7 +437,7 @@ function fuckThisShitImOut(){ //Euh alors ça c'est n'importe quoi
 		targetAngle = Math.random() * 2 * Math.PI
 		move(objects[i],0.2,objects[i].x + Math.cos(targetAngle) * 2000, objects[i].y + Math.sin(targetAngle) * 2000)
 	}
-	
+
 }
 
 // endGlobalFunctions -------------
@@ -473,8 +470,8 @@ img.title = [];
 
 //Le fondement de l'interface graphique du jeu : l'objet chessGUI possède en tant qu'attributs des "éléments de GUI", qui sont des tablelaux
 //qui contiendront des objets graphiques. Ces objets seront affichés et pourront réagir au clic (voir "draw()" et "mouseClicked()")
-var chessGUI = { background: [], pieces: [], highlightCase: [], hud: [], pieceHUD: [], msg: [], windows: [] };  
-															
+var chessGUI = { background: [], pieces: [], highlightCase: [], hud: [], pieceHUD: [], msg: [], windows: [] };
+
 // endGlobalVars --------------
 
 
@@ -529,7 +526,7 @@ function preload() { //chargement des images. La fonction Preload est lancée pa
 }
 // endImages -------------
 
-function soundPreLoad() { 
+function soundPreLoad() {
   sEffects[0] = new Audio("audio/click1.wav");
   sEffects[1] = new Audio("audio/click2.wav");
   sEffects[2] = new Audio("audio/click3.wav");
@@ -544,7 +541,7 @@ class Joueur {
 		//les paramètres passés au contruceur sont la couleur et le nom; les autre propriétés dépendront de la partie (ressources, pièces)
 		this.color = color;
 		this.piece = []; //On initialise deux tableaux vides : 'piece', celui des pièces, et prePieces (voir "initPrePieces()")
-		this.prePiece = []; 
+		this.prePiece = [];
 		this.name = name;
 	}
 
@@ -671,7 +668,6 @@ class Piece {
         config.tileSize, config.tileSize, config.border);
     }
 
-<<<<<<< HEAD
 	//affichage de la barre de vie
     fill("red");
     rect(this.x,this.y + config.tileSize * 0.8,
@@ -690,7 +686,7 @@ class Piece {
       if (selectedPiece == this) {
         clearSelectedPiece(); return;
       } else { this.select() }
-=======
+	  
 	//affichage de la jauge de vie
 		fill("red");
 		rect(this.x,this.y + config.tileSize * 0.8, //Affiche un rectangle rouge sur toute la longueur de la jauge
@@ -700,6 +696,7 @@ class Piece {
 		rect(this.x,this.y + config.tileSize * 0.8, //Affiche un rectangle vert sur une longueur dépendant des points de vie restants
 		config.tileSize / this.maxHP * this.hp,config.tileSize * 0.2,
 		0,0,config.border,config.border);
+	}
   }
 
   onLeftClick() { //fonction appelée à chaque clic de la souris
@@ -707,7 +704,6 @@ class Piece {
       if (selectedPiece == this) { //Si la pièce était déjà sélectionnée
         clearSelectedPiece(); return; //la déselectionne
       } else { this.select() } //sinon, la sélectionne
->>>>>>> d8cf079fcc8c1f7e23016fbc66044220382f739a
     }
   }
 
@@ -730,7 +726,7 @@ class Piece {
 									//la m�thode getDepl est d�finie dans chaque classe de pi�ce, le d�placement �tant propre � celle-ci
 
   	var color
-  	var hoverColor 
+  	var hoverColor
   	var callback
 
   	//ATTAQUE
@@ -935,7 +931,7 @@ class Pion extends Piece {
 					   function(target){if (target.player != source.player)damage(target,spell.piece,20)})
 					damage(spell.piece,undefPiece,hpCost)
 				}
-				 
+
 			},
 			function(){
 				return caseInRangeZ(this.piece.cx,this.piece.cy,1)
@@ -983,7 +979,7 @@ class Pion extends Piece {
 				}
 			},
 			function() this.piece.getAtkRange()
-			
+
 		)
     ];
 	this.spell = spell;
@@ -1088,12 +1084,12 @@ class Tour extends Piece {
 			function(){
 				return caseInRangeZ(this.piece.cx,this.piece.cy,3)
 			}
-			
+
 		),
 		new Spell("Catapult",4,2,img.spell.Tour[2],0,false,this,
 			function(){
 				var spell = this
-				
+
 				let range = this.getRange()
 
 				let inRange = piecesInCases(range,examineBoard())
@@ -1717,7 +1713,7 @@ class SpellIcon extends Button {
 			text("Cooldown : " + this.spell.cooldown, config.hud.spellInfo.x, config.hud.spellInfo.y + config.hud.spellInfo.size)
 			fill(150,150,255)
 			text("Mana cost : " + this.spell.manaCost, config.hud.spellInfo.x, config.hud.spellInfo.y + config.hud.spellInfo.size * 2)
-			
+
 			if (this.spell.getRange){
 				let range = this.spell.getRange()
 				for (var i = 0; i < range.length; i++){
@@ -1834,11 +1830,11 @@ function startGame() {
 			} else { if (isObjectHovered(this)) {fill(255,255,255,50) ; rect(this.x,this.y,this.w,this.h,config.unit/4)}}
 		}
 		info.onLeftClick = function(){
-			if (selectedPiece) { 
-				if (isObjectHovered(this)) { 
-					selectedPiece.showStats(); 
+			if (selectedPiece) {
+				if (isObjectHovered(this)) {
+					selectedPiece.showStats();
 					this.ftsioCounter ++; if (this.ftsioCounter >= 25) fuckThisShitImOut()
-					
+
 				} else {this.ftsioCounter = 0}
 			}
 		}
