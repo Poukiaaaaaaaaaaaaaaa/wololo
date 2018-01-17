@@ -251,6 +251,7 @@ function clearSelectedPiece(piece){  //Reset la pièce sélectionnée
  	guiState = ""; //Si la GUI était dans un état particulier (opération en cours modifiant son comportement, etc), elle revient à la normale
 }
 
+//Fonctions de gestion de l'échiquier : permettent de détecter/trier des cases, des pièces, selon leur position par exemple, et de leur appliquer des callbacks
 function caseInRangeZ(cx,cy,range,includeCenter = false){ //Renvoie (dans un tableau) les cases (sous la forme [x,y]) se trouvant dans une portée spécifiée
 	//le Z signifie qu'on utilise la méthode de Zone : on prend un carré dont on sait qu'il contient toutes les cases à portée, et on teste toutes les cases de ce carré
 	var cases = []
@@ -306,8 +307,9 @@ function selectPiecesConditional(pieces,callback,condition = []){
 	}
 }
 
+//Fonctions de sélection via HighlightCase : crée des HighlightCase sur les objets pouvant être sélectionés, et éxécute un callback quand l'utilisateur a cliqué sur l'un d'eux
 function startPieceSelectionHLC(pieces, color, hoverColor, callback){ //démarre un processus de sélection de pièce (pieces), en utilisant des cases colorées (voir "class HighlightCase")
-//pieces : pièces pouvant être sélecctionnées, color et hovercolor : couleurs des HighlightCase, callback: fonction éxécutée lorsqu'une pièce est sélectionnée
+//pieces : pièces pouvant être sélecctionnées, color et hovercolor : couleurs des HighlightCase, callback: fonction éxécutée lorsqu'une pièce est 
   if (pieces.length > 0){ //Si aucune pièce n'est dans la liste des pièces, rien ne se passe
     endSelectionHLC() //Si une sélection était en cours, elle se termine
     guiState = "selection" //le GUISTATE passe à "selection" : toutes les interactions des objets de la GUI qui nécessitent que la GUI soient à son état normal ne fonctionneront pas
@@ -333,6 +335,7 @@ function startPieceSelectionHLC(pieces, color, hoverColor, callback){ //démarre
 }
 
 function startCasesSelectionHLC(cases, color, hoverColor, callback){ //démarre un processus de sélection de case, en utilisant les Highlight Cases
+	//pareil mais pour sélectionner des cases
   if (cases.length > 0){
     endSelectionHLC()
     guiState = "selection"
@@ -357,46 +360,47 @@ function startCasesSelectionHLC(cases, color, hoverColor, callback){ //démarre 
   }
 }
 
-function endSelectionHLC(callback,selected){
-	if (guiState == "selection") {
-		guiState = "";
-		clearGUI("highlightCase")
-		if (typeof callback == "function") callback(selected)
+function endSelectionHLC(callback,selected){ //Met fin au processus de sélection en cours, et éxécute un callback en fonction de l'objet sélectionné si spécifié
+	//Cette fonction sera appelée pour annuler une sélection, mais aussi pour la terminer si un objet a été sélectionné, auquel cas celui-ci est passé en paramètre (selected)
+	if (guiState == "selection") { //Ne s'active que si une sélection était en cours
+		guiState = ""; //Remet la GUI à son état normal
+		clearGUI("highlightCase") //Supprime les highlightCase
+		if (typeof callback == "function") callback(selected) //Si un callback a été spécifié (cette fonction est généralement appelée avec un callback quand on a cliqué sur une HighlightCase), l'éxécute
 	}
 }
 
 
-var titleView = {
-	mainPage : function(){
-    clearGUI("hud")
-    {let titleW = config.unit * 90, titleH = config.unit * 18
-    new StaticImage("hud",img.title[1],config.canvasW/2 - titleW / 2,config.canvasH/5 - titleH / 2,titleW,titleH)}
+var titleView = { //Objet contenant plusieurs fonctions : chacune sert à initialiser une "page" de l'écran titre : elles créent les éléments à afficher pour chaque page
+	mainPage : function(){ //Page d'accueil
+    clearGUI("hud") //Vide les éléments de hud (dans l'écran-titre, l'élément de gui "hud" contient tous les objets affichés sauf le l'image de fond)
+    {let titleW = config.unit * 90, titleH = config.unit * 18 
+    new StaticImage("hud",img.title[1],config.canvasW/2 - titleW / 2,config.canvasH/5 - titleH / 2,titleW,titleH)}  //Logo de chess++
     {let playButtonW = config.unit * 50, playButtonH = config.unit * 20
-    new Button("hud",img.title[2],config.canvasW/2 - playButtonW / 2,config.canvasH/5*3 - playButtonH / 2,playButtonW,playButtonH,
+    new Button("hud",img.title[2],config.canvasW/2 - playButtonW / 2,config.canvasH/5*3 - playButtonH / 2,playButtonW,playButtonH, //Bouton play
       function(){fill([200,200,200,50]); rect(this.x,this.y,this.w,this.h,config.unit*3)},
-      function(){startGame()})}
+      function(){startGame()})}  //son callback appelle startGame, qui lance la partie
     {let setButtonS = config.unit * 20
-    new Button("hud",img.title[4],config.canvasW/4 - setButtonS/2,config.canvasH/5*3 - setButtonS / 2,setButtonS,setButtonS,
+    new Button("hud",img.title[4],config.canvasW/4 - setButtonS/2,config.canvasH/5*3 - setButtonS / 2,setButtonS,setButtonS, //Bouton ouvrant les paramètres
     function(){fill([200,200,200,50]); rect(this.x,this.y,this.w,this.h,config.unit*3)},
-    function(){titleView.settings()})}
+    function(){titleView.settings()})}  //Son callback appelle une autre fonction de titleView, settings, qui affiche les éléments de configuration
     {let helpButtonS = config.unit * 20
-    new Button("hud",img.title[6],config.canvasW/4 * 3 - helpButtonS/2,config.canvasH/5*3 - helpButtonS / 2,helpButtonS,helpButtonS,
+    new Button("hud",img.title[6],config.canvasW/4 * 3 - helpButtonS/2,config.canvasH/5*3 - helpButtonS / 2,helpButtonS,helpButtonS,  //Bouton d'aide
     function(){fill([200,200,200,50]); rect(this.x,this.y,this.w,this.h,config.unit*3)},
-    function(){let win = window.open("help/help.html", '_blank') ; win.focus()})}
+    function(){let win = window.open("help/help.html", '_blank') ; win.focus()})} //son callback ouvre dans un autre onglet le fichier help/help.html
 	},
-	settings : function(){
-		clearGUI("hud")
-		new Text("hud",config.canvasW/2,config.canvasH/8,"SETTINGS","Verdana",50,[255, 178, 0])
-		new Button("hud",img.title[5],config.canvasW / 5 * 4,config.canvasH/8, config.unit * 16, config.unit * 9,
+	settings : function(){ //Page de configuration
+		clearGUI("hud") //Vide les éléments de hud (dans l'écran-titre, l'élément de gui "hud" contient tous les objets affichés sauf le l'image de fond)
+		new Text("hud",config.canvasW/2,config.canvasH/8,"SETTINGS","Verdana",50,[255, 178, 0]) //Titre ("Settings")
+		new Button("hud",img.title[5],config.canvasW / 5 * 4,config.canvasH/8, config.unit * 16, config.unit * 9, //Bouton de retour à la page d'accueil
 			function(){fill([200,200,200,50]); rect(this.x,this.y,this.w,this.h)},
-			function(){titleView.mainPage()});
+			function(){titleView.mainPage()}); //son callback appelle titleView.mainPage, affichant la page principale
 
 
 		guiElements.settingsPlayerName = [];
-		for (let i = 0; i < joueur.length; i++){
-			guiElements.settingsPlayerName[i] = new Text(
+		for (let i = 0; i < joueur.length; i++){ //Pour chaque joueur
+			guiElements.settingsPlayerName[i] = new Text( //affiche son nom
 				"hud",config.canvasW/4,config.canvasH/4 + i * config.unit * 4,"Joueur "+(i+1)+": "+joueur[i].name,"Verdana",config.unit * 3,[255, 251, 0],LEFT,TOP)
-			let butno = new Button(
+			let butno = new Button( //en plus d'un bouton permettant de le modifier
 				"hud",img.title[3],config.canvasW/4 + config.unit * 40,config.canvasH/4 + i * config.unit * 4,config.unit * 3,config.unit*3,
 				function(){fill([200,200,200,50]) ; rect(this.x,this.y,this.w,this.h)},
 				function(){joueur[this.player].name = prompt("Name") ;
@@ -407,7 +411,7 @@ var titleView = {
   }
 }
 
-function fuckThisShitImOut(){
+function fuckThisShitImOut(){ //Euh alors ça c'est n'importe quoi
 	guiState = "boi"
 	let objects = []
 	for (var element in chessGUI) {
@@ -432,7 +436,7 @@ function fuckThisShitImOut(){
 
 // globalVars --------------
 // variables globales
-var img = {},
+var img = {}, //Objet contenant toutes les images
     hudIMG = [], //tableau contenant les images du HUD
     selectedPiece = 0, //pièce sélectionnée par le joueur
     playerTurn = 0, //ID (numérique) du joueur dont c'est le tour
@@ -456,13 +460,15 @@ img.spell = {};
 img.HUD = [];
 img.title = [];
 
-var chessGUI = { background: [], pieces: [], highlightCase: [], hud: [], pieceHUD: [], msg: [], windows: [] };  //objet fondamental, qui contient tous les éléments gérés par le GUI,
-															//c'est à dire qui seront affichés et/ou qui réagiront au clic
+//Le fondement de l'interface graphique du jeu : l'objet chessGUI possède en tant qu'attributs des "éléments de GUI", qui sont des tablelaux
+//qui contiendront des objets graphiques. Ces objets seront affichés et pourront réagir au clic (voir "draw()" et "mouseClicked()")
+var chessGUI = { background: [], pieces: [], highlightCase: [], hud: [], pieceHUD: [], msg: [], windows: [] };  
+															
 // endGlobalVars --------------
 
 
 // images ---------------
-function preload() { //chargement des images
+function preload() { //chargement des images. La fonction Preload est lancée par p5 avant le setup.
   config.background = loadImage("img/background.png");
   img.HUD[0] = loadImage("img/HUD/end_turn.png");
   img.HUD[1] = loadImage("img/HUD/info.png");
@@ -474,19 +480,19 @@ function preload() { //chargement des images
   img.title[5] = loadImage("img/backToMenu.png")
   img.title[6] = loadImage("img/help.png")
 
-  img.piece.noir[0] = loadImage("img/Pièces/pion_noir.png"); // pion noir
-  img.piece.noir[1] = loadImage("img/Pièces/tour_noire.png"); // tour noire
-  img.piece.noir[2] = loadImage("img/Pièces/fou_noir.png"); // fou noir
-  img.piece.noir[3] = loadImage("img/Pièces/reine_noire.png") // reine noire
-  img.piece.noir[4] = loadImage("img/Pièces/cavalier_noir.png") // cavalier noirrrrrr
-  img.piece.noir[5] = loadImage("img/Pièces/roi_noir.png") // roi noir
-  img.piece.blanc[0] = loadImage("img/Pièces/pion_blanc.png"); // pion blanc
-  img.piece.blanc[1] = loadImage("img/Pièces/tour_blanche.png"); // tour blanche
-  img.piece.blanc[2] = loadImage("img/Pièces/fou_blanc.png"); // fou blanc
-  img.piece.blanc[3] = loadImage("img/Pièces/reine_blanche.png"); // reine blanche
-  img.piece.blanc[4] = loadImage("img/Pièces/cavalier_blanc.png"); // cavalier blanc
-  img.piece.blanc[5] = loadImage("img/Pièces/roi_blanc.png"); // roi blanc
-  img.piece.selection = loadImage("img/Pièces/selection.png"); // image de séléction
+  img.piece.noir[0] = loadImage("img/Pieces/pion_noir.png"); // pion noir
+  img.piece.noir[1] = loadImage("img/Pieces/tour_noire.png"); // tour noire
+  img.piece.noir[2] = loadImage("img/Pieces/fou_noir.png"); // fou noir
+  img.piece.noir[3] = loadImage("img/Pieces/reine_noire.png") // reine noire
+  img.piece.noir[4] = loadImage("img/Pieces/cavalier_noir.png") // cavalier noir
+  img.piece.noir[5] = loadImage("img/Pieces/roi_noir.png") // roi noir
+  img.piece.blanc[0] = loadImage("img/Pieces/pion_blanc.png"); // pion blanc
+  img.piece.blanc[1] = loadImage("img/Pieces/tour_blanche.png"); // tour blanche
+  img.piece.blanc[2] = loadImage("img/Pieces/fou_blanc.png"); // fou blanc
+  img.piece.blanc[3] = loadImage("img/Pieces/reine_blanche.png"); // reine blanche
+  img.piece.blanc[4] = loadImage("img/Pieces/cavalier_blanc.png"); // cavalier blanc
+  img.piece.blanc[5] = loadImage("img/Pieces/roi_blanc.png"); // roi blanc
+  img.piece.selection = loadImage("img/Pieces/selection.png"); // image de séléction
 
   img.spell.Pion = [];
   img.spell.Pion[0] = loadImage("img/spells/Pion/0.png");
@@ -510,7 +516,7 @@ function preload() { //chargement des images
 }
 // endImages -------------
 
-function soundPreLoad() {
+function soundPreLoad() { 
   sEffects[0] = new Audio("audio/click1.wav");
   sEffects[1] = new Audio("audio/click2.wav");
   sEffects[2] = new Audio("audio/click3.wav");
@@ -523,28 +529,28 @@ class Joueur {
 	constructor(color, name) {
 		//les paramètres passés au contruceur sont la couleur et le nom; les autre propriétés dépendront de la partie (ressources, pièces)
 		this.color = color;
-		this.piece = [];
-		this.prePiece = [];
+		this.piece = []; //On initialise deux tableaux vides : 'piece', celui des pièces, et prePieces (voir "initPrePieces()")
+		this.prePiece = []; 
 		this.name = name;
 	}
 
-	initGame(){
+	initGame(){ //Méthode initialisant le joueur pour une nouvelle partie
 		this.mana = config.maxMana;
 		this.gold = config.gold;
 	}
 
 	startTurn() {
 		//méthode permettant de démarrer le tour du joueur: mise à jour de la variable
-		//playerTurn, restauration du mana, réinitialisation des cases color�es
-		var playerID = getArrayID(joueur,this);
-		playerTurn = playerID;
-		clearSelectedPiece()
+		//playerTurn, restauration du mana, réinitialisation des cases colorées
+		var playerID = getArrayID(joueur,this); //Récupère le numéro du joueur dans le tableau des joueurs
+		playerTurn = playerID; //ce numéro devient le nouveau 'playerTurn'
+		clearSelectedPiece() //Aucune pièce n'est sélectionnée
 		this.mana = config.maxMana;
 		for (var i = 0; i < this.piece.length; i++) {
 			this.piece[i].startTurn();
 		}
 
-		guiElements.playerTurnText.text = this.name + " is playing"
+		guiElements.playerTurnText.text = this.name + " is playing" //Met à jour le texte indiquant le nom du joueur en train de jouer
 		selectedPiece = 0;
 	}
 
@@ -635,95 +641,80 @@ class Piece {
 
   draw() {
   //méthode affichant la pièce
-    if (!(this.movement)) {this.x = convertPx(this.cx) ; this.y = convertPx(this.cy)}
-      image(img.piece[this.color][this.img],
+    if (!(this.movement)) {this.x = convertPx(this.cx) ; this.y = convertPx(this.cy)} //Si la pièce n'est pas en mouvement (=ne possède pas actuellement d'attribut mouvement), sa position est calculée
+      image(img.piece[this.color][this.img], //Affiche l'image de la pièce
             this.x + config.border, this.y + config.border,
             config.tileSize - 2*config.border, config.tileSize - 2*config.border);
-      if (selectedPiece == this)
+      if (selectedPiece == this) //Si la pièce est sélectionnée, affiche l'icône de sélection
         image(img.piece.selection,
               this.x + config.border, this.y + config.border,
               config.tileSize - 2*config.border, config.tileSize - 2*config.border);
-      if (playerTurn == this.player && isCaseHovered(this.cx,this.cy) && guiState == ""){
-    		// si le curseur est sur la pièce et qu'on peut la sélectionner, affichage d'un indicateur
+      if (playerTurn == this.player && isCaseHovered(this.cx,this.cy) && guiState == ""){  //Si la pièce peut être sélectionnée et que la souris passe dessus
         fill(255,255,255,50);
-        rect(convertPx(this.cx),convertPx(this.cy),
+        rect(convertPx(this.cx),convertPx(this.cy), //affiche un indicateur
         config.tileSize, config.tileSize, config.border);
     }
 
-	//affichage de la barre de vie
+	//affichage de la jauge de vie
 		fill("red");
-		rect(this.x,this.y + config.tileSize * 0.8,
+		rect(this.x,this.y + config.tileSize * 0.8, //Affiche un rectangle rouge sur toute la longueur de la jauge
 		config.tileSize,config.tileSize*0.2,
 		0,0,config.border,config.border);
 		fill("green");
-		rect(this.x,this.y + config.tileSize * 0.8,
+		rect(this.x,this.y + config.tileSize * 0.8, //Affiche un rectangle vert sur une longueur dépendant des points de vie restants
 		config.tileSize / this.maxHP * this.hp,config.tileSize * 0.2,
 		0,0,config.border,config.border);
-	//affichage des barres d'xp
-	/*	fill(0,0,150);
-		rect(this.x,this.y + config.tileSize * 0.75,
-		config.tileSize,config.tileSize*0.05,
-		0,0,config.border,config.border);
-		fill(100,100,255);
-		let deltaExp = (this.level === 0) ? config.expLevels[this.level] : (config.expLevels[this.level] - config.expLevels[this.level - 1]) * this.exp - config.expLevels 
-		deltaExp = (this.level === config.expLevels.length) ? this.Exp : deltaExp
-		rect(this.x,this.y + config.tileSize * 0.75,
-		config.tileSize / deltaExp ,config.tileSize * 0.05,
-		0,0,config.border,config.border); */
   }
 
-  onLeftClick() {
-	  //fonction appelée à chaque clic de la souris
-    if (isCaseHovered(this.cx,this.cy) && playerTurn == this.player && guiState == "") {
-		//si le clic a eu lieu sur cette pièce :
-      if (selectedPiece == this) {
-        clearSelectedPiece(); return;
-      } else { this.select() }
+  onLeftClick() { //fonction appelée à chaque clic de la souris
+    if (isCaseHovered(this.cx,this.cy) && playerTurn == this.player && guiState == "") { //si le clic a eu lieu sur cette pièce :
+      if (selectedPiece == this) { //Si la pièce était déjà sélectionnée
+        clearSelectedPiece(); return; //la déselectionne
+      } else { this.select() } //sinon, la sélectionne
     }
   }
 
-  select(){
-    clearSelectedPiece(this)
+  select(){ //Sélectionne la pièce
+    clearSelectedPiece(this) //Déselectionne la pièce sélectionnée, puis sélectionne celle-ci
     this.viewRanges(); //on affiche les portées d'attaque et de déplacement
 
-    for (var i = 0; i < this.spell.length; i++){
+    for (var i = 0; i < this.spell.length; i++){ //Affichage des icônes des sorts
       new SpellIcon(config.hud.spells.x + i * (config.hud.spells.spellSize * 1.1),config.hud.spells.y,config.hud.spells.spellSize,config.hud.spells.spellSize,this.spell[i])
     }
   }
 
-  deselect(){
-    clearGUI("pieceHUD")
+  deselect(){ //Déselectionne la pièce
+    clearGUI("pieceHUD") //Vide la partie de la GUI liée aux pièces
   }
 
-  viewRanges() {
-	  //affiche les port�es d'attaque et de d�placement
-	  //(= cases o� ils est possible de se d�placer + pi�ces attaquables)
-    var board = examineBoard();  //r�cup�ration du tableau repr�sentant l'�chiquier
+  viewRanges() { 	  //affiche les portées d'attaque et de déplacement (= cases où ils est possible de se déplacer + pièces attaquables)
+    var board = examineBoard();  //récupération du tableau représentant l'échiquier
     var depl = this.getDepl(board); //r�cup�ration de la liste des cases o� il est possible de de d�placer
 									//la m�thode getDepl est d�finie dans chaque classe de pi�ce, le d�placement �tant propre � celle-ci
 
-  	var color = 0
-  	var hoverColor = 0
+  	var color
+  	var hoverColor 
   	var callback
 
   	//ATTAQUE
-  	var atk = this.getAtkRange(board);
+  	var atk = this.getAtkRange(board); //Récupère les cases sur lesquelles on peut attaquer (sous forme de tableau [ [x,y], [x,y], ... ])
   	var HLCase;
 
-    clearGUI("highlightCase")
+    clearGUI("highlightCase") //Supprime les cases colorées
 
-    if (this.atkCD == false){
-    	if (joueur[playerTurn].mana >= config.mana.atk){
-    		color = [255,0,0,120];
+    if (this.atkCD == false){ //Uniquement si atkCD est à false, c'est à dire si la pièce n'a pas encore attaqué
+		//Préparation des highlightCase qui indiqueront les cases où il est possible d'attaquer
+    	if (joueur[playerTurn].mana >= config.mana.atk){ //Si la pièce 	a assez de mana pour attaquer
+    		color = [255,0,0,120]; //On choisit un rouge foncé pour indiquer les cases
     		hoverColor = [255,100,100,120];
-    		callback = function(){ this.piece.attack(this.target); this.piece.atkCD = true ; this.piece.viewRanges() }
-    	} else {
+    		callback = function(){ this.piece.attack(this.target); this.piece.atkCD = true ; this.piece.viewRanges() } //Le callback des HighlightCase aura pour effet d'attaquer
+    	} else { //Sinon, on choisit une couleur plus claire, et le callback aura pour effet d'afficher le texte "not enough mana"
     		color = [190,0,0,50];
     		hoverColor = [190,100,100,50];
     		callback = function(){ this.piece.noManaError(convertPx(this.x) + config.tileSize / 2,convertPx(this.y) + config.tileSize / 2) ; this.piece.viewRanges()}
     	}
 
-    	for (var i = 0; i < atk.length; i++) {
+    	for (var i = 0; i < atk.length; i++) { //Pour chaque case du tableau
     		if (typeof board[atk[i][0]][atk[i][1]] != "undefined"){
     			if (board[atk[i][0]][atk[i][1]].player == 1 - this.player){
     				HLCase = new HighlightCase(atk[i][0],atk[i][1],
