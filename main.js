@@ -533,6 +533,8 @@ function facepunch() { //hehe
   config.background = loadImage("img/no/facepunch.jpg");
   img.HUD[0] = loadImage("img/no/facepunch.jpg");
   img.HUD[1] = loadImage("img/no/facepunch.jpg");
+  img.HUD[2] = loadImage("img/no/facepunch.jpg");
+  img.HUD[3] = loadImage("img/no/facepunch.jpg");
   img.title[0] = loadImage("img/no/facepunch.jpg")
   img.title[1] = loadImage("img/no/facepunch.jpg")
   img.title[2] = loadImage("img/no/facepunch.jpg")
@@ -1755,7 +1757,7 @@ function startGame() {
     chessGUI.hud.push(mute);
   }
 
-	undefPiece = Piece.prototype ; undefPiece.name = "undef"
+	undefPiece = Piece.prototype ; undefPiece.name = "undef";
 	playerTurn = 1;
 	//guiElements.playerTurnText = new Text("hud",config.hud.playerTurnText.x,config.hud.playerTurnText.y,joueur[playerTurn].name + " is playing","Arial",config.unit*3,[0,255,0],LEFT,TOP);
 	isPlaying = true;
