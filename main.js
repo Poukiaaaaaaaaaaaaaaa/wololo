@@ -42,12 +42,13 @@ var config = {
   config.boardW = config.nCol * config.tileSize + config.border * (config.nCol+1);
 
   config.hud.manaGauge = {x: config.boardW + config.border, y: config.border * 4 + config.unit * 16, w: config.unit * 40, h: config.unit * 6}
-  config.hud.button = {x : config.boardW + config.border, y: config.border * 2, w: config.hud.manaGauge.w, h: config.unit * 16 }
+  config.hud.button = {x : config.boardW + config.border, y: config.border * 2, w: config.hud.manaGauge.w, h: config.unit * 16}
   config.hud.playerTurnText = {x: config.boardW + config.border, y: config.border * 6 + config.unit * 22}
   config.hud.spells = {x: config.boardW + config.border, y: config.border * 6 + config.unit * 22, spellSize : config.unit * 8}
   config.hud.info = {x: config.boardW + config.border, y: config.boardS - config.border * 2 - config.unit * 9, w: config.unit * 16, h: config.unit * 9}
   config.hud.statsWindow = {x: config.boardW + config.border, y: config.boardS - config.border * 4 - config.boardS/5 - config.hud.info.h, w: config.boardW/3, h: config.boardS/5}
   config.hud.spellInfo = {x : config.boardW + config.border, y: config.hud.spells.y + config.hud.spells.h + config.border * 2, size: config.unit * 2}
+  config.hud.mute = {x: config.boardW + config.border * 3 + config.hud.info.w, y: config.hud.info.y, w: config.hud.info.h, h: config.hud.info.h}
 }
 // endConfig -------------
 
@@ -85,14 +86,14 @@ function addDepl(board,depl,x,y){
 
 function addAtk(board,atk,x,y){
 	//utile dans les fonctions piece.getAtkRange() uniquement : ajoute une case d'attaque
-	//à la liste apr�s avoir effectu� tous les tests n�cessaires (si la case est hors
-	//de l'�chiquier ou s'il n'y a aucune cible possible sur cette case)
+	//à la liste après avoir effectué tous les tests nécessaires (si la case est hors
+	//de l'échiquier ou s'il n'y a aucune cible possible sur cette case)
 	if (x + 1 > 0 && x < config.nCol && y + 1 > 0 && y < config.nLig){
 		if (typeof board[x][y] != "undefined"){
 			atk.push([x,y]);
-			return 2; // dans le board et une pi�ce -> l'ajout a r�ussi
+			return 2; // dans le board et une pièce -> l'ajout a réussi
 		}
-		return 1; // dans le board mais pas de pi�ce
+		return 1; // dans le board mais pas de pièce
 	}
 	return 0; // hors du board
 }
@@ -110,9 +111,9 @@ function getArrayID(array,element){
 }
 
 Array.prototype.spliceItem = function(item){
-	//m�thode appartenant au prototype des Arrays, ce qui signifie qu'elle sera pr�sente pour tous les tableaux
-	//elle permet de d�truire un �l�ment du tableau, en sp�cifiant uniquement l'�l�ment en question
-	//(sa cl� est d�termin�e via getArrayID())
+	//méthode appartenant au prototype des Arrays, ce qui signifie qu'elle sera présente pour tous les tableaux
+	//elle permet de détruire un élément du tableau, en spécifiant uniquement l'élément en question
+	//(sa clé est déterminée via getArrayID())
 	var array = this;
 	array.splice(getArrayID(array,item),1)
 }
@@ -440,6 +441,8 @@ function preload() { //chargement des images
   config.background = loadImage("img/background.png");
   img.HUD[0] = loadImage("img/HUD/end_turn.png");
   img.HUD[1] = loadImage("img/HUD/info.png");
+  img.HUD[2] = loadImage("img/HUD/unmuted.png");
+  img.HUD[3] = loadImage("img/HUD/muted.png");
   img.title[0] = loadImage("img/title_background.png")
   img.title[1] = loadImage("img/logo.png")
   img.title[2] = loadImage("img/playButton.png")
@@ -489,6 +492,7 @@ function soundPreLoad() {
   sEffects[1] = new Audio("audio/click2.wav");
   sEffects[2] = new Audio("audio/click3.wav");
   sEffects[3] = new Audio("audio/loop.mp3"); sEffects[3].loop = true;
+  sEffects[3].volume = 0.5;
 }
 
 // class
@@ -580,7 +584,7 @@ function deFacepunch() {
 class Piece {
 	//classe représentant une pièce en général
 	//les différentes pièces seront des classes héritées de celle-ci
-  constructor(img,name,atk,hp,cx,cy,player,mp, expValue,spell = []) {
+  constructor(img,name,atk,hp,cx,cy,player,mp,expValue,spell = []) {
 	  //on passe au constructeur l'image, le nom, les stats, la position initiale, le propriétaire d'une pièce
 	  //l'ID d'image, le nom, les stats seront déterminés de manière fixe lors de l'appel du superconstructeur
 	  //dans le constructeur des classes héritées (= les pièces en elles mêmes)
@@ -627,7 +631,7 @@ class Piece {
 	//affichage de la barre de vie
     fill("red");
     rect(this.x,this.y + config.tileSize * 0.8,
-    config.tileSize,config.tileSize*0.2,
+    config.tileSize,config.tileSize * 0.2,
     0,0,config.border,config.border);
     fill("green");
     rect(this.x,this.y + config.tileSize * 0.8,
@@ -1406,11 +1410,11 @@ class Button {
     this.w = w;
     this.h = h;
     this.img = img;
-    this.hovercallback = hovercallback
-    this.callback = callback
-    this.gui = gui
+    this.hovercallback = hovercallback;
+    this.callback = callback;
+    this.gui = gui;
 
-    chessGUI[gui].push(this)
+    chessGUI[gui].push(this);
   }
 
   draw() {
@@ -1700,21 +1704,28 @@ function startGame() {
       fill(80, 80, 80, 200); rect(0, 0, config.boardW + config.hud.manaGauge.w + config.border * 3, config.canvasH);
     }
   chessGUI.background.push(hudBG);}
-	{let chessBoard = {draw : drawBoard}
-	chessGUI.background.push(chessBoard)}
+	{
+    let chessBoard = {draw : drawBoard}
+	  chessGUI.background.push(chessBoard)
+  }
+
 	new Button("hud",img.HUD[0],config.hud.button.x,config.hud.button.y,config.hud.button.w,config.hud.button.h,
 		function(){fill([255,255,255,50]) ; rect(this.x,this.y,this.w,this.h,config.unit)},
-		function(){joueur[1 - playerTurn].startTurn()})
-	{let manaGauge = config.hud.manaGauge;
+		function(){joueur[1 - playerTurn].startTurn()});
+
+	{
+    let manaGauge = config.hud.manaGauge;
 	manaGauge.draw = function(){
 	   fill(200,200,255);
 	   rect(this.x+1,this.y+1,this.w-1,this.h-1);
 	   fill(80,80,255);
 	   rect(this.x,this.y,joueur[playerTurn].mana / config.maxMana * this.w,this.h);
 	   textAlign(LEFT, CENTER); textSize(config.unit * 4); fill(255);}
-	chessGUI.hud.push(manaGauge)}
+	chessGUI.hud.push(manaGauge)
+  }
 
-	{let info = config.hud.info;
+	{
+    let info = config.hud.info;
 		info.draw = function() {
 			image(img.HUD[1], config.hud.info.x, config.hud.info.y, config.hud.info.w, config.hud.info.h);
 			if (!selectedPiece) { fill(50, 50, 50, 180); rect(config.hud.info.x, config.hud.info.y, config.hud.info.w, config.hud.info.h, config.unit/4);
@@ -1730,6 +1741,19 @@ function startGame() {
 		joueur[i].initGame();
 	}
 
+  {
+    let mute = config.hud.mute;
+    mute.draw = function() {
+      let tmp = sEffects[3].volume == 0 ? img.HUD[3] : img.HUD[2];
+      image(tmp, this.x, this.y, this.w, this.h);
+      if (isObjectHovered(this)) {fill(255,255,255,50) ; rect(this.x,this.y,this.w,this.h,config.unit/1.9)}
+    }
+    mute.onLeftClick = function() {
+      if (isObjectHovered(this)) sEffects[3].volume = 0.5 - sEffects[3].volume;
+    }
+
+    chessGUI.hud.push(mute);
+  }
 
 	undefPiece = Piece.prototype ; undefPiece.name = "undef"
 	playerTurn = 1;
