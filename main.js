@@ -777,7 +777,7 @@ class Piece {
     	if (joueur[playerTurn].mana >= config.mana.depl){
     		color = [0,0,255,120];
     		hoverColor = [100,100,255,120];
-    		callback = function(){ this.piece.move(this.x,this.y); this.piece.deplCD = true ; this.piece.viewRanges()}
+    		callback = function(){ this.piece.depl(this.x,this.y); this.piece.deplCD = true ; this.piece.viewRanges()}
     	} else {
     		color = [0,0,190,50]
     		hoverColor = [100,100,190,50]
@@ -809,7 +809,8 @@ class Piece {
 	depl(cx,cy){ //Déclenche un déplacement
 		if (joueur[playerTurn].mana >= config.mana.depl){ //Si la pièce a assez de mana
 			this.move(cx,cy) //elle est déplacée à la position choisie (passée en paramètre de .depl)
-			joueur[playerTurn].mana -= config.mana.depl; //Retire à la pièce le mana correspondant au coût d'un déplacement
+			console.log("euh")
+			joueur[this.player].mana -= config.mana.depl; //Retire à la pièce le mana correspondant au coût d'un déplacement
 		}
 	}
 
@@ -833,7 +834,7 @@ class Piece {
 
   noManaError(x,y){ //Affiche, à une position spécifiée, un message d'erreur "not enough mana"
     {
-      let manaTXT = new Text("msg",x,y,"Not enough mana","Arial",config.unit,[0,0,255]) //Crée un texte bleu "not enough mana"
+      let manaTXT = new Text("msg",x,y,"Not \n enough \n mana","Arial",config.unit * 2,[0,0,255]) //Crée un texte bleu "not enough mana"
       applyFadeOut(manaTXT,manaTXT.color,255,0.5) //Le fait disparaître en fondu
     }
   }
