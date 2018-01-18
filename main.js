@@ -394,6 +394,7 @@ var titleView = { //Objet contenant plusieurs fonctions : chacune sert à initia
     new Button("hud",img.title[6],config.canvasW/4 * 3 - helpButtonS/2,config.canvasH/5*3 - helpButtonS / 2,helpButtonS,helpButtonS,  //Bouton d'aide
     function(){fill([200,200,200,50]); rect(this.x,this.y,this.w,this.h,config.unit*3)},
     function(){let win = window.open("help/help.html", '_blank') ; win.focus()})} //son callback ouvre dans un autre onglet le fichier help/help.html
+	new Text("hud",config.unit,config.canvasH - config.unit,"version 1.0-alpha","Arial",config.unit,[0,0,0],TOP,LEFT)
 	},
 	settings : function(){ //Page de configuration
 		clearGUI("hud") //Vide les éléments de hud (dans l'écran-titre, l'élément de gui "hud" contient tous les objets affichés sauf le l'image de fond)
@@ -420,6 +421,7 @@ var titleView = { //Objet contenant plusieurs fonctions : chacune sert à initia
 
 function fuckThisShitImOut(){ //Euh alors ça c'est n'importe quoi
 	guiState = "boi"
+	clearGUI("windows")
 	let objects = []
 	for (var element in chessGUI) {
 		if (chessGUI.hasOwnProperty(element)) {
@@ -434,7 +436,13 @@ function fuckThisShitImOut(){ //Euh alors ça c'est n'importe quoi
 	let targetAngle
 	for (let i = 0; i < objects.length; i++){
 		targetAngle = Math.random() * 2 * Math.PI
-		move(objects[i],0.2,objects[i].x + Math.cos(targetAngle) * 2000, objects[i].y + Math.sin(targetAngle) * 2000)
+		move(objects[i],0.3,objects[i].x + Math.cos(targetAngle) * 2000, objects[i].y + Math.sin(targetAngle) * 2000)
+	}
+	
+	for (let i = 0; i < joueur.length; i++){
+		for (let j = 0; j < joueur[i].piece.length; j++){
+			joueur[i].piece[j].cx = 500
+		}
 	}
 
 }
@@ -451,7 +459,6 @@ var img = {}, //Objet contenant toutes les images
     d, //le futur objet date
     joueur = [], //l'objet contenant les joueurs
     guiElements = {}, //un objet contenant certains objet p55 dont un veut conserver un accès rapide
-    isPlaying = false, //variable indiquant si la partie est en cours (obsolète ?)
     winIMG = [], //images utilisées par les fenètres
     guiState = "", //représente l'action en cours (qui détermine comment certains éléments se comportent)
     victory = false,
@@ -469,6 +476,8 @@ img.title = [];
 
 //Le fondement de l'interface graphique du jeu : l'objet chessGUI possède en tant qu'attributs des "éléments de GUI", qui sont des tablelaux
 //qui contiendront des objets graphiques. Ces objets seront affichés et pourront réagir au clic (voir "draw()" et "mouseClicked()")
+
+
 var chessGUI = { background: [], pieces: [], highlightCase: [], hud: [], pieceHUD: [], msg: [], windows: [] };
 
 // endGlobalVars --------------
@@ -628,7 +637,8 @@ function deFacepunch() {
 class Piece {
 	//classe représentant une pièce en général
 	//les différentes pièces seront des classes héritées de celle-ci
-  constructor(img,name,atk,hp,cx,cy,player,mp,expValue,spell = []) {
+  constructor(img,name,atk,hp,cx,cy,player,mp,expValue,spell = []) { //On ne créera jamais d'instances de cette classe directement : ce sont les classes
+		//héritant de Piece, les classes qui définissent un pièce en particulier (voir "class Pion"), appelleront elle-même le constructeur de Piece
 	  //on passe au constructeur l'image, le nom, les stats, la position initiale, le propriétaire d'une pièce
 	  //l'ID d'image, le nom, les stats seront déterminés de manière fixe lors de l'appel du superconstructeur
 	  //dans le constructeur des classes héritées (= les pièces en elles mêmes)
@@ -752,8 +762,8 @@ class Piece {
 
     	for (var i = 0; i < atk.length; i++) { //Pour chaque case du tableau
     		if (typeof board[atk[i][0]][atk[i][1]] != "undefined"){
-    			if (board[atk[i][0]][atk[i][1]].player == 1 - this.player){
-    				HLCase = new HighlightCase(atk[i][0],atk[i][1],
+    			if (board[atk[i][0]][atk[i][1]].player == 1 - this.player){ //si la case contient une pièce ennemie (on vérifie grâce à examineBoard())
+    				HLCase = new HighlightCase(atk[i][0],atk[i][1], //On y crée une HighLlighCase
     				color,hoverColor,this,callback);
     				HLCase.target = board[atk[i][0]][atk[i][1]];
     			}
@@ -761,8 +771,9 @@ class Piece {
     	}
     }
 
-    //D�PLACEMENTS
-    if (this.deplCD == false){
+    //D�PLACEMENTS 
+	//Idem que pou l'attaque : les highlightCase sont crées sur les cases (vides) dans la portée de déplacement de la pièce
+    if (this.deplCD == false){ 
     	if (joueur[playerTurn].mana >= config.mana.depl){
     		color = [0,0,255,120];
     		hoverColor = [100,100,255,120];
@@ -780,14 +791,14 @@ class Piece {
     }
   }
 
-  attack(target){
+  attack(target){ //Déclenche une attaque "de base" sur une pièce
 
-	if (joueur[playerTurn].mana >= config.mana.atk){
-		if (target.callPassive("onAttacked",{source : this, dmg : this.atk}) == true) return true
-		if (this.callPassive("onAttacking",{target : target, dmg : this.atk}) == true) return true
+	if (joueur[playerTurn].mana >= config.mana.atk){ //Uniquement si la pièce possède assez de mana
+		if (target.callPassive("onAttacked",{source : this, dmg : this.atk}) == true) return true //Appel des passifs se délclenchant lors d'une attaque
+		if (this.callPassive("onAttacking",{target : target, dmg : this.atk}) == true) return true //Si 'lun d'eux renvoie true, l'attaque est annulée
 
-		damage(target,this,this.atk)
-		joueur[playerTurn].mana -= config.mana.atk
+		damage(target,this,this.atk) //inflige des dégâts correspondants à la stat d'attaque de la pièce
+		joueur[playerTurn].mana -= config.mana.atk //Retire à la pièce le mana correspondant au coût d'une attaque de base
 
 		target.callPassive("onAttacked",{source : this, dmg : this.atk})
 		this.callPassive("onAttacking",{target : target, dmg : this.atk})
@@ -795,23 +806,23 @@ class Piece {
 
   }
 
-	depl(cx,cy){
-		if (joueur[playerTurn].mana >= config.mana.depl){
-			this.move(cx,cy)
+	depl(cx,cy){ //Déclenche un déplacement
+		if (joueur[playerTurn].mana >= config.mana.depl){ //Si la pièce a assez de mana
+			this.move(cx,cy) //elle est déplacée à la position choisie (passée en paramètre de .depl)
+			joueur[playerTurn].mana -= config.mana.depl; //Retire à la pièce le mana correspondant au coût d'un déplacement
 		}
 	}
 
-  move(cx,cy) {
-	this.callPassive("onMoved",{x: cx, y: cy})
-  	this.cx = cx;
+  move(cx,cy) { //Déplace la pièce. Il ne s'agit pas nécessairement d'un déplacement "normal" de la pièce : la pièce peut être déplacée pour d'autres raisons
+	this.callPassive("onMoved",{x: cx, y: cy}) //Appelle le passif de la pièce se déclenchant lors d'un mouvement
+  	this.cx = cx;  //Modifie la position de la pièce
   	this.cy = cy;
-  	joueur[playerTurn].mana -= config.mana.depl;
     this.callPassive("onMovedDone",{x: cx, y: cy})
 
-    move(this,0.8,convertPx(cx),convertPx(cy));
+    move(this,0.8,convertPx(cx),convertPx(cy)); //Déclenche une animation de mouvement, de la position de départ à la pisition d'arrivée
   }
 
-  // Fonctions à redéfinir dans chaque classe piece
+  // Fonctions à redéfinir dans chaque classe piece : renvoient les cases sur lesquelles il est possible d'attaquer/se déplacer
   getDepl(board){
 	 return [];
   }
@@ -820,86 +831,88 @@ class Piece {
 	 return [];
   }
 
-  noManaError(x,y){
+  noManaError(x,y){ //Affiche, à une position spécifiée, un message d'erreur "not enough mana"
     {
-      let manaTXT = new Text("msg",x,y,"Not enough mana","Arial",config.unit,[0,0,255])
-      applyFadeOut(manaTXT,manaTXT.color,255,0.5)
+      let manaTXT = new Text("msg",x,y,"Not enough mana","Arial",config.unit,[0,0,255]) //Crée un texte bleu "not enough mana"
+      applyFadeOut(manaTXT,manaTXT.color,255,0.5) //Le fait disparaître en fondu
     }
   }
 
-	callPassive(passive,arg){
-		if (typeof this[passive] == "function"){
-			return this[passive](arg);
+	callPassive(passive,arg){ //Appelle un "passif" de la pièce. Les passifs sont des sorts se déclenchant d'eux mêmes à divers moments.
+	//Il s'agit de méthodes "on________()" crées dans les classes de chaque pièce. Lors de chaque évènement pouvanr déclencher un passif,
+	//cette méthode est appelée, en spécifiant le passif correspondant.
+		if (typeof this[passive] == "function"){ //Si cette méthode existe
+			return this[passive](arg); //la lance
 		}
 	}
 
-	startTurn(){ //a ne pas confondre avec le passif onStartTurn
-		this.deplCD = false;
-    this.atkCD = false
-		this.atk = this.baseAtk
+	startTurn(){ //a ne pas confondre avec le passif onStartTurn : fonctioné éxécutée au début de chaque tour
+		this.deplCD = false; //Met les atkCD et deplCD à false, indiquant que ces actions sont disponibles
+		this.atkCD = false
+		//Réinitialise les stats (les remet au valeurs de base de la pièce)
+		this.atk = this.baseAtk 
 		let prevMaxHP = this.maxHP ;
 		this.maxHP = this.baseHP ;
 		this.hp = this.hp * this.maxHP / prevMaxHP
 		for (var i = 0; i < this.spell.length; i++){
 			if (this.spell[i].actualCooldown > 0) this.spell[i].actualCooldown--
 		}
+		//Puis les recalcule en fonction des effets actifs (voir "class Effect()")
 		for (var i = 0; i < this.effects.length; i++){
 			this.effects[i].apply()
 		}
-
-		this.callPassive("onStartTurn")
+		
+		this.callPassive("onStartTurn") //Appel de l'éventuel passif se déclanchant au début de chaque tour
 
 	}
 
-	applyEffect(duration,turn,end){
+	applyEffect(duration,turn,end){ // Applique un effet à la pièce (voir "class Effect")
 		this.effects.push(new Effect(this,duration,turn,end))
 	}
 
-	showStats() {
+	showStats() { //Affiche les caractéristiques de la pièce dans une fenêtre (fw.js)
 		let expText = (this.level >= config.expLevels.length) ? "" :"/" + config.expLevels[this.level]
-		let color = this.player ? "Noir" : "Blanc";
+		let color = this.player ? "Black" : "White";
 			this.elements = [
-		  [ { type: "text", coord: { x: 0, y: 0 }, text: "Points De Vie: " + Math.floor(this.hp) + "/" + Math.floor(this.maxHP), size: config.unit*2, color: [210, 255, 210] },
-			{ type: "text", coord: { x: 0, y: config.unit*2 }, text: "Points d'Attaque: " + Math.floor(this.atk), size: config.unit*2, color: [255, 210, 210] },
-			{ type: "text", coord: { x: 0, y: config.unit*4 }, text: "Couleur: " + color, size: config.unit*2, color: [255, 255, 210] },
-			{ type: "text", coord: { x: 0, y: config.unit*11.6 }, text: "Niveau: "+this.level, size: config.unit*2, color: [150,150,255] },
+		  [ { type: "text", coord: { x: 0, y: 0 }, text: "Health Points: " + Math.floor(this.hp) + "/" + Math.floor(this.maxHP), size: config.unit*2, color: [210, 255, 210] },
+			{ type: "text", coord: { x: 0, y: config.unit*2 }, text: "Attack Points: " + Math.floor(this.atk), size: config.unit*2, color: [255, 210, 210] },
+			{ type: "text", coord: { x: 0, y: config.unit*4 }, text: "Color: " + color, size: config.unit*2, color: [255, 255, 210] },
+			{ type: "text", coord: { x: 0, y: config.unit*11.6 }, text: "Level: "+this.level, size: config.unit*2, color: [150,150,255] },
 			{ type: "text", coord: { x: 0, y: config.unit*13.6 }, text: "Experience: "+this.exp + expText, size: config.unit*2, color: [150,150,255]}]
 		];
 		clearGUI("windows")
 		new Window(config.hud.statsWindow.x, config.hud.statsWindow.y,config.hud.statsWindow.w,config.hud.statsWindow.h, "Stats", this.elements);
 	}
 
-	gainExp(exp){
+	gainExp(exp){ //Ajoute de l'expérience à la pièce
 		this.exp += exp //ajout de l'exp
 
 		if (this.exp >= config.expLevels[this.level]) this.levelUp(this.level + 1)  //on teste si l'exp
 																					//a dépassé un nouveau niveau
 	}
 
-	levelUp(){
+	levelUp(){ //La pièce gagne un nouveau niveau
 		this.level += 1
-		console.log(this.level)
-		console.log(this.exp)
 
-		let prevBaseAtk = this.baseAtk
-		this.baseAtk *= 1.1
-		this.atk = this.atk * this.baseAtk / prevBaseAtk
+		let prevBaseAtk = this.baseAtk 
+		this.baseAtk *= 1.1 //Augmente l'attaque de base de la pièce
+		this.atk = this.atk * this.baseAtk / prevBaseAtk //met à jour la valeur d'attaque actuelle
 
-		let prevBaseHP = this.baseHP
+		let prevBaseHP = this.baseHP //Idem pour les HP
 		this.baseHP *= 1.1
 		this.maxHP = this.maxHP * this.baseHP / prevBaseHP
 		this.hp = this.hp * this.baseHP / prevBaseHP
 
-		for (var i = 0; i < this.spell.length; i++){
+		for (var i = 0; i < this.spell.length; i++){ //Teste si un des sorts nécessite d'avoir le niveau nouvellement acquis
 			if (this.spell[i].locked){
 				if (typeof this.spell[i].locked == "number" && this.level >= this.spell[i].locked){
-					this.spell[i].locked = false
+					this.spell[i].locked = false //Si oui, le débloque 
 				}
 			}
 		}
 
         let levelUpTXT = new Text("msg", convertPx(this.cx) + config.tileSize / 2, convertPx(this.cy) + config.tileSize / 2, "Level Up","Arial",config.unit * 4,[0,0,255])
-        applyFadeOut(levelUpTXT,levelUpTXT.color,255,0.3)
+        applyFadeOut(levelUpTXT,levelUpTXT.color,255,0.3) //Affiche un texte "level up" et le fait disparaitre en fondu
 
 		if (this.exp >= config.expLevels[this.level]) this.levelUp(this.level + 1) //si l'exp a dépassé un autre niveau, on répète l'opération
 
@@ -907,40 +920,42 @@ class Piece {
 
 }
 
-class Pion extends Piece {
-  constructor(x, y, player) {
+//Les classes suivantes sonrt les classes-pièces. Chacune hérite de la clase pièce, et définit une pièce particulière
+//Ce sont ces classes qui seront instanciées pour créer une nouvelle pièce
+class Pion extends Piece { 
+  constructor(x, y, player) { 
 
-    super(0, "Pion", 50, 120, x, y, player, 3, 60);
+    super(0, "Pion", 50, 120, x, y, player, 3, 60); //Appelle le constructeur de la classe parent, Piece, pour créer la pièce de base, avec les paramètres propres au pion
 
-	var direction = this.player
+	var direction = this.player //Initialise la kyojin (avancée), attribut propre au pion qui dépend de sa position sur le board
 	this.kyojin = Math.abs(((config.nLig - 1) * -direction) + this.cy)
 	let prevMaxHP = this.maxHP
-		this.maxHP += this.kyojin * (this.baseHP / 50)
+		this.maxHP += this.kyojin * (this.baseHP / 50) //Les stats du pion sont modifiées en fonction de cette valeur
 		this.hp = this.hp * this.maxHP / prevMaxHP
 	this.atk += this.baseAtk * (this.kyojin / config.nLig)
 
-	let spell = [
-		new Spell("Vent Divin",8,1,img.spell.Pion[0],0,2,this,
-			function(){
-				this.cast()
+	let spell = [ //Crée le tableau contenant tous les sorts du Pion (voir "class Spell")
+		new Spell("Vent Divin",8,1,img.spell.Pion[0],0,2,this, //Nouveau spell : on spécifie son nom, son icône, son coût, le niveau requis, ainsi que :
+			function(){ //la fonciton éxécutée lors du clic sur l'icône du spell
+				this.cast() //Pour ce spell, l'effet sera directement lancé
 			},
-			function(){
+			function(){ //la fonction correspondant à l'effet du spell
 				var spell = this
 				var hpCost = 50
 				var board = examineBoard()
 				var source = this.piece
 				if (spell.piece.hp > hpCost){
-					selectPieces(piecesInCases(this.getRange(),board),
-					   function(target){if (target.player != source.player)damage(target,spell.piece,20)})
+					selectPieces(piecesInCases(this.getRange(),board), //Pour chaque pièce dans la portée (tableau de cases) du sort, applique un callback
+					   function(target){if (target.player != source.player)damage(target,spell.piece,20)}) //infligeant des dégâts
 					damage(spell.piece,undefPiece,hpCost)
 				}
 
 			},
-			function(){
+			function(){ //la fonction (facultative) retournant la portée du spell sous la forme d'un tableau de cases
 				return caseInRangeZ(this.piece.cx,this.piece.cy,1)
 			}
 		),
-		new Spell("Unity",8,3,img.spell.Pion[1],0,0,this,
+		new Spell("Unity",8,3,img.spell.Pion[1],0,0,this, 
 			function(){
 				let spell = this
 				var pieces = []
@@ -989,7 +1004,7 @@ class Pion extends Piece {
 
   }
 
-  getDepl(board) {
+  getDepl(board) { //fonction renvoyant les cases où il est possible de se déplacer (propre à chaque type de pièce)
     var depl = [];
   	var startLine = ((this.player == 0) ? 1 : config.nLig - 2);
   	var direction = ((this.player == 0) ? 1 : -1);
@@ -1001,7 +1016,7 @@ class Pion extends Piece {
     return depl;
   }
 
-  getAtkRange(){
+  getAtkRange(){ //fonction renvoyant les cases où il est possible de se déplacer (propre à chaque type de pièce)
 	var atk = [];
 	var direction = ((this.player == 0) ? 1 : -1);
 	var x,y;
@@ -1015,9 +1030,9 @@ class Pion extends Piece {
 	return atk;
   }
 
-	onStartTurn(){
+	onStartTurn(){ //Passif se lançant au début de chaque tour
 		var direction = this.player
-
+		//Recalcule la valeur d'avancée (kyojin) et les stats en fonction
 		let prevMaxHP = this.maxHP
 		this.maxHP += this.kyojin * (this.baseHP / 50)
 		this.hp = this.hp * this.maxHP / prevMaxHP
@@ -1026,8 +1041,8 @@ class Pion extends Piece {
 
 	}
 
-	onMovedDone(){
-		  //modification des stats en fonction de la position
+	onMovedDone(){//Passif se lançant au début de chaque tour
+		 //Recalcule la valeur d'avancée (kyojin) et les stats en fonction
 		var direction = this.player
 		let prevKyojin = this.kyojin
 		this.kyojin = Math.abs(((config.nLig - 1) * -direction) + this.cy)
@@ -1444,162 +1459,163 @@ class Roi extends Piece {
       return atk;
   }
 
-  onDying(killer){
+  onDying(killer){ //Passif se lançant lorsque cette pièce meurt : indique que le joueur ayant tué le Roi à gagné
     victory = joueur[1-this.player]
   }
 
 }
 
-class PrePiece{
-  constructor(Piece,cx,cy,player){
-    this.Piece = Piece;
-    this.cx = cx;
+class PrePiece{ //Les prePiece sont des objets "prévoyant" une pièce : chaque prePiece indique une future pièce qui sera créee au début de la partie
+	//les prePieces qu'un joueur possède avant le début de la partie déterminent dont les pièces qu'il possèdera lorsque la partie se lancera
+  constructor(Piece,cx,cy,player){ //Une prePieces ne contient comme attribut que
+    this.Piece = Piece; //La classe de la pièce à créer
+    this.cx = cx; //La position de la future pièce
     this.cy = cy;
-    this.player = player;
+    this.player = player; //Le joueur auquel elle appartient
   }
 
-  summon(){
+  summon(){ //Crée une pièce (réelle) à partir de cette prePiece
     joueur[this.player].piece.push(new this.Piece(this.cx,this.cy,this.player));
   }
 
 }
 
 { //création du tableau des classes
-  var pieceClass = [Pion,Tour,Fou,Reine,Cavalier,Roi]
+  var pieceClass = [Pion,Tour,Fou,Reine,Cavalier,Roi] //Contient les classes de tous les types de pièces
 }
 
-class StaticImage {
+class StaticImage { //Classe définissant un objet graphique qui affichera une simple image
   constructor(gui,img,x,y,w = undefined,h = undefined){
-    this.x = x
+    this.x = x //Définition de ses coordonnées
     this.y = y
     this.w = w
     this.h = h
     this.img = img
-    this.gui = gui
+    this.gui = gui //Définition du champ de l'objet-GUI (chessGUI) dans lequel elle se trouvera
 
-    chessGUI[gui].push(this)
+    chessGUI[gui].push(this) //Ajoute l'objet au tableau de chessGUI (élément de GUI) spécifié ('gui')
   }
 
-  draw(){
+  draw(){ //Affiche l'image (si l'objet se trouve dans un tableau de chessGUI, cette méthode sera lancée à chaque draw)
     image(this.img,this.x,this.y,this.w,this.h)
   }
 
 }
 
-class Button {
+class Button { //Classe définissant un objet graphique qui affichera un bouton
   constructor(gui,img,x,y,w,h,hovercallback,callback) {
-    this.x = x;
+    this.x = x; //Définition de ses coordonées
     this.y = y;
     this.w = w;
     this.h = h;
-    this.img = img;
-    this.hovercallback = hovercallback;
-    this.callback = callback;
+    this.img = img; //Définition de son image
+    this.hovercallback = hovercallback; //Définition de la fonction éxécutée en même temps que draw lorsque la souris se trouve sur le bouton
+    this.callback = callback; //Définition de la fonction éxécutée lorsque que l'on clique sur le bouton
     this.gui = gui;
 
-    chessGUI[gui].push(this);
+    chessGUI[gui].push(this); //Ajoute l'objet au tableau de chessGUI (élément de GUI) spécifié ('gui')
   }
 
-  draw() {
-    image(this.img,
+  draw() { //Affiche le bouton
+    image(this.img, //Affiche l'image
           this.x, this.y,
           this.w, this.h);
-          if (typeof this.hovercallback == "function" && isHovered(this.x,this.y,this.w,this.h)){
+          if (typeof this.hovercallback == "function" && isHovered(this.x,this.y,this.w,this.h)){ //Si la souris est sur le bouton, lance le "hovercallbcak"
             this.hovercallback()
           }
   }
 
-  onLeftClick() {
-     if (typeof this.callback == "function" && isHovered(this.x,this.y,this.w,this.h)) {
-       this.callback();
+  onLeftClick() { //Fonction réagissant au clic : si l'objet se trouve dans un tableau de chessGUI, cette méthode sera lancée à chaque clic
+     if (typeof this.callback == "function" && isHovered(this.x,this.y,this.w,this.h)) { //Si la souris est sur le bouton
+       this.callback(); //on appelle le callback du bouton
     }
   }
 }
 
-class HighlightCase {
+class HighlightCase { //Classe définissant un objet graphique qui affichera un rectangle coloré sur une case, et fonctionnera comme un bouton
   constructor(xc,yc,color,hovercolor,piece,callback) {
-    this.x = xc;
+    this.x = xc; //Définition de la position en cases
     this.y = yc;
-    this.color = color;
-    this.hovercolor = hovercolor;
-    this.callback = callback;
+    this.color = color; //Définition de la couleur normale
+    this.hovercolor = hovercolor; //Définition de la couleur lorsque la souris est sur la case
+    this.callback = callback; //Défintion de la fonction éxécutée lors d'un clic sur la case
     this.piece = piece;
 
-    chessGUI.highlightCase.push(this);
+    chessGUI.highlightCase.push(this); //Ajout de l'objet à l'élément de GUI (tableau de chessGUI) spécifié ('gui')
   }
 
-  draw() {
-    if (isCaseHovered(this.x,this.y))
-    { fill(this.hovercolor); } else
-    { fill(this.color); }
-    rect(convertPx(this.x),convertPx(this.y),
+  draw() { //Affiche l'objet
+    if (isCaseHovered(this.x,this.y)) //Si la souris est sur la case
+    { fill(this.hovercolor); } else //La couleur d'affichage sera la hover color
+    { fill(this.color); } //Sinon, ce sera la couleur de base
+    rect(convertPx(this.x),convertPx(this.y), //Affiche un rectangle de la même forme/taille que les cases, sur la case correspondant à la position
     config.tileSize,config.tileSize,
     config.border);
   }
 
-  onLeftClick() {
-     if (isCaseHovered(this.x,this.y)) {
-      clearGUI("highlightCase")
-      this.callback();
+  onLeftClick() { //Fonction réagissant a clic
+     if (isCaseHovered(this.x,this.y)) {//si la souris est sur la case
+      clearGUI("highlightCase") //supprime toutes les HighlighCase
+      this.callback();  //Appelle le callback de la pièce
       return true //si un onLeftClick renvoie true, alors on quitte la boucle qui teste les onLeftClick() de tous les éléments
-      //cela permet d'éviter que plusieurs éléments réagissent au même clic4
+      //cela permet d'éviter que plusieurs éléments réagissent au même clic
     }
   }
 }
 
 
-class Text {
+class Text { //Classe définissant un objet graphique qui affichera un texte
   constructor(gui,x,y,text,font,size,color,xalign = CENTER,yalign = CENTER){
-    this.x = x;
+    this.x = x; //Définition de la position
     this.y = y;
-    this.text = text;
-    this.color = color;
-    this.gui = gui
-  	this.font = font
-	  this.size = size
-    this.xalign = xalign
+    this.text = text; //texte à afficher
+    this.color = color; //couleur
+    this.gui = gui 
+  	this.font = font //police de caractère
+	this.size = size //taille de police
+    this.xalign = xalign //alignement par rapport à la position
     this.yalign = yalign
 
-    chessGUI[gui].push(this)
+    chessGUI[gui].push(this) 
   }
 
-  draw(){
-    textFont(this.font)
+  draw(){ //affiche l'objet
+    textFont(this.font) //paramétrage du prochain texte affiché en fcontion des propriétés de l'objet
     textSize(this.size)
     textAlign(this.xalign,this.yalign)
     fill(this.color)
-    text(this.text,this.x,this.y)
+    text(this.text,this.x,this.y) //affiche le texte
   }
 
-  destroy(){
+  destroy(){ //supprime le texte du tableau de chessGUI dont il fait partie
     chessGUI[this.gui].spliceItem(this)
   }
 }
 
-class Animated {
+class Animated { //Objet se liant à une propriété d'un autre objet, et modifiant cette propriété au cours du temps
   constructor(object,property,speed,max = NaN,reachMaxCallback = 0){
-    this.object = object;
-    this.property = property;
-    this.speed = speed;
-    this.max = max;
-    this.reachMaxCallback = reachMaxCallback
+    this.object = object; //définition de l'objet sur lequel agir
+    this.property = property; //définition de la propriété sur laquelle agir
+    this.speed = speed; //vitesse de variation (valeur absolue)
+    this.max = max; //valeur à atteindre
+    this.reachMaxCallback = reachMaxCallback //fonction à éxécuter lorsque la valeur max est atteinte
 
-    this.direction = Math.sign(speed);
-    this.startVal = this.object[this.property];
+    this.direction = Math.sign(speed); //calcul du sens de variation
+    this.startVal = this.object[this.property]; //enregistrement du moment où l'animation a commencé
     this.lastTime = actTime;
     this.val;
 
   }
 
-  update(){
+  update(){ //met à jour la propriété en fonction du temps
     var time = actTime - this.lastTime;
     var val = this.object[this.property] + deltaVarSpeed(time,this.speed);
 
     this.object[this.property] = val;
 
-    if (this.max != NaN && typeof this.reachMaxCallback == "function"){
+    if (this.max != NaN && typeof this.reachMaxCallback == "function"){ //si un max est défini et s'il est atteint
       if (val * this.direction >= this.max * this.direction){
-          this.reachMaxCallback(this.object,this.property);
+          this.reachMaxCallback(this.object,this.property); //appelle le reachMaxCallbacl
       }
     }
     this.lastTime = actTime;
@@ -1608,49 +1624,49 @@ class Animated {
 
 }
 
-class FadeOut {
+class FadeOut { //Animation à appliquer à un objet graphique, qui va modifier sa valeur d'alpha (il doit donc avoir un atribut '.color')
   constructor(object,rawColor,initAlpha,speed){
-    this.object = object
-    this.rawColor = rawColor
-    this.alpha = initAlpha
-    this.speed = speed
-    this.animation = new Animated(this,"alpha",-speed,0,
+    this.object = object //objet
+    this.rawColor = rawColor //couleur d'origine
+    this.alpha = initAlpha //alpha d'origine
+    this.speed = speed  //vitesse de disparition (°alpha/ms)
+    this.animation = new Animated(this,"alpha",-speed,0, //l'objet fadeOut, contiendra un objet animated qui mettra à jour le fadeOut
     function(obj){obj.object.destroy()})
 
     this.object.fadeOut = this;
 
-    this.object.staticDraw = this.object.draw;
+    this.object.staticDraw = this.object.draw; //Modifie le draw de l'objet pour que celui-ci appelle la méthode update du fadeOut
     this.object.draw = function(){this.fadeOut.update() ; this.staticDraw()}
   }
 
-  update(){
-    this.animation.update()
-    this.object.color = [this.rawColor[0],this.rawColor[1],this.rawColor[2],this.alpha];
+  update(){ //Modifie l'alpha de l'objet, c'est à dire objet.color[3] (avec une couleur stockée sous forme de tableau)
+    this.animation.update() //Met à jour l'animation qui agit sur la valeur "alpha" du fadeOut
+    this.object.color = [this.rawColor[0],this.rawColor[1],this.rawColor[2],this.alpha]; //modifie la couleur de l'objet en y ajoutant cet alpha
   }
 
 }
 
-class Movement{
+class Movement{ //Animation à appliquer à un objet graphique pour le déplacer
   constructor(object,speed,xTarget,yTarget){
-    this.object = object
-    this.speed = speed
-    this.xTarget = xTarget
+    this.object = object //objet
+    this.speed = speed  //vitesse en px/ms
+    this.xTarget = xTarget //position à atteindre
     this.yTarget = yTarget
 
-    this.xReach = false
+    this.xReach = false //booléens indiquant si la position a été atteinte, en x ou en y
     this.yReach = false
-
-    this.x = object.x
+	//attributs générés automatiquement
+    this.x = object.x //position actuelle
     this.y = object.y
-    var dx = xTarget - object.x
+    var dx = xTarget - object.x //distance à parcourir
     var dy = yTarget - object.y
     var dist = Math.sqrt(Math.pow(dx,2)+pow(dy,2));
-    var vx = (dx / dist) * speed
+    var vx = (dx / dist) * speed //vitesse x et y
     var vy = (dy / dist) * speed
 
-    this.xAnimation = new Animated(this,"x",vx,xTarget,
+    this.xAnimation = new Animated(this,"x",vx,xTarget, //crée une animation pour le x
       function(mov){mov.xReach = true ; if (mov.yReach) mov.end()})
-    this.yAnimation = new Animated(this,"y",vy,yTarget,
+    this.yAnimation = new Animated(this,"y",vy,yTarget, //et une autre pour le y
       function(mov){mov.yReach = true ; if (mov.xReach) mov.end()})
 
 
@@ -1658,66 +1674,68 @@ class Movement{
     this.object.movement = this
 
     this.object.staticDraw = this.object.draw
-    this.object.draw = function(){this.movement.update() ; this.staticDraw()}
+    this.object.draw = function(){this.movement.update() ; this.staticDraw()} //Modifie le draw de l'objet pour que celui-ci appelle la méthode update du fadeOut
   }
 
-  update(){
-    this.xAnimation.update();
+  update(){//met à jour la position de l'objet
+    this.xAnimation.update(); //met à jour les animations agissant sur le x et l'y de l'objet mouvement
     this.yAnimation.update();
-    this.object.x = this.x;
+    this.object.x = this.x; //le x et le y de l'objet mouvement deviennent la position de l'objet
     this.object.y = this.y;
   }
 
-  destroy(){
+  destroy(){ //supprime le mouvement
     this.object.draw = this.object.staticDraw; this.object.movement = 0;
   }
 
-  end(){
-    this.object.x = this.xTarget ;
+  end(){ //fin du mouvement (généralement quand la position d'arrivée est atteinte)
+    this.object.x = this.xTarget ; //place l'objet sur la positiond d'arrivée exacte (évite les décalages, liés aux arrondis par ex)
     this.object.y = this.yTarget ;
-    this.destroy();
+    this.destroy(); //supprime l'objet mouvement
   }
 
 }
 
-class Spell {
+class Spell { //Classe définissant un sort d'une pièce
   constructor(name,manaCost,cooldown,img,helpImg,baseLocked,piece,onUsed,effect,getRange){
-    this.name = name;
-    this.manaCost = manaCost;
-    this.img = img;
-    this.helpImg = helpImg;
-    this.locked = baseLocked;
-    this.onUsed = onUsed;
-    this.effect = effect;
-	this.piece = piece;
-	this.cooldown = cooldown;
-	this.actualCooldown = 0;
-	this.getRange = getRange;
+    this.name = name; //nom
+    this.manaCost = manaCost; //coût en mana
+    this.img = img; //icône
+    this.helpImg = helpImg; //*non-uilisé*
+    this.locked = baseLocked; //disponibilité au début de la partie : true si bloqué, un nombre si on veut le bloquer jusqu'à ce que la pièce atteigne le niveau correspondant
+    this.onUsed = onUsed; //fonction éxécutée au clic sur l'icône
+    this.effect = effect; //effet du sort : peut être lancé directement lors du clic, ou après
+	this.getRange = getRange; //fonction donnant les cases su lesquelles le spell peut agir (s'il agit sur des cases définies)
+	this.piece = piece; //pièce propriétaire
+	this.cooldown = cooldown; //délai de récupération
+	this.actualCooldown = 0; //récupération actuelle
   }
 
-  cast(arg){
-    this.effect(arg)
-    joueur[this.piece.player].mana -= this.manaCost;
-    this.actualCooldown = this.cooldown
+  cast(arg){ //lance le spell (sera a priori appelée à un moment où un autre dans onUsed() ) : 
+    if (joueur[this.piece.player].mana >= this.manaCost){ //si le joueur a assez de mana
+		this.effect(arg) //éxécute l'effet 
+		joueur[this.piece.player].mana -= this.manaCost; //retire le mana
+		this.actualCooldown = this.cooldown //indique qu'il reste un certain nombre de tour avant de pouvoir l'utiliser
+	}
   }
 
 }
 
-class SpellIcon extends Button {
-	constructor(x,y,w,h,spell){
-		super("pieceHUD",spell.img,x,y,w,h,
-		function(){
+class SpellIcon extends Button { //icône des spells; hérite des simples boutons
+	constructor(x,y,w,h,spell){ //on sépcifie uniquement les coordonnées et le spell correspondant
+		super("pieceHUD",spell.img,x,y,w,h, //crée un bouton avec les coordonées spécifiées, et comme image l'icône du spell spécifié
+		function(){ //comme hovercallback, une fonction affichant des infos sur le spell (qui seront donc affichées qua la souris est sur l'icône)
 			textSize(config.hud.spellInfo.size)
 			textFont("Verdana")
 			textAlign(LEFT,TOP)
 			fill(255)
-			text(this.spell.name, config.hud.spellInfo.x, config.hud.spellInfo.y)
+			text(this.spell.name, config.hud.spellInfo.x, config.hud.spellInfo.y) //le nom du sort
 			fill(150,150,150)
-			text("Cooldown : " + this.spell.cooldown, config.hud.spellInfo.x, config.hud.spellInfo.y + config.hud.spellInfo.size)
+			text("Cooldown : " + this.spell.cooldown, config.hud.spellInfo.x, config.hud.spellInfo.y + config.hud.spellInfo.size) //son délai de récupération
 			fill(150,150,255)
-			text("Mana cost : " + this.spell.manaCost, config.hud.spellInfo.x, config.hud.spellInfo.y + config.hud.spellInfo.size * 2)
+			text("Mana cost : " + this.spell.manaCost, config.hud.spellInfo.x, config.hud.spellInfo.y + config.hud.spellInfo.size * 2) //son coût
 
-			if (this.spell.getRange){
+			if (this.spell.getRange){ //des rectangles sur les cases faisant partie de la portée du sort
 				let range = this.spell.getRange()
 				for (var i = 0; i < range.length; i++){
 					fill(255,120,120,100);
@@ -1725,28 +1743,28 @@ class SpellIcon extends Button {
 				}
 			}
 		},
-		function(){
-			if (guiState == ""){
-				if(joueur[this.spell.piece.player].mana >= this.spell.manaCost){
-					if (this.spell.actualCooldown == 0 && !this.spell.locked){
+		function(){ //callback du bouton :
+			if (guiState == ""){ //si la GUI est à son état normal (aucune opéraiton particulière en cours)
+				if(joueur[this.spell.piece.player].mana >= this.spell.manaCost){ //si le joueur a assez de mana
+					if (this.spell.actualCooldown == 0 && !this.spell.locked){ //et si le spell n'est pas en récupération
 						this.spell.onUsed(this.spell); //utilisation du spell
 					}
 				}else{
-					this.spell.piece.noManaError(this.x + this.w/2, this.y + this.h/2)
+					this.spell.piece.noManaError(this.x + this.w/2, this.y + this.h/2)// si pas assez de mana, affichage de l'erreur "not enough mana" (voir "manaError()")
 				}
 			}
 		})
 		this.spell = spell
 		this.baseDraw = this.draw
 
-		this.draw = function(){
-			this.baseDraw()
-			if (this.spell.actualCooldown || this.spell.locked){
+		this.draw = function(){ //Affiche l'icône
+			this.baseDraw() //draw de base du bouton (gère notament le hovercallback)
+			if (this.spell.actualCooldown || this.spell.locked){ //si le spell est bloqué ou en récupération, le grise
 				fill([0,0,0,150])
 				rect(this.x,this.y,this.w,this.h)
 				fill(255)
 				textAlign(CENTER,CENTER) ; textSize(this.h * 0.8)
-				if (this.spell.actualCooldown) text(this.spell.actualCooldown,this.x + this.w/2, this.y + this.h/2)
+				if (this.spell.actualCooldown) text(this.spell.actualCooldown,this.x + this.w/2, this.y + this.h/2) //si en récupération, affiche le nombre de tours restants
 			}
 		}
 	}
@@ -1754,29 +1772,30 @@ class SpellIcon extends Button {
 
 
 
-class Effect{ //classe représentant les effets sur la durée appliqués aux pièces
+class Effect{ //classe représentant les effets sur la durée appliqués aux pièces. A ajouter au tableau .effect d'une pièce pour lui appliquer un effet
+	//un effet contient une fonction qui sera appelée à chaque tour, pour s'assurer que l'effet est présent de manière continue, jusqu'à un certain nombre de tour
 	constructor(piece,duration,turnEffect = 0,endEffect = 0,direct = true){
-		this.piece = piece
-		this.turnEffect = turnEffect
-		this.endEffect = endEffect
-		this.duration = duration
+		this.piece = piece //pièce sur laquelle l'effet agira
+		this.turnEffect = turnEffect //effet continu : sera lancé à chaque début de tour (souvent pour modifier les stats après leur réinitialisation)
+		this.endEffect = endEffect //fcontion à éxécuter lorsque l'effet se termine
+		this.duration = duration //durée de l'effet en tours
 		this.remaining = duration
 
-		if (direct && this.turnEffect) this.turnEffect()
+		if (direct && this.turnEffect) this.turnEffect() //si on a précisé que l'effet était présent dès son applicaiton, on lance son effet continu
 	}
 
-	apply(){
+	apply(){ //applique l'effet : sera lancé à chaque début de tour
 		this.remaining--;
-		if (this.remaining == 0){
-			if(this.endEffect) this.endEffect()
-			this.destroy()
+		if (this.remaining == 0){ //s'il arrive à sa fin
+			if(this.endEffect) this.endEffect() //lance la fonction de fin
+			this.destroy() //puis le supprime
 		}else{
-			if (this.turnEffect) this.turnEffect()
+			if (this.turnEffect) this.turnEffect() //sinon, lance sa fonction d'effet continu
 		}
 	}
 
 	destroy(){
-		this.piece.effects.spliceItem(this)
+		this.piece.effects.spliceItem(this) //supprime l'effet du tableau piece.effects
 	}
 }
 
@@ -1784,38 +1803,38 @@ class Effect{ //classe représentant les effets sur la durée appliqués aux pi�
 
 // reset function
 
-function startTitle(){
-  soundPreLoad(); sEffects[3].play();
-  joueur = [new Joueur("blanc","Gilbert"), new Joueur("noir","Patrick")];
-  initPrePieces();
-  clearGUI();
-  new StaticImage("background",img.title[0],0,0,config.canvasW,config.canvasH)
-  titleView.mainPage();
+function startTitle(){ //fonction inialisant l'écran-titre
+  soundPreLoad(); sEffects[3].play(); //charge les sons ; joue la musique
+  joueur = [new Joueur("blanc","Gilbert"), new Joueur("noir","Patrick")]; //crée les deux joueurs de base
+  initPrePieces(); //crée leurs prePieces de base
+  clearGUI(); 
+  new StaticImage("background",img.title[0],0,0,config.canvasW,config.canvasH) //crée une image statique : l'image de fond
+  titleView.mainPage(); //Affiche les éléments de la page d'accueil
 }
 
-function startGame() {
+function startGame() { //lance la partie en elle-même
 
-	d = new Date();
+	d = new Date(); //initialise le premier temps
 	actTime = d.getTime();
 
-	clearGUI();
-	new StaticImage("background",config.background, 0, 0, config.canvasW, config.canvasH);
-  {let hudBG = {};
+	clearGUI(); //vide tous les éléments de GUI
+	new StaticImage("background",config.background, 0, 0, config.canvasW, config.canvasH); //Crée une image fixe : l'image de fond 
+  {let hudBG = {}; //crée un objet graphique affichant un simple rectangle derrière l'échiquier et le HUD
     hudBG.draw = function() {
       fill(80, 80, 80, 200); rect(0, 0, config.boardW + config.hud.manaGauge.w + config.border * 3, config.canvasH);
     }
-  chessGUI.background.push(hudBG);}
+  chessGUI.background.push(hudBG);} //l'ajoute à l'élément de GUI 'background'
 	{
-    let chessBoard = {draw : drawBoard}
+    let chessBoard = {draw : drawBoard} //crée un objet graphique qui affichera simplement l'échiquier via drawBoard()
 	  chessGUI.background.push(chessBoard)
   }
 
-	new Button("hud",img.HUD[0],config.hud.button.x,config.hud.button.y,config.hud.button.w,config.hud.button.h,
+	new Button("hud",img.HUD[0],config.hud.button.x,config.hud.button.y,config.hud.button.w,config.hud.button.h, //crée le bouton de fin de tour
 		function(){fill([255,255,255,50]) ; rect(this.x,this.y,this.w,this.h,config.unit)},
-		function(){joueur[1 - playerTurn].startTurn()});
+		function(){joueur[1 - playerTurn].startTurn()}); //son callback démarre le tour de l'adversaire
 
 	{
-    let manaGauge = config.hud.manaGauge;
+    let manaGauge = config.hud.manaGauge; //création d'un objet graphique qui affichera simplement la barre de mana du joueur
 	manaGauge.draw = function(){
 	   fill(200,200,255);
 	   rect(this.x+1,this.y+1,this.w-1,this.h-1);
@@ -1825,18 +1844,18 @@ function startGame() {
 	chessGUI.hud.push(manaGauge)
   }
 
-	{
+	{ //création d'un objet graphique qui affichera un bouton (on aurait pu faire avec new Button())
     let info = config.hud.info;
-		info.draw = function() {
+		info.draw = function() { //affiche l'image du bouton, grisée si aucune pièce n'est sélectionnée
 			image(img.HUD[1], config.hud.info.x, config.hud.info.y, config.hud.info.w, config.hud.info.h);
 			if (!selectedPiece) { fill(50, 50, 50, 180); rect(config.hud.info.x, config.hud.info.y, config.hud.info.w, config.hud.info.h, config.unit/4);
 			} else { if (isObjectHovered(this)) {fill(255,255,255,50) ; rect(this.x,this.y,this.w,this.h,config.unit/4)}}
 		}
-		info.onLeftClick = function(){
+		info.onLeftClick = function(){ //lorsque l'on clique, si une pièce est sélectionnée
 			if (selectedPiece) {
 				if (isObjectHovered(this)) {
-					selectedPiece.showStats();
-					this.ftsioCounter ++; if (this.ftsioCounter >= 25) fuckThisShitImOut()
+					selectedPiece.showStats(); //on affiche les caractéristique de cette pièce
+					this.ftsioCounter ++; if (this.ftsioCounter >= 25) fuckThisShitImOut() //shhhhh
 
 				} else {this.ftsioCounter = 0}
 			}
@@ -1845,64 +1864,60 @@ function startGame() {
 	}
 
 	for (let i = 0; i < joueur.length; i++){
-		joueur[i].initGame();
+		joueur[i].initGame(); //pour chaque joueur, on lance la méthode préparant le joueur pour la partie (voir "class Joueur")
 	}
 
-  {
+  { //création du bouton permettant de couper la musique
     let mute = config.hud.mute;
-    mute.draw = function() {
+    mute.draw = function() { //affiche simplement l'image du bouton
       let tmp = sEffects[3].volume == 0 ? img.HUD[3] : img.HUD[2];
       image(tmp, this.x, this.y, this.w, this.h);
       if (isObjectHovered(this)) {fill(255,255,255,50) ; rect(this.x,this.y,this.w,this.h,config.unit/1.9)}
     }
-    mute.onLeftClick = function() {
+    mute.onLeftClick = function() { //au clic, si le clic est effectué sur ce bouton évidemment, on met le volumme de la musique à 0 ou à son volumme d'origine
       if (isObjectHovered(this)) sEffects[3].volume = 0.5 - sEffects[3].volume;
     }
 
     chessGUI.hud.push(mute);
   }
 
-	undefPiece = Piece.prototype ; undefPiece.name = "undef";
-	playerTurn = 1;
+	undefPiece = Piece.prototype ; undefPiece.name = "undef"; //création d'une pièce vide, utile pour le fonctions demandant une pièce en paramètre mais que l'on veut lancer sans préciser de pièce particulière
+	playerTurn = 0; //Le joueur en train de jouer est le joueur 0
 	guiElements.player_arrow = new StaticImage("hud",img.HUD[playerTurn ? 4 : 5],config.hud.manaGauge.x + config.border, config.hud.manaGauge.y + config.border, config.hud.manaGauge.h - config.border*2, config.hud.manaGauge.h - config.border*2);
   guiElements.player_arrow.update = function() { this.img = img.HUD[playerTurn ? 5 : 4] }
-	isPlaying = true;
-	initBoard();
-	joueur[playerTurn].startTurn();
+	initBoard(); //Crée les pièces en fonction des prePieces des deux joueurs
+	joueur[playerTurn].startTurn(); //Lance la méthode de début de tour du joueur commençant à jouer
 }
 // -------
 
 // main functions
-function setup() {
-  noStroke();
-  cursor("img/cursor.png");
-  createCanvas(config.canvasW, config.canvasH);
-  background(80); //drawBoard();
+function setup() { //Lancée par p5 au lancement du programme : c'est ici qu commence l'éxécution du programme
+  noStroke(); //Les formes dessinées n'auront jamais de stroke
+  cursor("img/cursor.png"); //Changement de l'image du curseur
+  createCanvas(config.canvasW, config.canvasH); //Création du canvas où on va dessiner
 
-  textFont("Arial");
-
-  startTitle();
+  startTitle(); //Lancement de l'écran-titre
 }
 
-function draw() {
+function draw() { //Fonction lancée par p5 à chaque frame
 
-  d = new Date();
+  d = new Date(); //Récupération du temps actuel
   actTime = d.getTime();
-
-  for (var element in chessGUI) {
-    if (chessGUI.hasOwnProperty(element)) {
-      for (var i = 0; i < chessGUI[element].length; i++) {
-        if (typeof chessGUI[element][i].draw === "function"){
-          chessGUI[element][i].draw();
+	//Affichage des objets de chessGUI :
+  for (var element in chessGUI) { //pour chaque attribut de l'objet chessGUI (=élement de GUI = tableau)
+    if (chessGUI.hasOwnProperty(element)) { //()vérification que l'attribut actuel ne fait pas partie du prototype
+      for (var i = 0; i < chessGUI[element].length; i++) { //Pour chaque champ du tableau
+        if (typeof chessGUI[element][i].draw === "function"){ //Si l'objet contenu dans ce champ a un méthode draw()
+          chessGUI[element][i].draw(); //On la lance
         }
       }
     }
   }
 
-  if (victory){
-    alert("Victoire de " + victory.name)
-    startGame()
-    victory = false
+  if (victory){ //Si la victoire a été décidée
+    alert("Victoire de " + victory.name) //On affiche le vainquer
+    startGame() //On relance la partie
+    victory = false //On réinitialise la variable indiquant la victoire d'un joueur
   }
 
   if (debug) {
@@ -1911,18 +1926,18 @@ function draw() {
   }
 }
 
-function mouseClicked(){
-  if (mouseButton == LEFT){
-    clickLoop: for (var element in chessGUI){ // TROP DE IF LOL
-      if (chessGUI.hasOwnProperty(element)){
-        for (var i = 0; i < chessGUI[element].length; i++){
-          if (typeof chessGUI[element][i].onLeftClick === "function"){
-            if (chessGUI[element][i].onLeftClick()) break clickLoop;
+function mouseClicked(){ //Fonction lancée par p5 à chaque clic
+  if (mouseButton == LEFT){ //Si le clic est un clic gauche
+    clickLoop: for (var element in chessGUI){ // pour chaque attribut de l'objet chessGUI (=élement de GUI = tableau)
+      if (chessGUI.hasOwnProperty(element)){//()vérification que l'attribut actuel ne fait pas partie du prototype
+        for (var i = 0; i < chessGUI[element].length; i++){ //Pour chaque champ du tableau
+          if (typeof chessGUI[element][i].onLeftClick === "function"){ //Si l'objet contenu dans ce champ a un méthode draw()
+            if (chessGUI[element][i].onLeftClick()) break clickLoop; //On la lance -> si elle a retourné true, on quitte la boucle (permet d'annuler les autres interactions qui pourraient ne pas être à jour)
           }
         }
       }
     }
-    sEffects[Math.floor(random(0,3))].play();
+    sEffects[Math.floor(random(0,3))].play(); //on joue l'un des 3 sons de clic
   }
 }
 
