@@ -376,6 +376,7 @@ function endSelectionHLC(callback,selected){ //Met fin au processus de sélectio
 	}
 }
 
+function isOnBoard(x,y){return (x > -1 && x < config.nCol && y > -1 && y < config.nLig)}
 
 var titleView = { //Objet contenant plusieurs fonctions : chacune sert à initialiser une "page" de l'écran titre : elles créent les éléments à afficher pour chaque page
 	mainPage : function(){ //Page d'accueil
@@ -522,7 +523,8 @@ function preload() { //chargement des images. La fonction Preload est lancée pa
   img.spell.Tour[0] = loadImage("img/spells/Tour/0.png");
   img.spell.Tour[1] = loadImage("img/spells/Tour/1.png");
   img.spell.Tour[2] = loadImage("img/spells/Tour/2.png");
-
+  img.spell.Cavalier = []
+  img.spell.Cavalier[0] = loadImage("img/spells/Cavalier/0.png");
 /*
    for (var i = 0; i < pieceClass.length; i++){
     img.spell[pieceClass[i]] = [];
@@ -731,6 +733,11 @@ class Piece {
 
   deselect(){ //Déselectionne la pièce
     clearGUI("pieceHUD") //Vide la partie de la GUI liée aux pièces
+	if (this.deplSpell){
+		for (let i = 0; i < this.deplSpell.length; i++){
+			this.deplSpell[i].active = false
+		}
+	}	
   }
 
   viewRanges() { 	  //affiche les portées d'attaque et de déplacement (= cases où ils est possible de se déplacer + pièces attaquables)
@@ -809,8 +816,12 @@ class Piece {
 	depl(cx,cy){ //Déclenche un déplacement
 		if (joueur[playerTurn].mana >= config.mana.depl){ //Si la pièce a assez de mana
 			this.move(cx,cy) //elle est déplacée à la position choisie (passée en paramètre de .depl)
-			console.log("euh")
 			joueur[this.player].mana -= config.mana.depl; //Retire à la pièce le mana correspondant au coût d'un déplacement
+			if (this.deplSpell){
+				for (let i = 0; i < this.deplSpell.length; i++){
+					if (this.deplSpell[i].active) this.deplSpell[i].cast({x: cx, y: cy})
+				}
+			}
 		}
 	}
 
@@ -1337,6 +1348,58 @@ class Reine extends Piece {
 class Cavalier extends Piece {
 	constructor(x, y, player) {
 		super(4, "Cavalier", 80, 50, x, y, player,2, 80);
+		
+		this.spell = [
+			new Spell("Stomp",6,2,img.spell.Cavalier[0],0,false,this,
+				function(){
+					this.active = true
+				},
+				function(){
+					var spell = this
+					var board = examineBoard()
+					var source = this.piece
+					selectPieces(piecesInCases(this.getRange(),board), //Pour chaque pièce dans la portée (tableau de cases) du sort, applique un callback
+						function(target){if (target.player != source.player)damage(target,spell.piece,20)}) //infligeant des dégâts
+				},
+				function(){ //la fonction (facultative) retournant la portée du spell sous la forme d'un tableau de cases
+					return caseInRangeZ(this.piece.cx,this.piece.cy,1)
+				}
+			),
+			new Spell("Chargez",5,2,img.spell.Cavalier[0],0,false,this,
+				function(){
+					let spell = this
+					var targets = []
+					var board = examineBoard()
+					selectPiecesConditional(piecesInCases(this.getRange(),board),
+						function(piece){targets.push(piece)},
+						[
+							function(piece){
+								if (piece.player == spell.piece.player) return false;
+								let tx = spell.piece.cx + (piece.cx - spell.piece.cx) * 2;
+								let ty = spell.piece.cy + (piece.cy - spell.piece.cy) * 2;
+								if (board[tx][ty]) return false
+								return true
+							}
+						]
+					)
+					startPieceSelectionHLC(pieces, [255,0,255,50], [255,0,255,100],
+						function(selected){
+							spell.cast(selected)}
+					)
+					
+				},
+				function(){
+					console.log("oui")
+				},
+				function(){
+					let range = caseInRangeZ(this.piece.cx,this.piece.cy,1)
+					return range
+				}
+			)
+		]
+		
+		this.deplSpell = [this.spell[0]]
+		
 	}
 
 	getDepl(board) {
@@ -1766,6 +1829,10 @@ class SpellIcon extends Button { //icône des spells; hérite des simples bouton
 				fill(255)
 				textAlign(CENTER,CENTER) ; textSize(this.h * 0.8)
 				if (this.spell.actualCooldown) text(this.spell.actualCooldown,this.x + this.w/2, this.y + this.h/2) //si en récupération, affiche le nombre de tours restants
+			}
+			if (this.spell.active){
+				fill(255,255,255,100)
+				rect(this.x,this.y,this.w,this.h)
 			}
 		}
 	}
