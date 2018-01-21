@@ -486,47 +486,47 @@ var chessGUI = { background: [], pieces: [], highlightCase: [], hud: [], pieceHU
 
 // images ---------------
 function preload() { //chargement des images. La fonction Preload est lancée par p5 avant le setup.
-  config.background = loadImage("img/background.png");
-  img.HUD[0] = loadImage("img/HUD/end_turn.png");
-  img.HUD[1] = loadImage("img/HUD/info.png");
-  img.HUD[2] = loadImage("img/HUD/unmuted.png");
-  img.HUD[3] = loadImage("img/HUD/muted.png");
-  img.HUD[4] = loadImage("img/HUD/player_up.png");
-  img.HUD[5] = loadImage("img/HUD/player_down.png");
-  img.title[0] = loadImage("img/title_background.png")
-  img.title[1] = loadImage("img/logo.png")
-  img.title[2] = loadImage("img/playButton.png")
-  img.title[3] = loadImage("img/edit.png")
-  img.title[4] = loadImage("img/settings.png")
-  img.title[5] = loadImage("img/backToMenu.png")
-  img.title[6] = loadImage("img/help.png")
+  config.background = loadImage("img/background.png",function(){console.log("samarch")},function(){console.log("samarchpa")});
+  img.HUD[0] = loadImage("img/HUD/end_turn.png",function(){console.log("samarch")},function(){console.log("samarchpa")});
+  img.HUD[1] = loadImage("img/HUD/info.png",function(){console.log("samarch")},function(){console.log("samarchpa")});
+  img.HUD[2] = loadImage("img/HUD/unmuted.png",function(){console.log("samarch")},function(){console.log("samarchpa")});
+  img.HUD[3] = loadImage("img/HUD/muted.png",function(){console.log("samarch")},function(){console.log("samarchpa")});
+  img.HUD[4] = loadImage("img/HUD/player_up.png",function(){console.log("samarch")},function(){console.log("samarchpa")});
+  img.HUD[5] = loadImage("img/HUD/player_down.png",function(){console.log("samarch")},function(){console.log("samarchpa")});
+  img.title[0] = loadImage("img/title_background.png",function(){console.log("samarch")},function(){console.log("samarchpa")});
+  img.title[1] = loadImage("img/logo.png",function(){console.log("samarch")},function(){console.log("samarchpa")});
+  img.title[2] = loadImage("img/playButton.png",function(){console.log("samarch")},function(){console.log("samarchpa")});
+  img.title[3] = loadImage("img/edit.png",function(){console.log("samarch")},function(){console.log("samarchpa")});
+  img.title[4] = loadImage("img/settings.png",function(){console.log("samarch")},function(){console.log("samarchpa")});
+  img.title[5] = loadImage("img/backToMenu.png",function(){console.log("samarch")},function(){console.log("samarchpa")});
+  img.title[6] = loadImage("img/help.png",function(){console.log("samarch")},function(){console.log("samarchpa")});
 
-  img.piece.noir[0] = loadImage("img/Pieces/pion_noir.png"); // pion noir
-  img.piece.noir[1] = loadImage("img/Pieces/tour_noire.png"); // tour noire
-  img.piece.noir[2] = loadImage("img/Pieces/fou_noir.png"); // fou noir
-  img.piece.noir[3] = loadImage("img/Pieces/reine_noire.png") // reine noire
-  img.piece.noir[4] = loadImage("img/Pieces/cavalier_noir.png") // cavalier noir
-  img.piece.noir[5] = loadImage("img/Pieces/roi_noir.png") // roi noir
-  img.piece.blanc[0] = loadImage("img/Pieces/pion_blanc.png"); // pion blanc
-  img.piece.blanc[1] = loadImage("img/Pieces/tour_blanche.png"); // tour blanche
-  img.piece.blanc[2] = loadImage("img/Pieces/fou_blanc.png"); // fou blanc
-  img.piece.blanc[3] = loadImage("img/Pieces/reine_blanche.png"); // reine blanche
-  img.piece.blanc[4] = loadImage("img/Pieces/cavalier_blanc.png"); // cavalier blanc
-  img.piece.blanc[5] = loadImage("img/Pieces/roi_blanc.png"); // roi blanc
-  img.piece.selection = loadImage("img/Pieces/selection.png"); // image de séléction
+  img.piece.noir[0] = loadImage("img/Pieces/pion_noir.png",function(){console.log("samarch")},function(){console.log("samarchpa")}); // pion noir
+  img.piece.noir[1] = loadImage("img/Pieces/tour_noire.png",function(){console.log("samarch")},function(){console.log("samarchpa")}); // tour noire
+  img.piece.noir[2] = loadImage("img/Pieces/fou_noir.png",function(){console.log("samarch")},function(){console.log("samarchpa")}); // fou noir
+  img.piece.noir[3] = loadImage("img/Pieces/reine_noire.png",function(){console.log("samarch")},function(){console.log("samarchpa")}) // reine noire
+  img.piece.noir[4] = loadImage("img/Pieces/cavalier_noir.png",function(){console.log("samarch")},function(){console.log("samarchpa")}) // cavalier noir
+  img.piece.noir[5] = loadImage("img/Pieces/roi_noir.png",function(){console.log("samarch")},function(){console.log("samarchpa")}) // roi noir
+  img.piece.blanc[0] = loadImage("img/Pieces/pion_blanc.png",function(){console.log("samarch")},function(){console.log("samarchpa")}); // pion blanc
+  img.piece.blanc[1] = loadImage("img/Pieces/tour_blanche.png",function(){console.log("samarch")},function(){console.log("samarchpa")}); // tour blanche
+  img.piece.blanc[2] = loadImage("img/Pieces/fou_blanc.png",function(){console.log("samarch")},function(){console.log("samarchpa")}); // fou blanc
+  img.piece.blanc[3] = loadImage("img/Pieces/reine_blanche.png",function(){console.log("samarch")},function(){console.log("samarchpa")}); // reine blanche
+  img.piece.blanc[4] = loadImage("img/Pieces/cavalier_blanc.png",function(){console.log("samarch")},function(){console.log("samarchpa")}); // cavalier blanc
+  img.piece.blanc[5] = loadImage("img/Pieces/roi_blanc.png",function(){console.log("samarch")},function(){console.log("samarchpa")}); // roi blanc
+  img.piece.selection = loadImage("img/Pieces/selection.png",function(){console.log("samarch")},function(){console.log("samarchpa")}); // image de séléction
 
   img.spell.Pion = [];
-  img.spell.Pion[0] = loadImage("img/Spells/Pion/0.png");
-  img.spell.Pion[1] = loadImage("img/Spells/Pion/1.png");
-  img.spell.Pion[2] = loadImage("img/Spells/Pion/2.png");
+  img.spell.Pion[0] = loadImage("img/Spells/Pion/0.png",function(){console.log("samarch")},function(){console.log("samarchpa")});
+  img.spell.Pion[1] = loadImage("img/Spells/Pion/1.png",function(){console.log("samarch")},function(){console.log("samarchpa")});
+  img.spell.Pion[2] = loadImage("img/Spells/Pion/2.png",function(){console.log("samarch")},function(){console.log("samarchpa")});
   img.spell.Tour = [];
-  img.spell.Tour[0] = loadImage("img/Spells/Tour/0.png");
-  img.spell.Tour[1] = loadImage("img/Spells/Tour/1.png");
-  img.spell.Tour[2] = loadImage("img/Spells/Tour/2.png");
+  img.spell.Tour[0] = loadImage("img/Spells/Tour/0.png",function(){console.log("samarch")},function(){console.log("samarchpa")});
+  img.spell.Tour[1] = loadImage("img/Spells/Tour/1.png",function(){console.log("samarch")},function(){console.log("samarchpa")});
+  img.spell.Tour[2] = loadImage("img/Spells/Tour/2.png",function(){console.log("samarch")},function(){console.log("samarchpa")});
   img.spell.Cavalier = []
-  img.spell.Cavalier[0] = loadImage("img/Spells/Cavalier/0.png");
-  img.spell.Cavalier[1] = loadImage("img/Spells/Cavalier/1.png");
-  img.spell.Cavalier[2] = loadImage("img/Spells/Cavalier/2.png");
+  img.spell.Cavalier[0] = loadImage("img/Spells/Cavalier/0.png",function(){console.log("samarch")},function(){console.log("samarchpa")});
+  img.spell.Cavalier[1] = loadImage("img/Spells/Cavalier/1.png",function(){console.log("samarch")},function(){console.log("samarchpa")});
+  img.spell.Cavalier[2] = loadImage("img/Spells/Cavalier/2.png",function(){console.log("samarch")},function(){console.log("samarchpa")});
 /*
    for (var i = 0; i < pieceClass.length; i++){
     img.spell[pieceClass[i]] = [];
@@ -535,8 +535,8 @@ function preload() { //chargement des images. La fonction Preload est lancée pa
     }
   }*/
 
-  winIMG[0] = loadImage("img/Window/window_left.png");
-  winIMG[1] = loadImage("img/Window/window_right.png");
+  winIMG[0] = loadImage("img/Window/window_left.png",function(){console.log("samarch")},function(){console.log("samarchpa")});
+  winIMG[1] = loadImage("img/Window/window_right.png",function(){console.log("samarch")},function(){console.log("samarchpa")});
 }
 
 function facepunch() { //hehe
@@ -1378,9 +1378,9 @@ class Cavalier extends Piece {
 			),
 			new Spell("Chargez!",5,2,img.spell.Cavalier[1],0,false,this,
 				function(){
-					let spell = this
-					var targets = []
-					var board = examineBoard()
+					let spell = this;
+					var targets = [];
+					var board = examineBoard();
 					selectPiecesConditional(piecesInCases(this.getRange(),board),
 						function(piece){targets.push(piece)},
 						[
@@ -1388,8 +1388,8 @@ class Cavalier extends Piece {
 								if (piece.player == spell.piece.player) return false;
 								let tx = spell.piece.cx + (piece.cx - spell.piece.cx) * 2;
 								let ty = spell.piece.cy + (piece.cy - spell.piece.cy) * 2;
-								if (board[tx][ty]) return false
-								return true
+								if (isOnBoard(tx,ty)) if (board[tx][ty]) return false
+								return true;
 							}
 						]
 					)
