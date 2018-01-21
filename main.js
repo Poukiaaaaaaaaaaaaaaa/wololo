@@ -941,7 +941,7 @@ class Piece {
 class Pion extends Piece { 
   constructor(x, y, player) { 
 
-    super(0, "Pion", 50, 120, x, y, player, 3, 60); //Appelle le constructeur de la classe parent, Piece, pour créer la pièce de base, avec les paramètres propres au pion
+    super(0, "Pion", 50, 120, x, y, player, 1, 60); //Appelle le constructeur de la classe parent, Piece, pour créer la pièce de base, avec les paramètres propres au pion
 
 	var direction = this.player //Initialise la kyojin (avancée), attribut propre au pion qui dépend de sa position sur le board
 	this.kyojin = Math.abs(((config.nLig - 1) * -direction) + this.cy)
@@ -1024,7 +1024,7 @@ class Pion extends Piece {
     var depl = [];
   	var startLine = ((this.player == 0) ? 1 : config.nLig - 2);
   	var direction = ((this.player == 0) ? 1 : -1);
-  	var mp = (this.cy == startLine) ? this.mp : 1;
+  	var mp = (this.cy == startLine) ? this.mp + 2 : this.mp;
   	for (var i = 0; i < mp; i++){
 		  if (addDepl(board,depl,this.cx,this.cy + ((i+1)*direction)) == false){break}
 	  }
@@ -1382,7 +1382,7 @@ class Cavalier extends Piece {
 								if (piece.player == spell.piece.player) return false;
 								let tx = spell.piece.cx + (piece.cx - spell.piece.cx) * 2;
 								let ty = spell.piece.cy + (piece.cy - spell.piece.cy) * 2;
-								if (board[tx][ty]) return false
+								if (isOnBoard(tx,ty) if (board[tx][ty]) return false
 								return true
 							}
 						]
