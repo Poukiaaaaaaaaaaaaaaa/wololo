@@ -33,7 +33,7 @@ var config = {
 }
 
 
-{
+config.update = function(){
   // Définition de certains éléments de configuration calculés
   config.boardS = config.canvasH > config.canvasW ? config.canvasW : config.canvasH;
   config.unit = config.boardS/100;  //unité de distance dépendant de la taille du plateau
@@ -439,7 +439,7 @@ function fuckThisShitImOut(){ //Euh alors ça c'est n'importe quoi
 		targetAngle = Math.random() * 2 * Math.PI
 		move(objects[i],0.3,objects[i].x + Math.cos(targetAngle) * 2000, objects[i].y + Math.sin(targetAngle) * 2000)
 	}
-	
+
 	for (let i = 0; i < joueur.length; i++){
 		for (let j = 0; j < joueur[i].piece.length; j++){
 			joueur[i].piece[j].cx = 500
@@ -493,13 +493,13 @@ function preload() { //chargement des images. La fonction Preload est lancée pa
   img.HUD[3] = loadImage("img/HUD/muted.png");
   img.HUD[4] = loadImage("img/HUD/player_up.png");
   img.HUD[5] = loadImage("img/HUD/player_down.png");
-  img.title[0] = loadImage("img/title_background.png")
-  img.title[1] = loadImage("img/logo.png")
-  img.title[2] = loadImage("img/playButton.png")
-  img.title[3] = loadImage("img/edit.png")
-  img.title[4] = loadImage("img/settings.png")
-  img.title[5] = loadImage("img/backToMenu.png")
-  img.title[6] = loadImage("img/help.png")
+  img.title[0] = loadImage("img/title_background.png");
+  img.title[1] = loadImage("img/logo.png");
+  img.title[2] = loadImage("img/playButton.png");
+  img.title[3] = loadImage("img/edit.png");
+  img.title[4] = loadImage("img/settings.png");
+  img.title[5] = loadImage("img/backToMenu.png");
+  img.title[6] = loadImage("img/help.png");
 
   img.piece.noir[0] = loadImage("img/Pieces/pion_noir.png"); // pion noir
   img.piece.noir[1] = loadImage("img/Pieces/tour_noire.png"); // tour noire
@@ -516,22 +516,18 @@ function preload() { //chargement des images. La fonction Preload est lancée pa
   img.piece.selection = loadImage("img/Pieces/selection.png"); // image de séléction
 
   img.spell.Pion = [];
-  img.spell.Pion[0] = loadImage("img/spells/Pion/0.png");
-  img.spell.Pion[1] = loadImage("img/spells/Pion/1.png");
-  img.spell.Pion[2] = loadImage("img/spells/Pion/2.png");
+  img.spell.Pion[0] = loadImage("img/Spells/Pion/0.png");
+  img.spell.Pion[1] = loadImage("img/Spells/Pion/1.png");
+  img.spell.Pion[2] = loadImage("img/Spells/Pion/2.png");
   img.spell.Tour = [];
-  img.spell.Tour[0] = loadImage("img/spells/Tour/0.png");
-  img.spell.Tour[1] = loadImage("img/spells/Tour/1.png");
-  img.spell.Tour[2] = loadImage("img/spells/Tour/2.png");
+  img.spell.Tour[0] = loadImage("img/Spells/Tour/0.png");
+  img.spell.Tour[1] = loadImage("img/Spells/Tour/1.png");
+  img.spell.Tour[2] = loadImage("img/Spells/Tour/2.png");
   img.spell.Cavalier = []
-  img.spell.Cavalier[0] = loadImage("img/spells/Cavalier/0.png");
-/*
-   for (var i = 0; i < pieceClass.length; i++){
-    img.spell[pieceClass[i]] = [];
-    while (true) {
-      loadImage("img/"+)
-    }
-  }*/
+  img.spell.Cavalier[0] = loadImage("img/Spells/Cavalier/0.png");
+  img.spell.Cavalier[1] = loadImage("img/Spells/Cavalier/1.png");
+  img.spell.Cavalier[2] = loadImage("img/Spells/Cavalier/2.png");
+
 
   winIMG[0] = loadImage("img/Window/window_left.png");
   winIMG[1] = loadImage("img/Window/window_right.png");
@@ -574,16 +570,11 @@ function facepunch() { //hehe
   img.spell.Tour[0] = loadImage("img/no/facepunch.jpg");
   img.spell.Tour[1] = loadImage("img/no/facepunch.jpg");
   img.spell.Tour[2] = loadImage("img/no/facepunch.jpg");
-
-/*
-   for (var i = 0; i < pieceClass.length; i++){
-    img.spell[pieceClass[i]] = [];
-    while (true) {
-      loadImage("img/"+)
-    }
-  }
-  */
-
+  img.spell.Cavalier = []
+  img.spell.Cavalier[0] = loadImage("img/no/facepunch.jpg");
+  img.spell.Cavalier[1] = loadImage("img/no/facepunch.jpg");
+  img.spell.Cavalier[2] = loadImage("img/no/facepunch.jpg");
+	
   winIMG[0] = loadImage("img/no/facepunch.jpg");
   winIMG[1] = loadImage("img/no/facepunch.jpg");
   startGame();
@@ -595,12 +586,12 @@ function deFacepunch() {
 // endImages -------------
 
 function soundPreLoad() {
-	if (!Audio) {sEffects = false ; return false} //Si la classe Audio n'existe pas, on l'indique
+	if (!Audio) {sEffects = false ; return false} //Si la classe Audio n'existe pas, on l'indique en mettant sEffects à false, puis on quitte la fonction(return)
 	sEffects[0] = new Audio("audio/click1.wav");
 	sEffects[1] = new Audio("audio/click2.wav");
 	sEffects[2] = new Audio("audio/click3.wav");
 	sEffects[3] = new Audio("audio/loop.mp3"); sEffects[3].loop = true;
-	sEffects[3].volume = 0.5; 
+	sEffects[3].volume = 0.5;
 	return true
 }
 
@@ -740,7 +731,7 @@ class Piece {
 		for (let i = 0; i < this.deplSpell.length; i++){
 			this.deplSpell[i].active = false
 		}
-	}	
+	}
   }
 
   viewRanges() { 	  //affiche les portées d'attaque et de déplacement (= cases où ils est possible de se déplacer + pièces attaquables)
@@ -781,9 +772,9 @@ class Piece {
     	}
     }
 
-    //D�PLACEMENTS 
+    //D�PLACEMENTS
 	//Idem que pou l'attaque : les highlightCase sont crées sur les cases (vides) dans la portée de déplacement de la pièce
-    if (this.deplCD == false){ 
+    if (this.deplCD == false){
     	if (joueur[playerTurn].mana >= config.mana.depl){
     		color = [0,0,255,120];
     		hoverColor = [100,100,255,120];
@@ -865,7 +856,7 @@ class Piece {
 		this.deplCD = false; //Met les atkCD et deplCD à false, indiquant que ces actions sont disponibles
 		this.atkCD = false
 		//Réinitialise les stats (les remet au valeurs de base de la pièce)
-		this.atk = this.baseAtk 
+		this.atk = this.baseAtk
 		let prevMaxHP = this.maxHP ;
 		this.maxHP = this.baseHP ;
 		this.hp = this.hp * this.maxHP / prevMaxHP
@@ -877,7 +868,7 @@ class Piece {
 		for (var i = 0; i < this.effects.length; i++){
 			this.effects[i].apply()
 		}
-		
+
 		this.callPassive("onStartTurn") //Appel de l'éventuel passif se déclanchant au début de chaque tour
 
 	}
@@ -910,7 +901,7 @@ class Piece {
 	levelUp(){ //La pièce gagne un nouveau niveau
 		this.level += 1
 
-		let prevBaseAtk = this.baseAtk 
+		let prevBaseAtk = this.baseAtk
 		this.baseAtk *= 1.1 //Augmente l'attaque de base de la pièce
 		this.atk = this.atk * this.baseAtk / prevBaseAtk //met à jour la valeur d'attaque actuelle
 
@@ -922,7 +913,7 @@ class Piece {
 		for (var i = 0; i < this.spell.length; i++){ //Teste si un des sorts nécessite d'avoir le niveau nouvellement acquis
 			if (this.spell[i].locked){
 				if (typeof this.spell[i].locked == "number" && this.level >= this.spell[i].locked){
-					this.spell[i].locked = false //Si oui, le débloque 
+					this.spell[i].locked = false //Si oui, le débloque
 				}
 			}
 		}
@@ -938,8 +929,8 @@ class Piece {
 
 //Les classes suivantes sonrt les classes-pièces. Chacune hérite de la clase pièce, et définit une pièce particulière
 //Ce sont ces classes qui seront instanciées pour créer une nouvelle pièce
-class Pion extends Piece { 
-  constructor(x, y, player) { 
+class Pion extends Piece {
+  constructor(x, y, player) {
 
     super(0, "Pion", 50, 120, x, y, player, 1, 60); //Appelle le constructeur de la classe parent, Piece, pour créer la pièce de base, avec les paramètres propres au pion
 
@@ -971,7 +962,7 @@ class Pion extends Piece {
 				return caseInRangeZ(this.piece.cx,this.piece.cy,1)
 			}
 		),
-		new Spell("Unity",8,3,img.spell.Pion[1],0,0,this, 
+		new Spell("Unity",8,3,img.spell.Pion[1],0,0,this,
 			function(){
 				let spell = this
 				var pieces = []
@@ -1353,7 +1344,7 @@ class Reine extends Piece {
 class Cavalier extends Piece {
 	constructor(x, y, player) {
 		super(4, "Cavalier", 80, 50, x, y, player,2, 80);
-		
+
 		this.spell = [
 			new Spell("Stomp",6,2,img.spell.Cavalier[0],0,false,this,
 				function(){
@@ -1370,11 +1361,11 @@ class Cavalier extends Piece {
 					return caseInRangeZ(this.piece.cx,this.piece.cy,1)
 				}
 			),
-			new Spell("Chargez",5,2,img.spell.Cavalier[0],0,false,this,
+			new Spell("Chargez!",5,2,img.spell.Cavalier[1],0,false,this,
 				function(){
-					let spell = this
-					var targets = []
-					var board = examineBoard()
+					let spell = this;
+					var targets = [];
+					var board = examineBoard();
 					selectPiecesConditional(piecesInCases(this.getRange(),board),
 						function(piece){targets.push(piece)},
 						[
@@ -1382,7 +1373,7 @@ class Cavalier extends Piece {
 								if (piece.player == spell.piece.player) return false;
 								let tx = spell.piece.cx + (piece.cx - spell.piece.cx) * 2;
 								let ty = spell.piece.cy + (piece.cy - spell.piece.cy) * 2;
-								if (isOnBoard(tx,ty) if (board[tx][ty]) return false
+								if (isOnBoard(tx,ty)) if (board[tx][ty]) return false
 								return true
 							}
 						]
@@ -1391,7 +1382,7 @@ class Cavalier extends Piece {
 						function(selected){
 							spell.cast(selected)}
 					)
-					
+
 				},
 				function(target){
 					let tx = this.piece.cx + (target.cx - this.piece.cx) * 2;
@@ -1404,7 +1395,7 @@ class Cavalier extends Piece {
 					return range
 				}
 			),
-			new Spell("En chasse",9,6,img.spell.Cavalier[0],0,false,this,
+			new Spell("En Chasse",9,6,img.spell.Cavalier[2],0,false,this,
 				function(){
 					this.cast();
 				},
@@ -1420,16 +1411,16 @@ class Cavalier extends Piece {
 				}
 			)
 		]
-		
+
 		this.deplSpell = [this.spell[0]]
-		
+
 	}
 
 	onKilling(){
 		this.deplCD = false
 		if (this.spell[2].actualCooldown > 0) this.spell[2].actualCooldown -= 1
 	}
-	
+
 	getDepl(board) {
 		var depl = [];
     var mp = this.mp;
@@ -1662,13 +1653,13 @@ class Text { //Classe définissant un objet graphique qui affichera un texte
     this.y = y;
     this.text = text; //texte à afficher
     this.color = color; //couleur
-    this.gui = gui 
+    this.gui = gui
   	this.font = font //police de caractère
 	this.size = size //taille de police
     this.xalign = xalign //alignement par rapport à la position
     this.yalign = yalign
 
-    chessGUI[gui].push(this) 
+    chessGUI[gui].push(this)
   }
 
   draw(){ //affiche l'objet
@@ -1803,9 +1794,9 @@ class Spell { //Classe définissant un sort d'une pièce
 	this.actualCooldown = 0; //récupération actuelle
   }
 
-  cast(arg){ //lance le spell (sera a priori appelée à un moment où un autre dans onUsed() ) : 
+  cast(arg){ //lance le spell (sera a priori appelée à un moment où un autre dans onUsed() ) :
     if (joueur[this.piece.player].mana >= this.manaCost){ //si le joueur a assez de mana
-		this.effect(arg) //éxécute l'effet 
+		this.effect(arg) //éxécute l'effet
 		joueur[this.piece.player].mana -= this.manaCost; //retire le mana
 		this.actualCooldown = this.cooldown //indique qu'il reste un certain nombre de tour avant de pouvoir l'utiliser
 	}
@@ -1903,7 +1894,7 @@ function startTitle(){ //fonction inialisant l'écran-titre
   if (soundPreLoad()) sEffects[3].play(); //charge les sons ; joue la musique
   joueur = [new Joueur("blanc","Gilbert"), new Joueur("noir","Patrick")]; //crée les deux joueurs de base
   initPrePieces(); //crée leurs prePieces de base
-  clearGUI(); 
+  clearGUI();
   new StaticImage("background",img.title[0],0,0,config.canvasW,config.canvasH) //crée une image statique : l'image de fond
   titleView.mainPage(); //Affiche les éléments de la page d'accueil
 }
@@ -1914,7 +1905,7 @@ function startGame() { //lance la partie en elle-même
 	actTime = d.getTime();
 
 	clearGUI(); //vide tous les éléments de GUI
-	new StaticImage("background",config.background, 0, 0, config.canvasW, config.canvasH); //Crée une image fixe : l'image de fond 
+	new StaticImage("background",config.background, 0, 0, config.canvasW, config.canvasH); //Crée une image fixe : l'image de fond
   {let hudBG = {}; //crée un objet graphique affichant un simple rectangle derrière l'échiquier et le HUD
     hudBG.draw = function() {
       fill(80, 80, 80, 200); rect(0, 0, config.boardW + config.hud.manaGauge.w + config.border * 3, config.canvasH);
@@ -1988,11 +1979,13 @@ function startGame() { //lance la partie en elle-même
 
 // main functions
 function setup() { //Lancée par p5 au lancement du programme : c'est ici qu commence l'éxécution du programme
-  noStroke(); //Les formes dessinées n'auront jamais de stroke
-  cursor("img/cursor.png"); //Changement de l'image du curseur
-  createCanvas(config.canvasW, config.canvasH); //Création du canvas où on va dessiner
-
-  startTitle(); //Lancement de l'écran-titre
+	noStroke(); //Les formes dessinées n'auront jamais de stroke
+	cursor("img/cursor.png"); //Changement de l'image du curseur
+	createCanvas(config.canvasW, config.canvasH); //Création du canvas où on va dessiner
+	config.update()
+  
+	startTitle(); //Lancement de l'écran-titre
+  
 }
 
 function draw() { //Fonction lancée par p5 à chaque frame
