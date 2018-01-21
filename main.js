@@ -463,8 +463,8 @@ var img = {}, //Objet contenant toutes les images
     winIMG = [], //images utilisées par les fenètres
     guiState = "", //représente l'action en cours (qui détermine comment certains éléments se comportent)
     victory = false,
-	  undefPiece,
-    sEffects = []; //array contenant tous les effets audio
+	undefPiece,
+    sEffects = []; //array contenant tous les effets audio. Est à false si le son n'a pas pu être load
 
 img.piece = { //objet contenant deux tableaux, "blanc" et "noir" : chacun contiendra les images des pi�ces de couleur correspodante
     blanc: [],
@@ -536,49 +536,6 @@ function preload() { //chargement des images. La fonction Preload est lancée pa
   winIMG[0] = loadImage("img/Window/window_left.png");
   winIMG[1] = loadImage("img/Window/window_right.png");
 }
-// endImages -------------
-
-function soundPreLoad() {
-  sEffects[0] = new Audio("audio/click1.wav");
-  sEffects[1] = new Audio("audio/click2.wav");
-  sEffects[2] = new Audio("audio/click3.wav");
-  sEffects[3] = new Audio("audio/loop.mp3"); sEffects[3].loop = true;
-  sEffects[3].volume = 0.5;
-}
-
-// class
-class Joueur {
-		//classe représentant un joueur (sa couleur, son nom,ses ressources, ses pièces)
-	constructor(color, name) {
-		//les paramètres passés au contruceur sont la couleur et le nom; les autre propriétés dépendront de la partie (ressources, pièces)
-		this.color = color;
-		this.piece = []; //On initialise deux tableaux vides : 'piece', celui des pièces, et prePieces (voir "initPrePieces()")
-		this.prePiece = [];
-		this.name = name;
-	}
-
-	initGame(){ //Méthode initialisant le joueur pour une nouvelle partie
-		this.mana = config.maxMana;
-		this.gold = config.gold;
-	}
-
-	startTurn() {
-		//méthode permettant de démarrer le tour du joueur: mise à jour de la variable
-		//playerTurn, restauration du mana, réinitialisation des cases colorées
-		var playerID = getArrayID(joueur,this); //Récupère le numéro du joueur dans le tableau des joueurs
-		playerTurn = playerID; //ce numéro devient le nouveau 'playerTurn'
-		clearSelectedPiece() //Aucune pièce n'est sélectionnée
-		this.mana = config.maxMana;
-		for (var i = 0; i < this.piece.length; i++) {
-			this.piece[i].startTurn();
-		}
-
-		guiElements.player_arrow.update(); //Met à jour la flèche indiquant le joueur en train de jouer
-		selectedPiece = 0;
-	}
-
-
-}
 
 function facepunch() { //hehe
   config.background = loadImage("img/no/facepunch.jpg");
@@ -635,6 +592,51 @@ function facepunch() { //hehe
 function deFacepunch() {
   preload(); startGame();
 }
+// endImages -------------
+
+function soundPreLoad() {
+	if (!Audio) {sEffects = false ; return false} //Si la classe Audio n'existe pas, on l'indique
+	sEffects[0] = new Audio("audio/click1.wav");
+	sEffects[1] = new Audio("audio/click2.wav");
+	sEffects[2] = new Audio("audio/click3.wav");
+	sEffects[3] = new Audio("audio/loop.mp3"); sEffects[3].loop = true;
+	sEffects[3].volume = 0.5; 
+	return true
+}
+
+// class
+class Joueur {
+		//classe représentant un joueur (sa couleur, son nom,ses ressources, ses pièces)
+	constructor(color, name) {
+		//les paramètres passés au contruceur sont la couleur et le nom; les autre propriétés dépendront de la partie (ressources, pièces)
+		this.color = color;
+		this.piece = []; //On initialise deux tableaux vides : 'piece', celui des pièces, et prePieces (voir "initPrePieces()")
+		this.prePiece = [];
+		this.name = name;
+	}
+
+	initGame(){ //Méthode initialisant le joueur pour une nouvelle partie
+		this.mana = config.maxMana;
+		this.gold = config.gold;
+	}
+
+	startTurn() {
+		//méthode permettant de démarrer le tour du joueur: mise à jour de la variable
+		//playerTurn, restauration du mana, réinitialisation des cases colorées
+		var playerID = getArrayID(joueur,this); //Récupère le numéro du joueur dans le tableau des joueurs
+		playerTurn = playerID; //ce numéro devient le nouveau 'playerTurn'
+		clearSelectedPiece() //Aucune pièce n'est sélectionnée
+		this.mana = config.maxMana;
+		for (var i = 0; i < this.piece.length; i++) {
+			this.piece[i].startTurn();
+		}
+
+		guiElements.player_arrow.update(); //Met à jour la flèche indiquant le joueur en train de jouer
+		selectedPiece = 0;
+	}
+
+
+}
 
 class Piece {
 	//classe représentant une pièce en général
@@ -663,6 +665,7 @@ class Piece {
 	  this.exp = 0 //expérience de la pièce
 	  this.level = 0 //niveau de la pièce
 	  this.expValue = expValue //quantité d'exp obtenue en tuant la pièce
+	  this.baseMp = mp //Points de déplacement à l'origine
 
     chessGUI.pieces.push(this); //ajout de la pièce au tableau des éléments de la GUI
   }
@@ -869,6 +872,7 @@ class Piece {
 		for (var i = 0; i < this.spell.length; i++){
 			if (this.spell[i].actualCooldown > 0) this.spell[i].actualCooldown--
 		}
+		this.mp = this.baseMp
 		//Puis les recalcule en fonction des effets actifs (voir "class Effect()")
 		for (var i = 0; i < this.effects.length; i++){
 			this.effects[i].apply()
@@ -1008,7 +1012,7 @@ class Pion extends Piece {
 					if (targets[i].player != this.piece.player) damage(targets[i],this.piece,20 + this.piece.kyojin * 2)
 				}
 			},
-			function() this.piece.getAtkRange()
+			function() {return this.piece.getAtkRange()}
 
 		)
     ];
@@ -1082,7 +1086,8 @@ class Tour extends Piece {
 				selectPiecesConditional(piecesInCases(this.getRange(),examineBoard()),
 					function(pion){
 						pion.applyEffect(4,function(){this.piece.atk += 20})
-					}
+					},
+					[function(piece){if (piece.constructor.name == "Pion") return true}]
 				)
 			},
 			function(){
@@ -1382,18 +1387,36 @@ class Cavalier extends Piece {
 							}
 						]
 					)
-					startPieceSelectionHLC(pieces, [255,0,255,50], [255,0,255,100],
+					startPieceSelectionHLC(targets, [255,0,255,50], [255,0,255,100],
 						function(selected){
 							spell.cast(selected)}
 					)
 					
 				},
-				function(){
-					console.log("oui")
+				function(target){
+					let tx = this.piece.cx + (target.cx - this.piece.cx) * 2;
+					let ty = this.piece.cy + (target.cy - this.piece.cy) * 2;
+					damage(target,this.piece,this.piece.atk / 2)
+					this.piece.move(tx,ty)
 				},
 				function(){
 					let range = caseInRangeZ(this.piece.cx,this.piece.cy,1)
 					return range
+				}
+			),
+			new Spell("En chasse",9,6,img.spell.Cavalier[0],0,false,this,
+				function(){
+					this.cast();
+				},
+				function(){
+					selectPieces(piecesInCases(this.getRange(),examineBoard()),
+						function(pion){
+							pion.applyEffect(4,function(){this.piece.mp += 1})
+						}
+					)
+				},
+				function(){
+					return caseInRangeZ(this.piece.cx,this.piece.cy,3)
 				}
 			)
 		]
@@ -1402,6 +1425,11 @@ class Cavalier extends Piece {
 		
 	}
 
+	onKilling(){
+		this.deplCD = false
+		if (this.spell[2].actualCooldown > 0) this.spell[2].actualCooldown -= 1
+	}
+	
 	getDepl(board) {
 		var depl = [];
     var mp = this.mp;
@@ -1872,7 +1900,7 @@ class Effect{ //classe représentant les effets sur la durée appliqués aux pi�
 // reset function
 
 function startTitle(){ //fonction inialisant l'écran-titre
-  soundPreLoad(); sEffects[3].play(); //charge les sons ; joue la musique
+  if (soundPreLoad()) sEffects[3].play(); //charge les sons ; joue la musique
   joueur = [new Joueur("blanc","Gilbert"), new Joueur("noir","Patrick")]; //crée les deux joueurs de base
   initPrePieces(); //crée leurs prePieces de base
   clearGUI(); 
@@ -2005,7 +2033,7 @@ function mouseClicked(){ //Fonction lancée par p5 à chaque clic
         }
       }
     }
-    sEffects[Math.floor(random(0,3))].play(); //on joue l'un des 3 sons de clic
+    if (sEffects) sEffects[Math.floor(random(0,3))].play(); //on joue l'un des 3 sons de clic
   }
 }
 
