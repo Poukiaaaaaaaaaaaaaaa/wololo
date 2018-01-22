@@ -24,7 +24,7 @@ var config = {
   canvasH: window.innerHeight,
   nLig: 10, //nombres de lignes/colones
   nCol: 8,
-  mana: {},  //coûts en mana des différentes actions de base
+  mana: {atk: 5, depl: 3, newPiece: 1},  //coûts en mana des différentes actions de base
   maxMana: 20,  //mana maximal
   gold: 100,   //monnaie au début de la partie. Au final, n'est pas utilisé (le sera ... un jour)
   hud: {},  //objet qui contiendra des informations sur différents éléments du hud
@@ -282,11 +282,11 @@ return cases; //que l'on renvoie
 }
 
 function piecesInCases(cases, board){ //renvoie un tableau contenant les pièces se trouvant sur les cases contenues le tableau cases
-	var x,y
-	var pieces = []
+	var x,y;
+	var pieces = [];
 	for (var i = 0; i < cases.length; i++){
-		x = cases[i][0] ; y = cases[i][1] //Pour chacune des cases, on teste si elle contient une pièce, grâce à l'objet board (passé en paramètre, obtenu via examineBoard() ) contenant, pour chaque case,
-		if (board[x][y]) pieces.push(board[x][y]) //undefined s'il n'y a pas de pièce, ou la pièce s'il y en a une. Si oui, on ajoute cette pièce au tableau pices
+		x = cases[i][0] ; y = cases[i][1]; //Pour chacune des cases, on teste si elle contient une pièce, grâce à l'objet board (passé en paramètre, obtenu via examineBoard() ) contenant, pour chaque case,
+		if (board[x][y]) pieces.push(board[x][y]); //undefined s'il n'y a pas de pièce, ou la pièce s'il y en a une. Si oui, on ajoute cette pièce au tableau pices
 	}
 	return pieces //que l'on renvoie
 }
@@ -946,12 +946,12 @@ class Pion extends Piece {
 
     super(0, "Pion", 50, 120, x, y, player, 1, 60); //Appelle le constructeur de la classe parent, Piece, pour créer la pièce de base, avec les paramètres propres au pion
 
-	var direction = this.player //Initialise la kyojin (avancée), attribut propre au pion qui dépend de sa position sur le board
-	this.kyojin = Math.abs(((config.nLig - 1) * -direction) + this.cy)
-	let prevMaxHP = this.maxHP
+	  var direction = this.player //Initialise la kyojin (avancée), attribut propre au pion qui dépend de sa position sur le board
+	  this.kyojin = Math.abs(((config.nLig - 1) * -direction) + this.cy)
+	  let prevMaxHP = this.maxHP;
 		this.maxHP += this.kyojin * (this.baseHP / 50) //Les stats du pion sont modifiées en fonction de cette valeur
-		this.hp = this.hp * this.maxHP / prevMaxHP
-	this.atk += this.baseAtk * (this.kyojin / config.nLig)
+		this.hp = this.hp * this.maxHP / prevMaxHP;
+	  this.atk += this.baseAtk * (this.kyojin / config.nLig);
 
 	let spell = [ //Crée le tableau contenant tous les sorts du Pion (voir "class Spell")
 		new Spell("Vent Divin",8,1,img.spell.Pion[0],0,2,this, //Nouveau spell : on spécifie son nom, son icône, son coût, le niveau requis, ainsi que :
@@ -1050,18 +1050,17 @@ class Pion extends Piece {
   }
 
 	onStartTurn(){ //Passif se lançant au début de chaque tour
-		var direction = this.player
+		var direction = this.player;
 		//Recalcule la valeur d'avancée (kyojin) et les stats en fonction
-		let prevMaxHP = this.maxHP
-		this.maxHP += this.kyojin * (this.baseHP / 50)
-		this.hp = this.hp * this.maxHP / prevMaxHP
+		let prevMaxHP = this.maxHP;
+		this.maxHP += this.kyojin * (this.baseHP / 50);
+		this.hp = this.hp * this.maxHP / prevMaxHP;
 
-		this.atk += this.baseAtk * (this.kyojin / config.nLig)
-
+		this.atk += this.baseAtk * (this.kyojin / config.nLig);
 	}
 
-	onMovedDone(){//Passif se lançant au début de chaque tour
-		 //Recalcule la valeur d'avancée (kyojin) et les stats en fonction
+	onMovedDone(){//Passif se lançant après chaque mouvement
+		//Recalcule la valeur d'avancée (kyojin) et les stats en fonction
 		var direction = this.player;
 		let prevKyojin = this.kyojin;
 		this.kyojin = Math.abs(((config.nLig - 1) * -direction) + this.cy);
@@ -1246,11 +1245,9 @@ class Fou extends Piece {
 
           for (let i = -1; i < 2; i++) {
             if (board[this.piece.cx + i][this.piece.cy] && board[this.piece.cx + i][this.piece.cy].player != this.piece.player &&
-                board[this.piece.cx + i][this.piece.cy] != this.piece)
-              damage(board[this.piece.cx + i][this.piece.cy], this.piece, 20);
+                board[this.piece.cx + i][this.piece.cy] != this.piece) damage(board[this.piece.cx + i][this.piece.cy], this.piece, 20);
             if (board[this.piece.cx][this.piece.cy + i] && board[this.piece.cx][this.piece.cy + i].player != this.piece.player &&
-                board[this.piece.cx][this.piece.cy + i] != this.piece)
-              damage(board[this.piece.cx][this.piece.cy + i], this.piece, 20);
+                board[this.piece.cx][this.piece.cy + i] != this.piece) damage(board[this.piece.cx][this.piece.cy + i], this.piece, 20);
           }
         },
         function(){
@@ -1259,7 +1256,7 @@ class Fou extends Piece {
       ),
       new Spell("Echo", 5, 3, img.spell.Fou[1], 0, false, this,
         function(){
-          this.cast();
+
         },
         function(){
           let range = this.getRange();
@@ -1539,6 +1536,53 @@ class Cavalier extends Piece {
 class Roi extends Piece {
   constructor(x, y, player) {
     super(5, "Roi", 30, 400, x, y, player, 2, 0);
+
+// name,manaCost,cooldown,img,helpImg,baseLocked,piece,onUsed,effect,getRange
+
+    this.spell = [
+      new Spell("Arrêtez De Vous Battez", 7, 5, img.spell.Roi[0], 0, false, this,
+        function(){
+          this.cast();
+        },
+        function(){
+          let range = this.getRange();
+          let board = examineBoard();
+          let pieces = piecesInCases(range, board);
+
+          for (let i = 0; i < pieces.length; i++) {
+            pieces[i].hp += 15;
+            if (!pieces[i].maxHP && pieces[i].hp > pieces[i].baseHP) pieces[i].hp = pieces[i].baseHP;
+            if (pieces[i].maxHP && pieces[i].hp > pieces[i].maxHP) pieces[i].hp = pieces[i].maxHP;
+          }
+        },
+        function(){
+          return caseInRangeZ(this.piece.cx, this.piece.cy, 2);
+        }
+      ),
+      new Spell("Colère Royale", 1, 10, img.spell.Roi[1], 0, false, this,
+        function(){
+          this.cast();
+        },
+        function(){
+          let range = this.getRange();
+          let board = examineBoard();
+          let pieces = piecesInCases(range, board);
+          pieces[Math.floor(Math.random() * pieces.length)].hp -= 2;
+        },
+        function(){
+          let ennemy = [];
+          let board = examineBoard();
+
+          for (let i = 0; i < board.length; i++) {
+            for (let j = 0; j < board[i].length; j++) {
+              if (board[i][j] && board[i][j].player != this.piece.player) ennemy.push([i, j]);
+            }
+          }
+
+          return ennemy;
+        }
+      )
+    ]
   }
 
   getDepl(board) {
