@@ -1864,13 +1864,13 @@ class SpellIcon extends Button { //icône des spells; hérite des simples bouton
 					if (this.spell.actualCooldown == 0 && !this.spell.locked){ //et si le spell n'est pas en récupération
 						this.spell.onUsed(this.spell); //utilisation du spell
 					}
-				}else{
-					this.spell.piece.noManaError(this.x + this.w/2, this.y + this.h/2)// si pas assez de mana, affichage de l'erreur "not enough mana" (voir "manaError()")
+				} else {
+					this.spell.piece.noManaError(this.x + this.w/2, this.y + this.h/2); // si pas assez de mana, affichage de l'erreur "not enough mana" (voir "manaError()")
 				}
 			}
 		})
-		this.spell = spell
-		this.baseDraw = this.draw
+		this.spell = spell;
+		this.baseDraw = this.draw;
 
 		this.draw = function(){ //Affiche l'icône
 			this.baseDraw() //draw de base du bouton (gère notament le hovercallback)
@@ -1882,8 +1882,8 @@ class SpellIcon extends Button { //icône des spells; hérite des simples bouton
 				if (this.spell.actualCooldown) text(this.spell.actualCooldown,this.x + this.w/2, this.y + this.h/2) //si en récupération, affiche le nombre de tours restants
 			}
 			if (this.spell.active){
-				fill(255,255,255,100)
-				rect(this.x,this.y,this.w,this.h)
+				fill(255,255,255,100);
+				rect(this.x,this.y,this.w,this.h);
 			}
 		}
 	}
@@ -1891,30 +1891,30 @@ class SpellIcon extends Button { //icône des spells; hérite des simples bouton
 
 
 
-class Effect{ //classe représentant les effets sur la durée appliqués aux pièces. A ajouter au tableau .effect d'une pièce pour lui appliquer un effet
+class Effect { //classe représentant les effets sur la durée appliqués aux pièces. A ajouter au tableau .effect d'une pièce pour lui appliquer un effet
 	//un effet contient une fonction qui sera appelée à chaque tour, pour s'assurer que l'effet est présent de manière continue, jusqu'à un certain nombre de tour
 	constructor(piece,duration,turnEffect = 0,endEffect = 0,direct = true){
-		this.piece = piece //pièce sur laquelle l'effet agira
-		this.turnEffect = turnEffect //effet continu : sera lancé à chaque début de tour (souvent pour modifier les stats après leur réinitialisation)
-		this.endEffect = endEffect //fcontion à éxécuter lorsque l'effet se termine
-		this.duration = duration //durée de l'effet en tours
-		this.remaining = duration
+		this.piece = piece; //pièce sur laquelle l'effet agira
+		this.turnEffect = turnEffect; //effet continu : sera lancé à chaque début de tour (souvent pour modifier les stats après leur réinitialisation)
+		this.endEffect = endEffect; //fcontion à éxécuter lorsque l'effet se termine
+		this.duration = duration; //durée de l'effet en tours
+		this.remaining = duration;
 
-		if (direct && this.turnEffect) this.turnEffect() //si on a précisé que l'effet était présent dès son applicaiton, on lance son effet continu
+		if (direct && this.turnEffect) this.turnEffect(); //si on a précisé que l'effet était présent dès son applicaiton, on lance son effet continu
 	}
 
 	apply(){ //applique l'effet : sera lancé à chaque début de tour
 		this.remaining--;
 		if (this.remaining == 0){ //s'il arrive à sa fin
-			if(this.endEffect) this.endEffect() //lance la fonction de fin
-			this.destroy() //puis le supprime
+			if(this.endEffect) this.endEffect(); //lance la fonction de fin
+			this.destroy(); //puis le supprime
 		}else{
-			if (this.turnEffect) this.turnEffect() //sinon, lance sa fonction d'effet continu
+			if (this.turnEffect) this.turnEffect(); //sinon, lance sa fonction d'effet continu
 		}
 	}
 
 	destroy(){
-		this.piece.effects.spliceItem(this) //supprime l'effet du tableau piece.effects
+		this.piece.effects.spliceItem(this); //supprime l'effet du tableau piece.effects
 	}
 }
 
