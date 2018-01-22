@@ -262,26 +262,26 @@ function clearSelectedPiece(piece){  //Reset la pièce sélectionnée
 function caseInRangeZ(cx,cy,range,includeCenter = false){ //Renvoie (dans un tableau) les cases (sous la forme [x,y]) se trouvant dans une portée spécifiée
 	//le Z signifie qu'on utilise la méthode de Zone : on prend un carré dont on sait qu'il contient toutes les cases à portée, et on teste toutes les cases de ce carré
 	var cases = []
-	var dist
-	var xStart = (cx - range >= 0) ? cx - range  : 0  //calcul des coordonnées du carré (de manière à ce qu'il ne sorte pas de l'échiquier)
-	var xEnd = (cx + range < config.nCol) ? cx + range : config.nCol - 1
-	var yStart = (cy - range >= 0) ? cy - range  : 0
-	var yEnd = (cy + range < config.nLig) ? cy + range : config.nLig - 1
+	var dist;
+	var xStart = (cx - range >= 0) ? cx - range : 0;  //calcul des coordonnées du carré (de manière à ce qu'il ne sorte pas de l'échiquier)
+	var xEnd = (cx + range < config.nCol) ? cx + range : config.nCol - 1;
+	var yStart = (cy - range >= 0) ? cy - range : 0;
+	var yEnd = (cy + range < config.nLig) ? cy + range : config.nLig - 1;
 
 	for (var i = xStart; i <= xEnd; i++){ //Pour chacune des cases du carré
 		for (var j = yStart ; j <= yEnd ; j++){
 			dist =  Math.sqrt(Math.pow(i - cx,2)+pow(j - cy,2)); //On teste si sa distance (distance entre les centres) avec la case d'origine est en dessous de la portée max
-			if (Math.round(dist) <= range && !(i == cx && j == cy && !includeCenter) ) {
+			if (Math.round(dist) <= range && !(i == cx && j == cy && !includeCenter)) {
 				cases.push([i,j]) //Si c'est le cas on l'ajoute au tableau cases
 			}
 		}
 	}
 
-return cases //que l'on renvoie
+return cases; //que l'on renvoie
 
 }
 
-function piecesInCases(cases,board){ //renvoie un tableau contenant les pièces se trouvant sur les cases contenues le tableau cases
+function piecesInCases(cases, board){ //renvoie un tableau contenant les pièces se trouvant sur les cases contenues le tableau cases
 	var x,y
 	var pieces = []
 	for (var i = 0; i < cases.length; i++){
@@ -291,26 +291,26 @@ function piecesInCases(cases,board){ //renvoie un tableau contenant les pièces 
 	return pieces //que l'on renvoie
 }
 
-function selectCases(cases,callback){ //appelle un même callback(x,y) avec les coordonnées des cases du tableau cases
+function selectCases(cases, callback){ //appelle un même callback(x,y) avec les coordonnées des cases du tableau cases
 	for (var i = 0 ; i < cases.length ; i++){
 		callback(cases[i][0],cases[i][1])
 	}
 }
 
-function selectPieces(pieces,callback){ //appelle un même callback(piece) pour chaque pièce du tableau pieces
+function selectPieces(pieces, callback){ //appelle un même callback(piece) pour chaque pièce du tableau pieces
 	for (var i = 0 ; i < pieces.length ; i++){
 		callback(pieces[i])
 	}
 }
 
-function selectPiecesConditional(pieces,callback,condition = []){
+function selectPiecesConditional(pieces, callback, condition = []){
   //Appelle un même callback(piece) pour chaque pièce du tableau pieces qui remplit les conditions
   //les conditions sont des fonctions prenant en paramètre piece[i] et renvoient true ou false
-	pieceLoop:for (var i = 0 ; i < pieces.length ; i++){ //Pour chaque pièce
+	pieceLoop: for (var i = 0 ; i < pieces.length ; i++){ //Pour chaque pièce
 		for (var j = 0 ; j < condition.length; j++){ //On teste toutes les conditions (array condition)
-			if (!condition[j](pieces[i])) continue pieceLoop
+			if (!condition[j](pieces[i])) continue pieceLoop;
 		}
-		callback(pieces[i]) //Si elles sont toutes vérifiées, on éxécute le callback
+		callback(pieces[i]); //Si elles sont toutes vérifiées, on éxécute le callback
 	}
 }
 
@@ -318,9 +318,9 @@ function selectPiecesConditional(pieces,callback,condition = []){
 function startPieceSelectionHLC(pieces, color, hoverColor, callback){ //démarre un processus de sélection de pièce (pieces), en utilisant des cases colorées (voir "class HighlightCase")
 //pieces : pièces pouvant être sélecctionnées, color et hovercolor : couleurs des HighlightCase, callback: fonction éxécutée lorsqu'une pièce est
   if (pieces.length > 0){ //Si aucune pièce n'est dans la liste des pièces, rien ne se passe
-    endSelectionHLC() //Si une sélection était en cours, elle se termine
-    guiState = "selection" //le GUISTATE passe à "selection" : toutes les interactions des objets de la GUI qui nécessitent que la GUI soient à son état normal ne fonctionneront pas
-    clearGUI("highlightCase") //On supprime toutes les cases colorées.
+    endSelectionHLC(); //Si une sélection était en cours, elle se termine
+    guiState = "selection"; //le GUISTATE passe à "selection" : toutes les interactions des objets de la GUI qui nécessitent que la GUI soient à son état normal ne fonctionneront pas
+    clearGUI("highlightCase"); //On supprime toutes les cases colorées.
 
     var colorType = typeof color //Le paramètre color, la couleur des cases de couleur de la sélection, peut être indéfini, une couleur p5 ou une fonction
     var hoverColorType = typeof hoverColor //Idem pour la couleur "hover" (si la souris passe dessus) des HighlightCase.
@@ -488,13 +488,13 @@ var chessGUI = { background: [], pieces: [], highlightCase: [], hud: [], pieceHU
 function preload() { //chargement des images. La fonction Preload est lancée par p5 avant le setup.
 	var oldLoadImage = loadImage
 	loadImage = function(path,sCallback = undefined,fCallback = undefined){
+    console.log(path);
 		return oldLoadImage(path,sCallback,
 			function(){
+        if(fCallback) fCallback();
 				throw "Impossible de charger " + path;
-				if(fCallback) fCallback()
 			}
-		)
-		console.log(path)
+		);
 	}
 
   config.background = loadImage("img/background.png");
@@ -720,26 +720,6 @@ class Piece {
     0,0,config.border,config.border);
   }
 
-  onLeftClick() {
-	  //fonction appelée à chaque clic de la souris
-    if (isCaseHovered(this.cx,this.cy) && playerTurn == this.player && guiState == "") {
-		//si le clic a eu lieu sur cette pièce :
-      if (selectedPiece == this) {
-        clearSelectedPiece(); return;
-      } else { this.select() }
-
-	//affichage de la jauge de vie
-		fill("red");
-		rect(this.x,this.y + config.tileSize * 0.8, //Affiche un rectangle rouge sur toute la longueur de la jauge
-		config.tileSize,config.tileSize*0.2,
-		0,0,config.border,config.border);
-		fill("green");
-		rect(this.x,this.y + config.tileSize * 0.8, //Affiche un rectangle vert sur une longueur dépendant des points de vie restants
-		config.tileSize / this.maxHP * this.hp,config.tileSize * 0.2,
-		0,0,config.border,config.border);
-	}
-  }
-
   onLeftClick() { //fonction appelée à chaque clic de la souris
     if (isCaseHovered(this.cx,this.cy) && playerTurn == this.player && guiState == "") { //si le clic a eu lieu sur cette pièce :
       if (selectedPiece == this) { //Si la pièce était déjà sélectionnée
@@ -919,7 +899,7 @@ class Piece {
 			{ type: "text", coord: { x: 0, y: config.unit*11.6 }, text: "Level: "+this.level, size: config.unit*2, color: [150,150,255] },
 			{ type: "text", coord: { x: 0, y: config.unit*13.6 }, text: "Experience: "+this.exp + expText, size: config.unit*2, color: [150,150,255]}]
 		];
-		clearGUI("windows")
+		clearGUI("windows");
 		new Window(config.hud.statsWindow.x, config.hud.statsWindow.y,config.hud.statsWindow.w,config.hud.statsWindow.h, "Stats", this.elements);
 	}
 
@@ -1183,8 +1163,8 @@ class Tour extends Piece {
 				}
 				for (var i = -5; i < 6; i++){
 					if (this.piece.cy + i < 0){
-					continue
-					}else if (this.piece.cy + i >= config.nLig) break
+					       continue;
+					} else if (this.piece.cy + i >= config.nLig) break
 
 					if (i) range.push([this.piece.cx, this.piece.cy + i])
 				}
@@ -1240,6 +1220,47 @@ class Tour extends Piece {
 class Fou extends Piece {
   constructor(x, y, player) {
     super(2, "Fou", 50, 70, x, y, player, 5, 60);
+
+// name,manaCost,cooldown,img,helpImg,baseLocked,piece,onUsed,effect,getRange
+
+    this.spell = [
+      new Spell("Madness", 3, 1, img.spell.Fou[0], 0, false, this,
+        function(){
+          let range = this.getRange();
+          
+        },
+        function(){
+
+        },
+        function(){
+          return caseInRangeZ(this.piece.cx, this.piece.cy, 2);
+        }
+      ),
+      new Spell("Echo", 5, 3, img.spell.Fou[1], 0, false, this,
+        function(){
+          let range = this.getRange();
+
+        },
+        function(){
+
+        },
+        function(){
+          return caseInRangeZ(this.piece.cx, this.piece.cy, 4);
+        }
+      ),
+      new Spell("Ultrasound", 4, 5, img.spell.Fou[2], 0, false, this,
+        function(){
+          let range = this.getRange();
+
+        },
+        function(){
+
+        },
+        function(){
+          return caseInRangeZ(this.piece.cx, this.piece.cy, 3);
+        }
+      )
+    ];
   }
 
   getDepl(board) {
@@ -1380,14 +1401,14 @@ class Cavalier extends Piece {
 		this.spell = [
 			new Spell("Stomp",6,2,img.spell.Cavalier[0],0,false,this,
 				function(){
-					this.active = true
+					this.active = true;
 				},
 				function(){
-					var spell = this
-					var board = examineBoard()
-					var source = this.piece
+					var spell = this;
+					var board = examineBoard();
+					var source = this.piece;
 					selectPieces(piecesInCases(this.getRange(),board), //Pour chaque pièce dans la portée (tableau de cases) du sort, applique un callback
-						function(target){if (target.player != source.player)damage(target,spell.piece,20)}) //infligeant des dégâts
+						function(target){if (target.player != source.player) damage(target,spell.piece,20)}) //infligeant des dégâts
 				},
 				function(){ //la fonction (facultative) retournant la portée du spell sous la forme d'un tableau de cases
 					return caseInRangeZ(this.piece.cx,this.piece.cy,1)
@@ -1405,8 +1426,8 @@ class Cavalier extends Piece {
 								if (piece.player == spell.piece.player) return false;
 								let tx = spell.piece.cx + (piece.cx - spell.piece.cx) * 2;
 								let ty = spell.piece.cy + (piece.cy - spell.piece.cy) * 2;
-								if (isOnBoard(tx,ty)) if (board[tx][ty]) return false
-								return true
+								if (isOnBoard(tx,ty)) if (board[tx][ty]) return false;
+								return true;
 							}
 						]
 					)
@@ -1580,7 +1601,7 @@ class Roi extends Piece {
 
 }
 
-class PrePiece{ //Les prePiece sont des objets "prévoyant" une pièce : chaque prePiece indique une future pièce qui sera créee au début de la partie
+class PrePiece { //Les prePiece sont des objets "prévoyant" une pièce : chaque prePiece indique une future pièce qui sera créee au début de la partie
 	//les prePieces qu'un joueur possède avant le début de la partie déterminent dont les pièces qu'il possèdera lorsque la partie se lancera
   constructor(Piece,cx,cy,player){ //Une prePieces ne contient comme attribut que
     this.Piece = Piece; //La classe de la pièce à créer
@@ -1761,7 +1782,7 @@ class FadeOut { //Animation à appliquer à un objet graphique, qui va modifier 
 
 }
 
-class Movement{ //Animation à appliquer à un objet graphique pour le déplacer
+class Movement { //Animation à appliquer à un objet graphique pour le déplacer
   constructor(object,speed,xTarget,yTarget){
     this.object = object //objet
     this.speed = speed  //vitesse en px/ms
@@ -1804,8 +1825,8 @@ class Movement{ //Animation à appliquer à un objet graphique pour le déplacer
   }
 
   end(){ //fin du mouvement (généralement quand la position d'arrivée est atteinte)
-    this.object.x = this.xTarget ; //place l'objet sur la positiond d'arrivée exacte (évite les décalages, liés aux arrondis par ex)
-    this.object.y = this.yTarget ;
+    this.object.x = this.xTarget; //place l'objet sur la positiond d'arrivée exacte (évite les décalages, liés aux arrondis par ex)
+    this.object.y = this.yTarget;
     this.destroy(); //supprime l'objet mouvement
   }
 
@@ -1820,10 +1841,10 @@ class Spell { //Classe définissant un sort d'une pièce
     this.locked = baseLocked; //disponibilité au début de la partie : true si bloqué, un nombre si on veut le bloquer jusqu'à ce que la pièce atteigne le niveau correspondant
     this.onUsed = onUsed; //fonction éxécutée au clic sur l'icône
     this.effect = effect; //effet du sort : peut être lancé directement lors du clic, ou après
-	this.getRange = getRange; //fonction donnant les cases su lesquelles le spell peut agir (s'il agit sur des cases définies)
-	this.piece = piece; //pièce propriétaire
-	this.cooldown = cooldown; //délai de récupération
-	this.actualCooldown = 0; //récupération actuelle
+  	this.getRange = getRange; //fonction donnant les cases su lesquelles le spell peut agir (s'il agit sur des cases définies)
+  	this.piece = piece; //pièce propriétaire
+  	this.cooldown = cooldown; //délai de récupération
+  	this.actualCooldown = 0; //récupération actuelle
   }
 
   cast(arg){ //lance le spell (sera a priori appelée à un moment où un autre dans onUsed() ) :
@@ -1859,7 +1880,7 @@ class SpellIcon extends Button { //icône des spells; hérite des simples bouton
 			}
 		},
 		function(){ //callback du bouton :
-			if (guiState == ""){ //si la GUI est à son état normal (aucune opéraiton particulière en cours)
+			if (guiState == ""){ //si la GUI est à son état normal (aucune opération particulière en cours)
 				if(joueur[this.spell.piece.player].mana >= this.spell.manaCost){ //si le joueur a assez de mana
 					if (this.spell.actualCooldown == 0 && !this.spell.locked){ //et si le spell n'est pas en récupération
 						this.spell.onUsed(this.spell); //utilisation du spell
@@ -1868,7 +1889,8 @@ class SpellIcon extends Button { //icône des spells; hérite des simples bouton
 					this.spell.piece.noManaError(this.x + this.w/2, this.y + this.h/2); // si pas assez de mana, affichage de l'erreur "not enough mana" (voir "manaError()")
 				}
 			}
-		})
+		});
+
 		this.spell = spell;
 		this.baseDraw = this.draw;
 
