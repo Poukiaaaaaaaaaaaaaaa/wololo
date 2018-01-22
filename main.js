@@ -156,17 +156,17 @@ function damage(target,source,dmg){ //inflig des dégâts à une pièce
 }
 
 function examineBoard() {
-	//permet d'analyser le contenu de l'�chiquier facilement
-	//via un tableau dont chaque entr�e repr�sente une case
-	var board = []; //cr�e un tableau
+	//permet d'analyser le contenu de l'échiquier facilement
+	//via un tableau dont chaque entrée représente une case
+	var board = []; //crée un tableau
 
 	for (var i = 0; i < config.nCol; i++){ //y place autant de sous tableaux qu'il y a de colonnes,
-		board[i] = []; 					   //on a donc un tableau à deux dimensions avec une entr�e = une case
+		board[i] = []; 					   //on a donc un tableau à deux dimensions avec une entrée = une case
 	}
 
   for (var i = 0; i < chessGUI.pieces.length;i++){
-    var piece = chessGUI.pieces[i]		//r�cup�re les coordonn�es de chaque pi�ce et place une r�f�rence � cette pi�ce
-    board[piece.cx][piece.cy] = piece		//dans la case correspodante dans le tableau
+    var piece = chessGUI.pieces[i];		//récupère les coordonnées de chaque pièce et place une référence à cette pièce
+    board[piece.cx][piece.cy] = piece;		//dans la case correspodante dans le tableau
   }
 
 	return board;
@@ -176,15 +176,15 @@ function examineBoard() {
 
 function examineBoardHLC() { //même effet de examine board, mais remplit les cases avec les highlightCase au lieu des pièces
 //sur le moment ça m'avait l'air utile mais je crois que cette fonction sert à rien au final
-	var board = []; //cr�e un tableau
+	var board = []; //crée un tableau
 
 	for (var i = 0; i < config.nCol; i++){ //y place autant de sous tableaux qu'il y a de colonnes,
-		board[i] = []; 					   //on a donc un tableau à deux dimensions avec une entr�e = une case
+		board[i] = []; 					   //on a donc un tableau à deux dimensions avec une entrée = une case
 	}
 
   for (var i = 0; i < chessGUI.highlightCase.length;i++){
-    var hlc = chessGUI.highlightCase[i]		//r�cup�re les coordonn�es de chaque piéce et place une référence à cette piéce
-    board[hlc.x][hlc.y] = hlc		//dans la case correspodante dans le tableau
+    var hlc = chessGUI.highlightCase[i]		//récupère les coordonnées de chaque HLC et place une référence à celle-ci
+    board[hlc.x][hlc.y] = hlc;		//dans la case correspodante dans le tableau
   }
 
 	return board;
@@ -959,10 +959,10 @@ class Pion extends Piece {
 				this.cast() //Pour ce spell, l'effet sera directement lancé
 			},
 			function(){ //la fonction correspondant à l'effet du spell
-				var spell = this
-				var hpCost = 50
-				var board = examineBoard()
-				var source = this.piece
+				var spell = this;
+				var hpCost = 50;
+				var board = examineBoard();
+				var source = this.piece;
 				if (spell.piece.hp > hpCost){
 					selectPieces(piecesInCases(this.getRange(),board), //Pour chaque pièce dans la portée (tableau de cases) du sort, applique un callback
 					   function(target){if (target.player != source.player)damage(target,spell.piece,20)}) //infligeant des dégâts
@@ -1226,11 +1226,32 @@ class Fou extends Piece {
     this.spell = [
       new Spell("Madness", 3, 1, img.spell.Fou[0], 0, false, this,
         function(){
-          let range = this.getRange();
-          
+          this.cast();
         },
         function(){
+          let range = this.getRange();
+          let board = examineBoard();
+          let pos = [];
 
+          for (let i = 0; i < range.length; i++) {
+            if (range[i][0] && range[i][1] &&
+                range[i][0] < config.nCol && range[i][1] < config.nLig &&
+                !board[range[i][0]][range[i][1]]) pos.push([range[i][0], range[i][1]]);
+          }
+
+          let finalPos = Math.floor(Math.random() * pos.length);
+          clearGUI("highlightCase");
+          this.piece.cx = pos[finalPos][0];
+          this.piece.cy = pos[finalPos][1];
+
+          for (let i = -1; i < 2; i++) {
+            if (board[this.piece.cx + i][this.piece.cy] && board[this.piece.cx + i][this.piece.cy].player != this.piece.player &&
+                board[this.piece.cx + i][this.piece.cy] != this.piece)
+              damage(board[this.piece.cx + i][this.piece.cy], this.piece, 20);
+            if (board[this.piece.cx][this.piece.cy + i] && board[this.piece.cx][this.piece.cy + i].player != this.piece.player &&
+                board[this.piece.cx][this.piece.cy + i] != this.piece)
+              damage(board[this.piece.cx][this.piece.cy + i], this.piece, 20);
+          }
         },
         function(){
           return caseInRangeZ(this.piece.cx, this.piece.cy, 2);
@@ -1238,11 +1259,10 @@ class Fou extends Piece {
       ),
       new Spell("Echo", 5, 3, img.spell.Fou[1], 0, false, this,
         function(){
-          let range = this.getRange();
-
+          this.cast();
         },
         function(){
-
+          let range = this.getRange();
         },
         function(){
           return caseInRangeZ(this.piece.cx, this.piece.cy, 4);
@@ -1250,11 +1270,10 @@ class Fou extends Piece {
       ),
       new Spell("Ultrasound", 4, 5, img.spell.Fou[2], 0, false, this,
         function(){
-          let range = this.getRange();
-
+          this.cast();
         },
         function(){
-
+          let range = this.getRange();
         },
         function(){
           return caseInRangeZ(this.piece.cx, this.piece.cy, 3);
@@ -1308,7 +1327,7 @@ class Fou extends Piece {
 
 	onAttacked(arg){
 		if (arg.dmg < this.hp/2){ //l'attaque réçue est faible (moins de la moitié des hp du fou)
-			if (Math.random() * 100 > 100) {return false}
+			if (Math.random() * 100 > 100) { return false }
 		}
 	}
 
