@@ -541,8 +541,14 @@ function preload() { //chargement des images. La fonction Preload est lancée pa
   img.spell.Reine = []
   img.spell.Reine[0] = loadImage("img/Spells/Reine/0.png");
   img.spell.Reine[1] = loadImage("img/Spells/Reine/1.png");
-  
-  
+  img.spell.Reine[2] = loadImage("img/Spells/Reine/2.png");
+  img.spell.Fou = [];
+  img.spell.Fou[0] = loadImage("img/Spells/Fou/0.png");
+  img.spell.Fou[1] = loadImage("img/Spells/Fou/1.png");
+  img.spell.Fou[2] = loadImage("img/Spells/Fou/2.png");
+  img.spell.Roi = [];
+  img.spell.Roi[0] = loadImage("img/Spells/Roi/0.png");
+  img.spell.Roi[1] = loadImage("img/Spells/Roi/1.png");
 
   winIMG[0] = loadImage("img/Window/window_left.png");
   winIMG[1] = loadImage("img/Window/window_right.png");
@@ -589,7 +595,18 @@ function facepunch() { //hehe
   img.spell.Cavalier[0] = loadImage("img/no/facepunch.jpg");
   img.spell.Cavalier[1] = loadImage("img/no/facepunch.jpg");
   img.spell.Cavalier[2] = loadImage("img/no/facepunch.jpg");
-	
+  img.spell.Reine = []
+  img.spell.Reine[0] = loadImage("img/no/facepunch.jpg");
+  img.spell.Reine[1] = loadImage("img/no/facepunch.jpg");
+  img.spell.Reine[2] = loadImage("img/no/facepunch.jpg");
+  img.spell.Fou = [];
+  img.spell.Fou[0] = loadImage("img/no/facepunch.jpg");
+  img.spell.Fou[1] = loadImage("img/no/facepunch.jpg");
+  img.spell.Fou[2] = loadImage("img/no/facepunch.jpg");
+  img.spell.Roi = [];
+  img.spell.Roi[0] = loadImage("img/no/facepunch.jpg");
+  img.spell.Roi[1] = loadImage("img/no/facepunch.jpg");
+
   winIMG[0] = loadImage("img/no/facepunch.jpg");
   winIMG[1] = loadImage("img/no/facepunch.jpg");
   startGame();
@@ -754,15 +771,15 @@ class Piece {
     var depl = this.getDepl(board); //r�cup�ration de la liste des cases o� il est possible de de d�placer
 									//la m�thode getDepl est d�finie dans chaque classe de pi�ce, le d�placement �tant propre � celle-ci
 
-  	var color
-  	var hoverColor
-  	var callback
+  	var color;
+  	var hoverColor;
+  	var callback;
 
   	//ATTAQUE
   	var atk = this.getAtkRange(board); //Récupère les cases sur lesquelles on peut attaquer (sous forme de tableau [ [x,y], [x,y], ... ])
   	var HLCase;
 
-    clearGUI("highlightCase") //Supprime les cases colorées
+    clearGUI("highlightCase"); //Supprime les cases colorées
 
     if (this.atkCD == false){ //Uniquement si atkCD est à false, c'est à dire si la pièce n'a pas encore attaqué
 		//Préparation des highlightCase qui indiqueront les cases où il est possible d'attaquer
@@ -854,7 +871,7 @@ class Piece {
 
   noManaError(x,y){ //Affiche, à une position spécifiée, un message d'erreur "not enough mana"
     {
-      let manaTXT = new Text("msg",x,y,"Not \n enough \n mana","Arial",config.unit * 2,[0,0,255]) //Crée un texte bleu "not enough mana"
+      let manaTXT = new Text("msg",x,y,"Not\nenough\nmana","Arial",config.unit * 2,[0,0,255]) //Crée un texte bleu "not enough mana"
       applyFadeOut(manaTXT,manaTXT.color,255,0.5) //Le fait disparaître en fondu
     }
   }
@@ -869,31 +886,31 @@ class Piece {
 
 	startTurn(){ //a ne pas confondre avec le passif onStartTurn : fonctioné éxécutée au début de chaque tour
 		this.deplCD = false; //Met les atkCD et deplCD à false, indiquant que ces actions sont disponibles
-		this.atkCD = false
+		this.atkCD = false;
 		//Réinitialise les stats (les remet au valeurs de base de la pièce)
-		this.atk = this.baseAtk
-		let prevMaxHP = this.maxHP ;
-		this.maxHP = this.baseHP ;
-		this.hp = this.hp * this.maxHP / prevMaxHP
+		this.atk = this.baseAtk;
+		let prevMaxHP = this.maxHP;
+		this.maxHP = this.baseHP;
+		this.hp = this.hp * this.maxHP / prevMaxHP;
 		for (var i = 0; i < this.spell.length; i++){
-			if (this.spell[i].actualCooldown > 0) this.spell[i].actualCooldown--
+			if (this.spell[i].actualCooldown > 0) this.spell[i].actualCooldown--;
 		}
-		this.mp = this.baseMp
+		this.mp = this.baseMp;
 		//Puis les recalcule en fonction des effets actifs (voir "class Effect()")
 		for (var i = 0; i < this.effects.length; i++){
-			this.effects[i].apply()
+			this.effects[i].apply();
 		}
 
-		this.callPassive("onStartTurn") //Appel de l'éventuel passif se déclanchant au début de chaque tour
+		this.callPassive("onStartTurn"); //Appel de l'éventuel passif se déclanchant au début de chaque tour
 
 	}
 
 	applyEffect(duration,turn,end){ // Applique un effet à la pièce (voir "class Effect")
-		this.effects.push(new Effect(this,duration,turn,end))
+		this.effects.push(new Effect(this,duration,turn,end));
 	}
 
 	showStats() { //Affiche les caractéristiques de la pièce dans une fenêtre (fw.js)
-		let expText = (this.level >= config.expLevels.length) ? "" :"/" + config.expLevels[this.level]
+		let expText = (this.level >= config.expLevels.length) ? "" :"/" + config.expLevels[this.level];
 		let color = this.player ? "Black" : "White";
 			this.elements = [
 		  [ { type: "text", coord: { x: 0, y: 0 }, text: "Health Points: " + Math.floor(this.hp) + "/" + Math.floor(this.maxHP), size: config.unit*2, color: [210, 255, 210] },
@@ -909,7 +926,7 @@ class Piece {
 	gainExp(exp){ //Ajoute de l'expérience à la pièce
 		this.exp += exp //ajout de l'exp
 
-		if (this.exp >= config.expLevels[this.level]) this.levelUp(this.level + 1)  //on teste si l'exp
+		if (this.exp >= config.expLevels[this.level]) this.levelUp(this.level + 1);  //on teste si l'exp
 																					//a dépassé un nouveau niveau
 	}
 
@@ -1065,16 +1082,16 @@ class Pion extends Piece {
 
 	onMovedDone(){//Passif se lançant au début de chaque tour
 		 //Recalcule la valeur d'avancée (kyojin) et les stats en fonction
-		var direction = this.player
-		let prevKyojin = this.kyojin
-		this.kyojin = Math.abs(((config.nLig - 1) * -direction) + this.cy)
-		this.dKyojin = this.kyojin - prevKyojin
+		var direction = this.player;
+		let prevKyojin = this.kyojin;
+		this.kyojin = Math.abs(((config.nLig - 1) * -direction) + this.cy);
+		this.dKyojin = this.kyojin - prevKyojin;
 
-		let prevMaxHP = this.maxHP
-		this.maxHP += this.dKyojin * (this.baseHP / 50)
-		this.hp = this.hp * this.maxHP / prevMaxHP
+		let prevMaxHP = this.maxHP;
+		this.maxHP += this.dKyojin * (this.baseHP / 50);
+		this.hp = this.hp * this.maxHP / prevMaxHP;
 
-		this.atk += this.baseAtk * (this.dKyojin / config.nLig)
+		this.atk += this.baseAtk * (this.dKyojin / config.nLig);
 
 	}
 }
@@ -1824,20 +1841,20 @@ class SpellIcon extends Button { //icône des spells; hérite des simples bouton
 		super("pieceHUD",spell.img,x,y,w,h, //crée un bouton avec les coordonées spécifiées, et comme image l'icône du spell spécifié
 		function(){ //comme hovercallback, une fonction affichant des infos sur le spell (qui seront donc affichées qua la souris est sur l'icône)
 			textSize(config.hud.spellInfo.size)
-			textFont("Verdana")
-			textAlign(LEFT,TOP)
-			fill(255)
-			text(this.spell.name, config.hud.spellInfo.x, config.hud.spellInfo.y) //le nom du sort
-			fill(150,150,150)
-			text("Cooldown : " + this.spell.cooldown, config.hud.spellInfo.x, config.hud.spellInfo.y + config.hud.spellInfo.size) //son délai de récupération
-			fill(150,150,255)
-			text("Mana cost : " + this.spell.manaCost, config.hud.spellInfo.x, config.hud.spellInfo.y + config.hud.spellInfo.size * 2) //son coût
+			textFont("Verdana");
+			textAlign(LEFT,TOP);
+			fill(255);
+			text(this.spell.name, config.hud.spellInfo.x, config.hud.spellInfo.y); //le nom du sort
+			fill(150,150,150);
+			text("Cooldown: " + this.spell.cooldown, config.hud.spellInfo.x, config.hud.spellInfo.y + config.hud.spellInfo.size); //son délai de récupération
+			fill(150,150,255);
+			text("Mana cost: " + this.spell.manaCost, config.hud.spellInfo.x, config.hud.spellInfo.y + config.hud.spellInfo.size * 2); //son coût
 
 			if (this.spell.getRange){ //des rectangles sur les cases faisant partie de la portée du sort
-				let range = this.spell.getRange()
+				let range = this.spell.getRange();
 				for (var i = 0; i < range.length; i++){
 					fill(255,120,120,100);
-					rect(convertPx(range[i][0]),convertPx(range[i][1]),config.tileSize,config.tileSize,config.border)
+					rect(convertPx(range[i][0]),convertPx(range[i][1]),config.tileSize,config.tileSize,config.border);
 				}
 			}
 		},
@@ -1998,9 +2015,9 @@ function setup() { //Lancée par p5 au lancement du programme : c'est ici qu com
 	cursor("img/cursor.png"); //Changement de l'image du curseur
 	createCanvas(config.canvasW, config.canvasH); //Création du canvas où on va dessiner
 	config.update()
-  
+
 	startTitle(); //Lancement de l'écran-titre
-  
+
 }
 
 function draw() { //Fonction lancée par p5 à chaque frame
