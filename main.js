@@ -24,7 +24,7 @@ var config = {
   canvasH: window.innerHeight,
   nLig: 10, //nombres de lignes/colones
   nCol: 8,
-  mana: { depl: 3, atk: 5, newPiece: 3 },  //coûts en mana des différentes actions de base
+  mana: {},  //coûts en mana des différentes actions de base
   maxMana: 20,  //mana maximal
   gold: 100,   //monnaie au début de la partie. Au final, n'est pas utilisé (le sera ... un jour)
   hud: {},  //objet qui contiendra des informations sur différents éléments du hud
@@ -486,6 +486,17 @@ var chessGUI = { background: [], pieces: [], highlightCase: [], hud: [], pieceHU
 
 // images ---------------
 function preload() { //chargement des images. La fonction Preload est lancée par p5 avant le setup.
+	var oldLoadImage = loadImage
+	loadImage = function(path,sCallback = undefined,fCallback = undefined){
+		return oldLoadImage(path,sCallback,
+			function(){
+				throw "Impossible de charger " + path;
+				if(fCallback) fCallback()
+			}
+		)
+		console.log(path)
+	}
+
   config.background = loadImage("img/background.png");
   img.HUD[0] = loadImage("img/HUD/end_turn.png");
   img.HUD[1] = loadImage("img/HUD/info.png");
@@ -527,7 +538,11 @@ function preload() { //chargement des images. La fonction Preload est lancée pa
   img.spell.Cavalier[0] = loadImage("img/Spells/Cavalier/0.png");
   img.spell.Cavalier[1] = loadImage("img/Spells/Cavalier/1.png");
   img.spell.Cavalier[2] = loadImage("img/Spells/Cavalier/2.png");
-
+  img.spell.Reine = []
+  img.spell.Reine[0] = loadImage("img/Spells/Reine/0.png");
+  img.spell.Reine[1] = loadImage("img/Spells/Reine/1.png");
+  
+  
 
   winIMG[0] = loadImage("img/Window/window_left.png");
   winIMG[1] = loadImage("img/Window/window_right.png");
