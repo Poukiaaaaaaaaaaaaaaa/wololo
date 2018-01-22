@@ -1267,7 +1267,7 @@ class Fou extends Piece {
       ),
       new Spell("Ultrasound", 4, 5, img.spell.Fou[2], 0, false, this,
         function(){
-          this.cast();
+          
         },
         function(){
           let range = this.getRange();
