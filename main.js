@@ -24,7 +24,7 @@ var config = {
   canvasH: window.innerHeight,
   nLig: 10, //nombres de lignes/colones
   nCol: 8,
-  mana: {},  //coûts en mana des différentes actions de base
+  mana: {atk: 5, depl: 3, newPiece: 1},  //coûts en mana des différentes actions de base
   maxMana: 20,  //mana maximal
   gold: 100,   //monnaie au début de la partie. Au final, n'est pas utilisé (le sera ... un jour)
   hud: {},  //objet qui contiendra des informations sur différents éléments du hud
@@ -314,6 +314,12 @@ function selectPiecesConditional(pieces,callback,condition = []){
 	}
 }
 
+function filterElements(elements,condition){
+	
+}
+
+
+
 //Fonctions de sélection via HighlightCase : crée des HighlightCase sur les objets pouvant être sélectionés, et éxécute un callback quand l'utilisateur a cliqué sur l'un d'eux
 function startPieceSelectionHLC(pieces, color, hoverColor, callback){ //démarre un processus de sélection de pièce (pieces), en utilisant des cases colorées (voir "class HighlightCase")
 //pieces : pièces pouvant être sélecctionnées, color et hovercolor : couleurs des HighlightCase, callback: fonction éxécutée lorsqu'une pièce est
@@ -494,7 +500,6 @@ function preload() { //chargement des images. La fonction Preload est lancée pa
 				if(fCallback) fCallback()
 			}
 		)
-		console.log(path)
 	}
 
   config.background = loadImage("img/background.png");
@@ -1269,8 +1274,8 @@ class Fou extends Piece {
   }
 
 	onAttacked(arg){
-		if (arg.dmg < this.hp/2){ //l'attaque réçue est faible (moins de la moitié des hp du fou)
-			if (Math.random() * 100 > 100) {return false}
+		if (arg.dmg < this.hp/2){ //l'attaque reçue est faible (moins de la moitié des hp du fou)
+			if (Math.random() * 100 > 50) {return false}
 		}
 	}
 
@@ -1280,6 +1285,61 @@ class Fou extends Piece {
 class Reine extends Piece {
 	constructor(x, y, player) {
 		super(3, "Reine", 120, 400, x, y, player, 5, 150);
+		
+		this.spell = [
+			new Spell("Thunderbolt",8,3,img.spell.Reine[0],0,false,this,
+				function(){
+					let range = this.getRange()
+					let board = examineBoard()
+					
+					let direction = []
+					let xDir,yDir,prevxDir,prevyDir
+					for (let i = 0; i < range.length; i++){
+						prevxDir = xDir ; prevyDir = yDir
+						xDir = Math.sign(range[i][0] - this.piece.cx)
+						yDir = Math.sign(range[i][1] - this.piece.cy)
+						
+					}
+					
+					startCasesSelectionHLC(range,color,hc,cb)
+				},
+				function(){
+					
+				},
+				function(){
+					let cases = []
+					
+					
+					return cases
+				}		
+			),
+			new Spell("Meteor",10,6,img.spell.Reine[1],0,false,this,
+				function(){
+					let range = this.getRange()
+					let spell = this
+					
+					startCasesSelectionHLC(range,[240,120,0,100],[240,120,0,150],
+						function(selected){
+							spell.cast(selected)
+						}
+					)
+				},
+				function(selected){
+					let spell = this
+					let board = examineBoard()
+					let targetCases = caseInRangeZ(selected.x,selected.y,1)
+						selectPieces(piecesInCases(targetCases,board),
+							function(target){
+								damage(target,spell.piece,50)
+							}
+						)
+						if (board[selected.x][selected.y]) damage(board[selected.x][selected.y],this.piece,70)
+				},
+				function(){
+					return caseInRangeZ(this.piece.cx,this.piece.cy,3,true)
+				}
+			)
+		]
 	}
 
 	getDepl(board) {
