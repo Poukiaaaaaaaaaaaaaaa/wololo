@@ -20,16 +20,16 @@ var debug = false;
 
 // config : objet contenant toutes les valeurs constantes qui définiront le fonctionnement du jeu
 var config = {
-  canvasW: window.innerWidth,    //tailles du canvas
-  canvasH: window.innerHeight,
-  nLig: 10, //nombres de lignes/colones
-  nCol: 8,
-  mana: {atk: 5, depl: 3, newPiece: 1},  //coûts en mana des différentes actions de base
-  maxMana: 20,  //mana maximal
-  gold: 100,   //monnaie au début de la partie. Au final, n'est pas utilisé (le sera ... un jour)
-  hud: {},  //objet qui contiendra des informations sur différents éléments du hud
-  background: 0,  //couleur de background
-  expLevels : [100,250,500]   //valeurs d'expérience auxquelles les pièces gagnent un niveau
+	canvasW: window.innerWidth,    //tailles du canvas
+	canvasH: window.innerHeight,
+	nLig: 10, //nombres de lignes/colones
+	nCol: 8,
+	mana: {atk: 5, depl: 3, newPiece: 1},  //coûts en mana des différentes actions de base
+	maxMana: 20,  //mana maximal
+	gold: 100,   //monnaie au début de la partie. Au final, n'est pas utilisé (le sera ... un jour)
+	hud: {},  //objet qui contiendra des informations sur différents éléments du hud
+	background: 0,  //couleur de background
+	expLevels : [100,250,500]   //valeurs d'expérience auxquelles les pièces gagnent un niveau
 }
 
 
@@ -57,6 +57,23 @@ config.update = function(){
   config.hud.spellInfo = {x : config.boardW + config.border, y: config.hud.spells.y + config.hud.spells.spellSize + config.border * 2, size: config.unit * 2} //zone où sont affichées les infos sur chaque pièce
 }
 // endConfig -------------
+
+config.event = [
+	"onStartTurn",
+	"onMoved",
+	"onMovedDone",
+	"onAttacked",
+	"onAttackedDone",
+	"onAttacking",
+	"onAttackingDone",
+	"onDamaged",
+	"onDamagedDone",
+	"onDamaging",
+	"onDamagingDone",
+	"onDying",
+	"onKilling",
+	"onKilling",
+]
 
 // globalFunctions -----------
 
@@ -317,7 +334,7 @@ function selectPiecesConditional(pieces, callback, condition = []){
 function filterElements(elements,condition){
 	let result = [];
 	for (let i = 0; i < elements.length; i++){
-		if (condition()) result.push(elements[i]); 
+		if (condition(elements[i])) result.push(elements[i]); 
 	}
 	return result
 }
@@ -458,6 +475,14 @@ function fuckThisShitImOut(){ //Euh alors ça c'est n'importe quoi
 
 }
 
+function initAddedpassivesArrays(){
+	passives = {}
+	for (let i = 0; i < config.event.length; i++){
+		passives[config.event[i]] = []
+	}
+	return passives
+}
+
 // endGlobalFunctions -------------
 
 // globalVars --------------
@@ -469,7 +494,7 @@ var img = {}, //Objet contenant toutes les images
     actTime, //le temps (relatif au 1/1/1970)
     d, //le futur objet date
     joueur = [], //l'objet contenant les joueurs
-    guiElements = {}, //un objet contenant certains objet p55 dont un veut conserver un accès rapide
+    guiElements = {}, //un objet contenant certains objet p55 auxquels on veut conserver un accès rapide
     winIMG = [], //images utilisées par les fenètres
     guiState = "", //représente l'action en cours (qui détermine comment certains éléments se comportent)
     victory = false,
@@ -693,6 +718,7 @@ class Piece {
     this.deplCD = false; //valeur bool indiquant si la pièce peut oui ou non se déplacer (possible une fois par tour)
     this.atkCD = false; //valeur bool indiquant si la pièce peut oui ou non attaquer (possible une fois par tour)
 	  this.spell = spell; //spells (actifs) de la pièce
+	  this.addedPassive = initAddedpassivesArrays() 
 	  this.effects = [] //effets appliqués à la pièce
 	  this.exp = 0 //expérience de la pièce
 	  this.level = 0 //niveau de la pièce
@@ -822,8 +848,8 @@ class Piece {
 		damage(target,this,this.atk) //inflige des dégâts correspondants à la stat d'attaque de la pièce
 		joueur[playerTurn].mana -= config.mana.atk //Retire à la pièce le mana correspondant au coût d'une attaque de base
 
-		target.callPassive("onAttacked",{source : this, dmg : this.atk})
-		this.callPassive("onAttacking",{target : target, dmg : this.atk})
+		target.callPassive("onAttackedDone",{source : this, dmg : this.atk})
+		this.callPassive("onAttackingDone",{target : target, dmg : this.atk})
 	}
 
   }
@@ -871,6 +897,16 @@ class Piece {
 		if (typeof this[passive] == "function"){ //Si cette méthode existe
 			return this[passive](arg); //la lance
 		}
+		if (this.addedPassive){
+			for (let i = 0; i < this.addedPassive[passive].length; i++){
+				this.addedPassive[passive][i](arg)
+			}	
+		}
+	}
+	
+	addPassive(event,passive){ //Ajoute un passif à la pièce
+		//event : l'évènement durant lequel le passif se déclenchera ; passive : la fonction du passif
+		this.addedPassive[event].push(passive)
 	}
 
 	startTurn(){ //a ne pas confondre avec le passif onStartTurn : fonctioné éxécutée au début de chaque tour
@@ -885,11 +921,12 @@ class Piece {
 			if (this.spell[i].actualCooldown > 0) this.spell[i].actualCooldown--;
 		}
 		this.mp = this.baseMp;
+		this.addedPassive = initAddedpassivesArrays()
 		//Puis les recalcule en fonction des effets actifs (voir "class Effect()")
 		for (var i = 0; i < this.effects.length; i++){
 			this.effects[i].apply();
 		}
-
+		
 		this.callPassive("onStartTurn"); //Appel de l'éventuel passif se déclanchant au début de chaque tour
 
 	}
@@ -945,6 +982,7 @@ class Piece {
 		if (this.exp >= config.expLevels[this.level]) this.levelUp(this.level + 1) //si l'exp a dépassé un autre niveau, on répète l'opération
 
 	}
+	
 
 }
 
@@ -1369,17 +1407,7 @@ class Reine extends Piece {
 		this.spell = [
 			new Spell("Thunderbolt",8,3,img.spell.Reine[0],0,false,this,
 				function(){
-					let range = this.getRange()
-					let board = examineBoard()
 					
-					let direction = []
-					let xDir,yDir,prevxDir,prevyDir
-					for (let i = 0; i < range.length; i++){
-						prevxDir = xDir ; prevyDir = yDir
-						xDir = Math.sign(range[i][0] - this.piece.cx)
-						yDir = Math.sign(range[i][1] - this.piece.cy)
-						
-					}
 					
 					startCasesSelectionHLC(range,color,hc,cb)
 				},
@@ -1387,10 +1415,19 @@ class Reine extends Piece {
 					
 				},
 				function(){
-					let cases = []
+					let range = []
+					let direction = ((this.piece.player == 0) ? 1 : -1);
+					let y = 0
+					for (let i = 1; i < 6; i++){
+						y = this.piece.cy + (i * direction)
+						if (isOnBoard(this.piece.cx, y)){
+							range.push([this.piece.cx,y])
+						} else {
+							break
+						}
+					}
 					
-					
-					return cases
+					return range
 				}		
 			),
 			new Spell("Meteor",10,6,img.spell.Reine[1],0,false,this,
