@@ -172,6 +172,13 @@ function damage(target,source,dmg){ //inflig des dégâts à une pièce
 
 }
 
+function heal(target,source,heal){
+	target.hp += heal
+	if (target.hp > target.maxHP) target.hp = target.maxHP
+	
+}
+
+
 function examineBoard() {
 	//permet d'analyser le contenu de l'échiquier facilement
 	//via un tableau dont chaque entrée représente une case
@@ -334,7 +341,7 @@ function selectPiecesConditional(pieces, callback, condition = []){
 function filterElements(elements,condition){
 	let result = [];
 	for (let i = 0; i < elements.length; i++){
-		if (condition(elements[i])) result.push(elements[i]); 
+		if (condition(elements[i])) result.push(elements[i]);
 	}
 	return result
 }
@@ -685,6 +692,9 @@ class Joueur {
 		clearSelectedPiece() //Aucune pièce n'est sélectionnée
 		this.mana = config.maxMana;
 		for (var i = 0; i < this.piece.length; i++) {
+			this.piece[i].startTurnPre();
+		}
+		for (var i = 0; i < this.piece.length; i++) { //Une fois qu'on a effecté tous les startTurnPre, on peut commencer à éxécuter les StartTurn
 			this.piece[i].startTurn();
 		}
 
@@ -718,7 +728,7 @@ class Piece {
     this.deplCD = false; //valeur bool indiquant si la pièce peut oui ou non se déplacer (possible une fois par tour)
     this.atkCD = false; //valeur bool indiquant si la pièce peut oui ou non attaquer (possible une fois par tour)
 	  this.spell = spell; //spells (actifs) de la pièce
-	  this.addedPassive = initAddedpassivesArrays() 
+	  this.addedPassive = initAddedpassivesArrays()
 	  this.effects = [] //effets appliqués à la pièce
 	  this.exp = 0 //expérience de la pièce
 	  this.level = 0 //niveau de la pièce
@@ -853,6 +863,7 @@ class Piece {
 	}
 
   }
+  
 
 	depl(cx,cy){ //Déclenche un déplacement
 		if (joueur[playerTurn].mana >= config.mana.depl){ //Si la pièce a assez de mana
@@ -900,16 +911,16 @@ class Piece {
 		if (this.addedPassive){
 			for (let i = 0; i < this.addedPassive[passive].length; i++){
 				this.addedPassive[passive][i](arg)
-			}	
+			}
 		}
 	}
-	
+
 	addPassive(event,passive){ //Ajoute un passif à la pièce
 		//event : l'évènement durant lequel le passif se déclenchera ; passive : la fonction du passif
 		this.addedPassive[event].push(passive)
 	}
 
-	startTurn(){ //a ne pas confondre avec le passif onStartTurn : fonctioné éxécutée au début de chaque tour
+	startTurnPre(){ //éxécuté au début du tour avant startTurn (doit être exécuté pour toutes les pièces avant qu'on commence à éxécuter les StartTurn)
 		this.deplCD = false; //Met les atkCD et deplCD à false, indiquant que ces actions sont disponibles
 		this.atkCD = false;
 		//Réinitialise les stats (les remet au valeurs de base de la pièce)
@@ -923,14 +934,16 @@ class Piece {
 		this.mp = this.baseMp;
 		this.addedPassive = initAddedpassivesArrays()
 		//Puis les recalcule en fonction des effets actifs (voir "class Effect()")
-		for (var i = 0; i < this.effects.length; i++){
-			this.effects[i].apply();
-		}
 		
-		this.callPassive("onStartTurn"); //Appel de l'éventuel passif se déclanchant au début de chaque tour
-
 	}
-
+	
+	startTurn(){ //a ne pas confondre avec le passif onStartTurn : fonction éxécutée au début de chaque tour
+		for (var i = 0; i < this.effects.length; i++){
+				this.effects[i].apply();
+			}
+		this.callPassive("onStartTurn"); //Appel de l'éventuel passif se déclanchant au début de chaque tour
+	}
+		
 	applyEffect(duration,turn,end){ // Applique un effet à la pièce (voir "class Effect")
 		this.effects.push(new Effect(this,duration,turn,end));
 	}
@@ -982,7 +995,7 @@ class Piece {
 		if (this.exp >= config.expLevels[this.level]) this.levelUp(this.level + 1) //si l'exp a dépassé un autre niveau, on répète l'opération
 
 	}
-	
+
 
 }
 
@@ -1329,7 +1342,7 @@ class Fou extends Piece {
                   spell.cast([origin, selected]);
                 }
               );
-            }  
+            }
           );
         },
         function(targets){
@@ -1342,7 +1355,7 @@ class Fou extends Piece {
       ),
       new Spell("Ultrasound", 4, 5, img.spell.Fou[2], 0, false, this,
         function(){
-          
+
         },
         function(){
           let range = this.getRange();
@@ -1409,15 +1422,13 @@ class Fou extends Piece {
 class Reine extends Piece {
 	constructor(x, y, player) {
 		super(3, "Reine", 120, 400, x, y, player, 5, 150);
-		
+
 		this.spell = [
 			new Spell("Thunderbolt",8,3,img.spell.Reine[0],0,false,this,
 				function(){
-					
-					
 				},
 				function(){
-					
+
 				},
 				function(){
 					let range = []
@@ -1431,15 +1442,15 @@ class Reine extends Piece {
 							break
 						}
 					}
-					
+
 					return range
-				}		
+				}
 			),
 			new Spell("Meteor",10,6,img.spell.Reine[1],0,false,this,
 				function(){
 					let range = this.getRange()
 					let spell = this
-					
+
 					startCasesSelectionHLC(range,[240,120,0,100],[240,120,0,150],
 						function(selected){
 							spell.cast(selected)
@@ -1678,9 +1689,8 @@ class Roi extends Piece {
           let pieces = piecesInCases(range, board);
 
           for (let i = 0; i < pieces.length; i++) {
-            pieces[i].hp += 15;
-            if (!pieces[i].maxHP && pieces[i].hp > pieces[i].baseHP) pieces[i].hp = pieces[i].baseHP;
-            if (pieces[i].maxHP && pieces[i].hp > pieces[i].maxHP) pieces[i].hp = pieces[i].maxHP;
+            heal(pieces[i],this.piece,15)
+            
           }
         },
         function(){
@@ -1787,14 +1797,14 @@ class Roi extends Piece {
   }
 
   onStartTurn() {
-    console.log("ok")
-    let range = caseInRangeZ(this.cx, this.cy, 1);
-    let pieces = piecesInCases(range, examineBoard());
-    let allies = filterElements(pieces, function(piece){if (piece.player == king.player) return true});
-    if (this.hp < this.baseHP * 20 / 100) {
-      for (let i = 0; i < allies.length; i++) {
-        if (!allies[i].max) allies[i].atk += allies[i].atk * 20 / 100;
-      }
+    if (this.hp < this.maxHP * 20 / 100) {
+		let king = this
+		let range = caseInRangeZ(this.cx, this.cy, 1);
+		let pieces = piecesInCases(range, examineBoard());
+		let allies = filterElements(pieces, function(piece){if (piece.player == king.player) return true});
+		for (let i = 0; i < allies.length; i++) {
+			allies[i].atk *= (110 / 100);
+		}
     }
   }
 
