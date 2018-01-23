@@ -1234,9 +1234,6 @@ class Fou extends Piece {
     this.spell = [
       new Spell("Madness", 3, 1, img.spell.Fou[0], 0, false, this,
         function(){
-          this.cast();
-        },
-        function(){
           let range = this.getRange();
           let board = examineBoard();
           let pos = [];
@@ -1248,7 +1245,12 @@ class Fou extends Piece {
           }
 
           let finalPos = Math.floor(Math.random() * pos.length);
-          this.piece.move(pos[finalPos][0], pos[finalPos][1], false);
+          let coord = [pos[finalPos][0], pos[finalPos][1]];
+          if (pos.length > 0) this.cast(coord);
+        },
+        function(coord){
+          let board = examineBoard();
+          this.piece.move(coord[0], coord[1], false);
           this.piece.viewRanges();
           let dmgRange = [[this.piece.cx + 1,this.piece.cy + 1]]
           //selectPieces(piecesInCases())
@@ -1748,8 +1750,20 @@ class Roi extends Piece {
       return atk;
   }
 
+  onStartTurn() {
+    let king = this;
+    let range = caseInRangeZ(this.cx, this.cy, 1);
+    let pieces = piecesInCases(range, examineBoard());
+    let allies = filterElements(pieces, function(piece){if (piece.player == king.player) return true});
+    if (this.hp < this.baseHP * 20 / 100) {
+      for (let i = 0; i < allies.length; i++) {
+        if (!allies[i].max) allies[i].atk += allies[i].atk * 20 / 100;
+      }
+    }
+  }
+
   onDying(killer){ //Passif se lançant lorsque cette pièce meurt : indique que le joueur ayant tué le Roi à gagné
-    victory = joueur[1-this.player]
+    victory = joueur[1-this.player];
   }
 
 }
