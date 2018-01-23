@@ -1415,7 +1415,6 @@ class Reine extends Piece {
 				function(){
 					
 					
-					startCasesSelectionHLC(range,color,hc,cb)
 				},
 				function(){
 					
@@ -1788,7 +1787,7 @@ class Roi extends Piece {
   }
 
   onStartTurn() {
-    let king = this;
+    console.log("ok")
     let range = caseInRangeZ(this.cx, this.cy, 1);
     let pieces = piecesInCases(range, examineBoard());
     let allies = filterElements(pieces, function(piece){if (piece.player == king.player) return true});
