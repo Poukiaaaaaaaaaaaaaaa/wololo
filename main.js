@@ -909,7 +909,7 @@ class Piece {
 		this.addedPassive[event].push(passive)
 	}
 
-	startTurn(){ //a ne pas confondre avec le passif onStartTurn : fonctioné éxécutée au début de chaque tour
+	startTurn(){ //a ne pas confondre avec le passif onStartTurn : fonction éxécutée au début de chaque tour
 		this.deplCD = false; //Met les atkCD et deplCD à false, indiquant que ces actions sont disponibles
 		this.atkCD = false;
 		//Réinitialise les stats (les remet au valeurs de base de la pièce)
