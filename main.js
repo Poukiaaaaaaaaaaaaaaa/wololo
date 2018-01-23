@@ -831,13 +831,13 @@ class Piece {
 		}
 	}
 
-  move(cx,cy) { //Déplace la pièce. Il ne s'agit pas nécessairement d'un déplacement "normal" de la pièce : la pièce peut être déplacée pour d'autres raisons
+  move(cx,cy,animation  = true) { //Déplace la pièce. Il ne s'agit pas nécessairement d'un déplacement "normal" de la pièce : la pièce peut être déplacée pour d'autres raisons
 	this.callPassive("onMoved",{x: cx, y: cy}) //Appelle le passif de la pièce se déclenchant lors d'un mouvement
   	this.cx = cx;  //Modifie la position de la pièce
   	this.cy = cy;
     this.callPassive("onMovedDone",{x: cx, y: cy})
 
-    move(this,0.8,convertPx(cx),convertPx(cy)); //Déclenche une animation de mouvement, de la position de départ à la pisition d'arrivée
+    if (animation) move(this,0.8,convertPx(cx),convertPx(cy)); //Déclenche une animation de mouvement, de la position de départ à la pisition d'arrivée
   }
 
   // Fonctions à redéfinir dans chaque classe piece : renvoient les cases sur lesquelles il est possible d'attaquer/se déplacer
@@ -1239,10 +1239,10 @@ class Fou extends Piece {
           }
 
           let finalPos = Math.floor(Math.random() * pos.length);
-          clearGUI("highlightCase");
-          this.piece.cx = pos[finalPos][0];
-          this.piece.cy = pos[finalPos][1];
-
+          this.piece.move(pos[finalPos][0], pos[finalPos][1], false);
+          this.piece.viewRanges();
+          let dmgRange = [[this.piece.cx + 1,this.piece.cy + 1]]
+          //selectPieces(piecesInCases())
           for (let i = -1; i < 2; i++) {
             if (board[this.piece.cx + i][this.piece.cy] && board[this.piece.cx + i][this.piece.cy].player != this.piece.player &&
                 board[this.piece.cx + i][this.piece.cy] != this.piece) damage(board[this.piece.cx + i][this.piece.cy], this.piece, 20);
@@ -1256,10 +1256,32 @@ class Fou extends Piece {
       ),
       new Spell("Echo", 5, 3, img.spell.Fou[1], 0, false, this,
         function(){
-
+          this.cast();
         },
         function(){
           let range = this.getRange();
+          let board = examineBoard();
+          let pieces = piecesInCases(range, board);
+          let finalPieces = [];
+
+          for (let i = 0; i < pieces.length; i++) {
+            if (pieces[i].player != this.piece.player) finalPieces.push(pieces[i]);
+          }
+
+          startPieceSelectionHLC(finalPieces, [255, 255, 150, 100], [255, 255, 150, 150],
+            function(target){
+              let origin = target;
+              let finalRange = [];
+              finalRange = caseInRangeZ(origin.cx, origin.cy, 1);
+
+              startPieceSelectionHLC(finalRange, [255, 255, 150, 100], [255, 255, 150, 150],
+                function(target){
+                  damage(origin, this.piece, this.piece.atk*0.9);
+                  damage(target, this.piece, this.piece.atk*0.9);
+                }
+              );
+            }  
+          );
         },
         function(){
           return caseInRangeZ(this.piece.cx, this.piece.cy, 4);
