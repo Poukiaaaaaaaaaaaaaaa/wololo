@@ -156,17 +156,17 @@ function damage(target,source,dmg){ //inflig des dégâts à une pièce
 }
 
 function examineBoard() {
-	//permet d'analyser le contenu de l'�chiquier facilement
-	//via un tableau dont chaque entr�e repr�sente une case
-	var board = []; //cr�e un tableau
+	//permet d'analyser le contenu de l'échiquier facilement
+	//via un tableau dont chaque entrée représente une case
+	var board = []; //crée un tableau
 
 	for (var i = 0; i < config.nCol; i++){ //y place autant de sous tableaux qu'il y a de colonnes,
-		board[i] = []; 					   //on a donc un tableau à deux dimensions avec une entr�e = une case
+		board[i] = []; 					   //on a donc un tableau à deux dimensions avec une entrée = une case
 	}
 
   for (var i = 0; i < chessGUI.pieces.length;i++){
-    var piece = chessGUI.pieces[i]		//r�cup�re les coordonn�es de chaque pi�ce et place une r�f�rence � cette pi�ce
-    board[piece.cx][piece.cy] = piece		//dans la case correspodante dans le tableau
+    var piece = chessGUI.pieces[i];		//récupère les coordonnées de chaque pièce et place une référence à cette pièce
+    board[piece.cx][piece.cy] = piece;		//dans la case correspodante dans le tableau
   }
 
 	return board;
@@ -176,15 +176,15 @@ function examineBoard() {
 
 function examineBoardHLC() { //même effet de examine board, mais remplit les cases avec les highlightCase au lieu des pièces
 //sur le moment ça m'avait l'air utile mais je crois que cette fonction sert à rien au final
-	var board = []; //cr�e un tableau
+	var board = []; //crée un tableau
 
 	for (var i = 0; i < config.nCol; i++){ //y place autant de sous tableaux qu'il y a de colonnes,
-		board[i] = []; 					   //on a donc un tableau à deux dimensions avec une entr�e = une case
+		board[i] = []; 					   //on a donc un tableau à deux dimensions avec une entrée = une case
 	}
 
   for (var i = 0; i < chessGUI.highlightCase.length;i++){
-    var hlc = chessGUI.highlightCase[i]		//r�cup�re les coordonn�es de chaque piéce et place une référence à cette piéce
-    board[hlc.x][hlc.y] = hlc		//dans la case correspodante dans le tableau
+    var hlc = chessGUI.highlightCase[i]		//récupère les coordonnées de chaque HLC et place une référence à celle-ci
+    board[hlc.x][hlc.y] = hlc;		//dans la case correspodante dans le tableau
   }
 
 	return board;
@@ -262,60 +262,64 @@ function clearSelectedPiece(piece){  //Reset la pièce sélectionnée
 function caseInRangeZ(cx,cy,range,includeCenter = false){ //Renvoie (dans un tableau) les cases (sous la forme [x,y]) se trouvant dans une portée spécifiée
 	//le Z signifie qu'on utilise la méthode de Zone : on prend un carré dont on sait qu'il contient toutes les cases à portée, et on teste toutes les cases de ce carré
 	var cases = []
-	var dist
-	var xStart = (cx - range >= 0) ? cx - range  : 0  //calcul des coordonnées du carré (de manière à ce qu'il ne sorte pas de l'échiquier)
-	var xEnd = (cx + range < config.nCol) ? cx + range : config.nCol - 1
-	var yStart = (cy - range >= 0) ? cy - range  : 0
-	var yEnd = (cy + range < config.nLig) ? cy + range : config.nLig - 1
+	var dist;
+	var xStart = (cx - range >= 0) ? cx - range : 0;  //calcul des coordonnées du carré (de manière à ce qu'il ne sorte pas de l'échiquier)
+	var xEnd = (cx + range < config.nCol) ? cx + range : config.nCol - 1;
+	var yStart = (cy - range >= 0) ? cy - range : 0;
+	var yEnd = (cy + range < config.nLig) ? cy + range : config.nLig - 1;
 
 	for (var i = xStart; i <= xEnd; i++){ //Pour chacune des cases du carré
 		for (var j = yStart ; j <= yEnd ; j++){
 			dist =  Math.sqrt(Math.pow(i - cx,2)+pow(j - cy,2)); //On teste si sa distance (distance entre les centres) avec la case d'origine est en dessous de la portée max
-			if (Math.round(dist) <= range && !(i == cx && j == cy && !includeCenter) ) {
+			if (Math.round(dist) <= range && !(i == cx && j == cy && !includeCenter)) {
 				cases.push([i,j]) //Si c'est le cas on l'ajoute au tableau cases
 			}
 		}
 	}
 
-return cases //que l'on renvoie
+return cases; //que l'on renvoie
 
 }
 
-function piecesInCases(cases,board){ //renvoie un tableau contenant les pièces se trouvant sur les cases contenues le tableau cases
-	var x,y
-	var pieces = []
+function piecesInCases(cases, board){ //renvoie un tableau contenant les pièces se trouvant sur les cases contenues le tableau cases
+	var x,y;
+	var pieces = [];
 	for (var i = 0; i < cases.length; i++){
-		x = cases[i][0] ; y = cases[i][1] //Pour chacune des cases, on teste si elle contient une pièce, grâce à l'objet board (passé en paramètre, obtenu via examineBoard() ) contenant, pour chaque case,
-		if (board[x][y]) pieces.push(board[x][y]) //undefined s'il n'y a pas de pièce, ou la pièce s'il y en a une. Si oui, on ajoute cette pièce au tableau pices
+		x = cases[i][0] ; y = cases[i][1]; //Pour chacune des cases, on teste si elle contient une pièce, grâce à l'objet board (passé en paramètre, obtenu via examineBoard() ) contenant, pour chaque case,
+		if (board[x][y]) pieces.push(board[x][y]); //undefined s'il n'y a pas de pièce, ou la pièce s'il y en a une. Si oui, on ajoute cette pièce au tableau pices
 	}
 	return pieces //que l'on renvoie
 }
 
-function selectCases(cases,callback){ //appelle un même callback(x,y) avec les coordonnées des cases du tableau cases
+function selectCases(cases, callback){ //appelle un même callback(x,y) avec les coordonnées des cases du tableau cases
 	for (var i = 0 ; i < cases.length ; i++){
 		callback(cases[i][0],cases[i][1])
 	}
 }
 
-function selectPieces(pieces,callback){ //appelle un même callback(piece) pour chaque pièce du tableau pieces
+function selectPieces(pieces, callback){ //appelle un même callback(piece) pour chaque pièce du tableau pieces
 	for (var i = 0 ; i < pieces.length ; i++){
 		callback(pieces[i])
 	}
 }
 
-function selectPiecesConditional(pieces,callback,condition = []){
+function selectPiecesConditional(pieces, callback, condition = []){
   //Appelle un même callback(piece) pour chaque pièce du tableau pieces qui remplit les conditions
   //les conditions sont des fonctions prenant en paramètre piece[i] et renvoient true ou false
-	pieceLoop:for (var i = 0 ; i < pieces.length ; i++){ //Pour chaque pièce
+	pieceLoop: for (var i = 0 ; i < pieces.length ; i++){ //Pour chaque pièce
 		for (var j = 0 ; j < condition.length; j++){ //On teste toutes les conditions (array condition)
-			if (!condition[j](pieces[i])) continue pieceLoop
+			if (!condition[j](pieces[i])) continue pieceLoop;
 		}
-		callback(pieces[i]) //Si elles sont toutes vérifiées, on éxécute le callback
+		callback(pieces[i]); //Si elles sont toutes vérifiées, on éxécute le callback
 	}
 }
 
 function filterElements(elements,condition){
-	
+	let result = [];
+	for (let i = 0; i < elements.length; i++){
+		if (condition()) result.push(elements[i]); 
+	}
+	return result
 }
 
 
@@ -324,9 +328,9 @@ function filterElements(elements,condition){
 function startPieceSelectionHLC(pieces, color, hoverColor, callback){ //démarre un processus de sélection de pièce (pieces), en utilisant des cases colorées (voir "class HighlightCase")
 //pieces : pièces pouvant être sélecctionnées, color et hovercolor : couleurs des HighlightCase, callback: fonction éxécutée lorsqu'une pièce est
   if (pieces.length > 0){ //Si aucune pièce n'est dans la liste des pièces, rien ne se passe
-    endSelectionHLC() //Si une sélection était en cours, elle se termine
-    guiState = "selection" //le GUISTATE passe à "selection" : toutes les interactions des objets de la GUI qui nécessitent que la GUI soient à son état normal ne fonctionneront pas
-    clearGUI("highlightCase") //On supprime toutes les cases colorées.
+    endSelectionHLC(); //Si une sélection était en cours, elle se termine
+    guiState = "selection"; //le GUISTATE passe à "selection" : toutes les interactions des objets de la GUI qui nécessitent que la GUI soient à son état normal ne fonctionneront pas
+    clearGUI("highlightCase"); //On supprime toutes les cases colorées.
 
     var colorType = typeof color //Le paramètre color, la couleur des cases de couleur de la sélection, peut être indéfini, une couleur p5 ou une fonction
     var hoverColorType = typeof hoverColor //Idem pour la couleur "hover" (si la souris passe dessus) des HighlightCase.
@@ -496,10 +500,10 @@ function preload() { //chargement des images. La fonction Preload est lancée pa
 	loadImage = function(path,sCallback = undefined,fCallback = undefined){
 		return oldLoadImage(path,sCallback,
 			function(){
+        if(fCallback) fCallback();
 				throw "Impossible de charger " + path;
-				if(fCallback) fCallback()
 			}
-		)
+		);
 	}
 
   config.background = loadImage("img/background.png");
@@ -546,8 +550,14 @@ function preload() { //chargement des images. La fonction Preload est lancée pa
   img.spell.Reine = []
   img.spell.Reine[0] = loadImage("img/Spells/Reine/0.png");
   img.spell.Reine[1] = loadImage("img/Spells/Reine/1.png");
-  
-  
+  img.spell.Reine[2] = loadImage("img/Spells/Reine/2.png");
+  img.spell.Fou = [];
+  img.spell.Fou[0] = loadImage("img/Spells/Fou/0.png");
+  img.spell.Fou[1] = loadImage("img/Spells/Fou/1.png");
+  img.spell.Fou[2] = loadImage("img/Spells/Fou/2.png");
+  img.spell.Roi = [];
+  img.spell.Roi[0] = loadImage("img/Spells/Roi/0.png");
+  img.spell.Roi[1] = loadImage("img/Spells/Roi/1.png");
 
   winIMG[0] = loadImage("img/Window/window_left.png");
   winIMG[1] = loadImage("img/Window/window_right.png");
@@ -594,7 +604,18 @@ function facepunch() { //hehe
   img.spell.Cavalier[0] = loadImage("img/no/facepunch.jpg");
   img.spell.Cavalier[1] = loadImage("img/no/facepunch.jpg");
   img.spell.Cavalier[2] = loadImage("img/no/facepunch.jpg");
-	
+  img.spell.Reine = []
+  img.spell.Reine[0] = loadImage("img/no/facepunch.jpg");
+  img.spell.Reine[1] = loadImage("img/no/facepunch.jpg");
+  img.spell.Reine[2] = loadImage("img/no/facepunch.jpg");
+  img.spell.Fou = [];
+  img.spell.Fou[0] = loadImage("img/no/facepunch.jpg");
+  img.spell.Fou[1] = loadImage("img/no/facepunch.jpg");
+  img.spell.Fou[2] = loadImage("img/no/facepunch.jpg");
+  img.spell.Roi = [];
+  img.spell.Roi[0] = loadImage("img/no/facepunch.jpg");
+  img.spell.Roi[1] = loadImage("img/no/facepunch.jpg");
+
   winIMG[0] = loadImage("img/no/facepunch.jpg");
   winIMG[1] = loadImage("img/no/facepunch.jpg");
   startGame();
@@ -708,26 +729,6 @@ class Piece {
     0,0,config.border,config.border);
   }
 
-  onLeftClick() {
-	  //fonction appelée à chaque clic de la souris
-    if (isCaseHovered(this.cx,this.cy) && playerTurn == this.player && guiState == "") {
-		//si le clic a eu lieu sur cette pièce :
-      if (selectedPiece == this) {
-        clearSelectedPiece(); return;
-      } else { this.select() }
-
-	//affichage de la jauge de vie
-		fill("red");
-		rect(this.x,this.y + config.tileSize * 0.8, //Affiche un rectangle rouge sur toute la longueur de la jauge
-		config.tileSize,config.tileSize*0.2,
-		0,0,config.border,config.border);
-		fill("green");
-		rect(this.x,this.y + config.tileSize * 0.8, //Affiche un rectangle vert sur une longueur dépendant des points de vie restants
-		config.tileSize / this.maxHP * this.hp,config.tileSize * 0.2,
-		0,0,config.border,config.border);
-	}
-  }
-
   onLeftClick() { //fonction appelée à chaque clic de la souris
     if (isCaseHovered(this.cx,this.cy) && playerTurn == this.player && guiState == "") { //si le clic a eu lieu sur cette pièce :
       if (selectedPiece == this) { //Si la pièce était déjà sélectionnée
@@ -759,15 +760,15 @@ class Piece {
     var depl = this.getDepl(board); //r�cup�ration de la liste des cases o� il est possible de de d�placer
 									//la m�thode getDepl est d�finie dans chaque classe de pi�ce, le d�placement �tant propre � celle-ci
 
-  	var color
-  	var hoverColor
-  	var callback
+  	var color;
+  	var hoverColor;
+  	var callback;
 
   	//ATTAQUE
   	var atk = this.getAtkRange(board); //Récupère les cases sur lesquelles on peut attaquer (sous forme de tableau [ [x,y], [x,y], ... ])
   	var HLCase;
 
-    clearGUI("highlightCase") //Supprime les cases colorées
+    clearGUI("highlightCase"); //Supprime les cases colorées
 
     if (this.atkCD == false){ //Uniquement si atkCD est à false, c'est à dire si la pièce n'a pas encore attaqué
 		//Préparation des highlightCase qui indiqueront les cases où il est possible d'attaquer
@@ -839,13 +840,13 @@ class Piece {
 		}
 	}
 
-  move(cx,cy) { //Déplace la pièce. Il ne s'agit pas nécessairement d'un déplacement "normal" de la pièce : la pièce peut être déplacée pour d'autres raisons
+  move(cx,cy,animation  = true) { //Déplace la pièce. Il ne s'agit pas nécessairement d'un déplacement "normal" de la pièce : la pièce peut être déplacée pour d'autres raisons
 	this.callPassive("onMoved",{x: cx, y: cy}) //Appelle le passif de la pièce se déclenchant lors d'un mouvement
   	this.cx = cx;  //Modifie la position de la pièce
   	this.cy = cy;
     this.callPassive("onMovedDone",{x: cx, y: cy})
 
-    move(this,0.8,convertPx(cx),convertPx(cy)); //Déclenche une animation de mouvement, de la position de départ à la pisition d'arrivée
+    if (animation) move(this,0.8,convertPx(cx),convertPx(cy)); //Déclenche une animation de mouvement, de la position de départ à la pisition d'arrivée
   }
 
   // Fonctions à redéfinir dans chaque classe piece : renvoient les cases sur lesquelles il est possible d'attaquer/se déplacer
@@ -859,7 +860,7 @@ class Piece {
 
   noManaError(x,y){ //Affiche, à une position spécifiée, un message d'erreur "not enough mana"
     {
-      let manaTXT = new Text("msg",x,y,"Not \n enough \n mana","Arial",config.unit * 2,[0,0,255]) //Crée un texte bleu "not enough mana"
+      let manaTXT = new Text("msg",x,y,"Not\nenough\nmana","Arial",config.unit * 2,[0,0,255]) //Crée un texte bleu "not enough mana"
       applyFadeOut(manaTXT,manaTXT.color,255,0.5) //Le fait disparaître en fondu
     }
   }
@@ -874,31 +875,31 @@ class Piece {
 
 	startTurn(){ //a ne pas confondre avec le passif onStartTurn : fonctioné éxécutée au début de chaque tour
 		this.deplCD = false; //Met les atkCD et deplCD à false, indiquant que ces actions sont disponibles
-		this.atkCD = false
+		this.atkCD = false;
 		//Réinitialise les stats (les remet au valeurs de base de la pièce)
-		this.atk = this.baseAtk
-		let prevMaxHP = this.maxHP ;
-		this.maxHP = this.baseHP ;
-		this.hp = this.hp * this.maxHP / prevMaxHP
+		this.atk = this.baseAtk;
+		let prevMaxHP = this.maxHP;
+		this.maxHP = this.baseHP;
+		this.hp = this.hp * this.maxHP / prevMaxHP;
 		for (var i = 0; i < this.spell.length; i++){
-			if (this.spell[i].actualCooldown > 0) this.spell[i].actualCooldown--
+			if (this.spell[i].actualCooldown > 0) this.spell[i].actualCooldown--;
 		}
-		this.mp = this.baseMp
+		this.mp = this.baseMp;
 		//Puis les recalcule en fonction des effets actifs (voir "class Effect()")
 		for (var i = 0; i < this.effects.length; i++){
-			this.effects[i].apply()
+			this.effects[i].apply();
 		}
 
-		this.callPassive("onStartTurn") //Appel de l'éventuel passif se déclanchant au début de chaque tour
+		this.callPassive("onStartTurn"); //Appel de l'éventuel passif se déclanchant au début de chaque tour
 
 	}
 
 	applyEffect(duration,turn,end){ // Applique un effet à la pièce (voir "class Effect")
-		this.effects.push(new Effect(this,duration,turn,end))
+		this.effects.push(new Effect(this,duration,turn,end));
 	}
 
 	showStats() { //Affiche les caractéristiques de la pièce dans une fenêtre (fw.js)
-		let expText = (this.level >= config.expLevels.length) ? "" :"/" + config.expLevels[this.level]
+		let expText = (this.level >= config.expLevels.length) ? "" :"/" + config.expLevels[this.level];
 		let color = this.player ? "Black" : "White";
 			this.elements = [
 		  [ { type: "text", coord: { x: 0, y: 0 }, text: "Health Points: " + Math.floor(this.hp) + "/" + Math.floor(this.maxHP), size: config.unit*2, color: [210, 255, 210] },
@@ -907,14 +908,14 @@ class Piece {
 			{ type: "text", coord: { x: 0, y: config.unit*11.6 }, text: "Level: "+this.level, size: config.unit*2, color: [150,150,255] },
 			{ type: "text", coord: { x: 0, y: config.unit*13.6 }, text: "Experience: "+this.exp + expText, size: config.unit*2, color: [150,150,255]}]
 		];
-		clearGUI("windows")
+		clearGUI("windows");
 		new Window(config.hud.statsWindow.x, config.hud.statsWindow.y,config.hud.statsWindow.w,config.hud.statsWindow.h, "Stats", this.elements);
 	}
 
 	gainExp(exp){ //Ajoute de l'expérience à la pièce
 		this.exp += exp //ajout de l'exp
 
-		if (this.exp >= config.expLevels[this.level]) this.levelUp(this.level + 1)  //on teste si l'exp
+		if (this.exp >= config.expLevels[this.level]) this.levelUp(this.level + 1);  //on teste si l'exp
 																					//a dépassé un nouveau niveau
 	}
 
@@ -954,12 +955,12 @@ class Pion extends Piece {
 
     super(0, "Pion", 50, 120, x, y, player, 1, 60); //Appelle le constructeur de la classe parent, Piece, pour créer la pièce de base, avec les paramètres propres au pion
 
-	var direction = this.player //Initialise la kyojin (avancée), attribut propre au pion qui dépend de sa position sur le board
-	this.kyojin = Math.abs(((config.nLig - 1) * -direction) + this.cy)
-	let prevMaxHP = this.maxHP
+	  var direction = this.player //Initialise la kyojin (avancée), attribut propre au pion qui dépend de sa position sur le board
+	  this.kyojin = Math.abs(((config.nLig - 1) * -direction) + this.cy)
+	  let prevMaxHP = this.maxHP;
 		this.maxHP += this.kyojin * (this.baseHP / 50) //Les stats du pion sont modifiées en fonction de cette valeur
-		this.hp = this.hp * this.maxHP / prevMaxHP
-	this.atk += this.baseAtk * (this.kyojin / config.nLig)
+		this.hp = this.hp * this.maxHP / prevMaxHP;
+	  this.atk += this.baseAtk * (this.kyojin / config.nLig);
 
 	let spell = [ //Crée le tableau contenant tous les sorts du Pion (voir "class Spell")
 		new Spell("Vent Divin",8,1,img.spell.Pion[0],0,2,this, //Nouveau spell : on spécifie son nom, son icône, son coût, le niveau requis, ainsi que :
@@ -967,10 +968,10 @@ class Pion extends Piece {
 				this.cast() //Pour ce spell, l'effet sera directement lancé
 			},
 			function(){ //la fonction correspondant à l'effet du spell
-				var spell = this
-				var hpCost = 50
-				var board = examineBoard()
-				var source = this.piece
+				var spell = this;
+				var hpCost = 50;
+				var board = examineBoard();
+				var source = this.piece;
 				if (spell.piece.hp > hpCost){
 					selectPieces(piecesInCases(this.getRange(),board), //Pour chaque pièce dans la portée (tableau de cases) du sort, applique un callback
 					   function(target){if (target.player != source.player)damage(target,spell.piece,20)}) //infligeant des dégâts
@@ -1058,28 +1059,27 @@ class Pion extends Piece {
   }
 
 	onStartTurn(){ //Passif se lançant au début de chaque tour
-		var direction = this.player
+		var direction = this.player;
 		//Recalcule la valeur d'avancée (kyojin) et les stats en fonction
-		let prevMaxHP = this.maxHP
-		this.maxHP += this.kyojin * (this.baseHP / 50)
-		this.hp = this.hp * this.maxHP / prevMaxHP
+		let prevMaxHP = this.maxHP;
+		this.maxHP += this.kyojin * (this.baseHP / 50);
+		this.hp = this.hp * this.maxHP / prevMaxHP;
 
-		this.atk += this.baseAtk * (this.kyojin / config.nLig)
-
+		this.atk += this.baseAtk * (this.kyojin / config.nLig);
 	}
 
-	onMovedDone(){//Passif se lançant au début de chaque tour
-		 //Recalcule la valeur d'avancée (kyojin) et les stats en fonction
-		var direction = this.player
-		let prevKyojin = this.kyojin
-		this.kyojin = Math.abs(((config.nLig - 1) * -direction) + this.cy)
-		this.dKyojin = this.kyojin - prevKyojin
+	onMovedDone(){//Passif se lançant après chaque mouvement
+		//Recalcule la valeur d'avancée (kyojin) et les stats en fonction
+		var direction = this.player;
+		let prevKyojin = this.kyojin;
+		this.kyojin = Math.abs(((config.nLig - 1) * -direction) + this.cy);
+		this.dKyojin = this.kyojin - prevKyojin;
 
-		let prevMaxHP = this.maxHP
-		this.maxHP += this.dKyojin * (this.baseHP / 50)
-		this.hp = this.hp * this.maxHP / prevMaxHP
+		let prevMaxHP = this.maxHP;
+		this.maxHP += this.dKyojin * (this.baseHP / 50);
+		this.hp = this.hp * this.maxHP / prevMaxHP;
 
-		this.atk += this.baseAtk * (this.dKyojin / config.nLig)
+		this.atk += this.baseAtk * (this.dKyojin / config.nLig);
 
 	}
 }
@@ -1171,8 +1171,8 @@ class Tour extends Piece {
 				}
 				for (var i = -5; i < 6; i++){
 					if (this.piece.cy + i < 0){
-					continue
-					}else if (this.piece.cy + i >= config.nLig) break
+					       continue;
+					} else if (this.piece.cy + i >= config.nLig) break
 
 					if (i) range.push([this.piece.cx, this.piece.cy + i])
 				}
@@ -1228,6 +1228,86 @@ class Tour extends Piece {
 class Fou extends Piece {
   constructor(x, y, player) {
     super(2, "Fou", 50, 70, x, y, player, 5, 60);
+
+// name,manaCost,cooldown,img,helpImg,baseLocked,piece,onUsed,effect,getRange
+
+    this.spell = [
+      new Spell("Madness", 3, 1, img.spell.Fou[0], 0, false, this,
+        function(){
+          this.cast();
+        },
+        function(){
+          let range = this.getRange();
+          let board = examineBoard();
+          let pos = [];
+
+          for (let i = 0; i < range.length; i++) {
+            if (range[i][0] && range[i][1] &&
+                range[i][0] < config.nCol && range[i][1] < config.nLig &&
+                !board[range[i][0]][range[i][1]]) pos.push([range[i][0], range[i][1]]);
+          }
+
+          let finalPos = Math.floor(Math.random() * pos.length);
+          this.piece.move(pos[finalPos][0], pos[finalPos][1], false);
+          this.piece.viewRanges();
+          let dmgRange = [[this.piece.cx + 1,this.piece.cy + 1]]
+          //selectPieces(piecesInCases())
+          for (let i = -1; i < 2; i++) {
+            if (board[this.piece.cx + i][this.piece.cy] && board[this.piece.cx + i][this.piece.cy].player != this.piece.player &&
+                board[this.piece.cx + i][this.piece.cy] != this.piece) damage(board[this.piece.cx + i][this.piece.cy], this.piece, 20);
+            if (board[this.piece.cx][this.piece.cy + i] && board[this.piece.cx][this.piece.cy + i].player != this.piece.player &&
+                board[this.piece.cx][this.piece.cy + i] != this.piece) damage(board[this.piece.cx][this.piece.cy + i], this.piece, 20);
+          }
+        },
+        function(){
+          return caseInRangeZ(this.piece.cx, this.piece.cy, 2);
+        }
+      ),
+      new Spell("Echo", 5, 3, img.spell.Fou[1], 0, false, this,
+        function(){
+          this.cast();
+        },
+        function(){
+          let range = this.getRange();
+          let board = examineBoard();
+          let pieces = piecesInCases(range, board);
+          let finalPieces = [];
+
+          for (let i = 0; i < pieces.length; i++) {
+            if (pieces[i].player != this.piece.player) finalPieces.push(pieces[i]);
+          }
+
+          startPieceSelectionHLC(finalPieces, [255, 255, 150, 100], [255, 255, 150, 150],
+            function(target){
+              let origin = target;
+              let finalRange = [];
+              finalRange = caseInRangeZ(origin.cx, origin.cy, 1);
+
+              startPieceSelectionHLC(finalRange, [255, 255, 150, 100], [255, 255, 150, 150],
+                function(target){
+                  damage(origin, this.piece, this.piece.atk*0.9);
+                  damage(target, this.piece, this.piece.atk*0.9);
+                }
+              );
+            }  
+          );
+        },
+        function(){
+          return caseInRangeZ(this.piece.cx, this.piece.cy, 4);
+        }
+      ),
+      new Spell("Ultrasound", 4, 5, img.spell.Fou[2], 0, false, this,
+        function(){
+          
+        },
+        function(){
+          let range = this.getRange();
+        },
+        function(){
+          return caseInRangeZ(this.piece.cx, this.piece.cy, 3);
+        }
+      )
+    ];
   }
 
   getDepl(board) {
@@ -1423,14 +1503,14 @@ class Cavalier extends Piece {
 		this.spell = [
 			new Spell("Stomp",6,2,img.spell.Cavalier[0],0,false,this,
 				function(){
-					this.active = true
+					this.active = true;
 				},
 				function(){
-					var spell = this
-					var board = examineBoard()
-					var source = this.piece
+					var spell = this;
+					var board = examineBoard();
+					var source = this.piece;
 					selectPieces(piecesInCases(this.getRange(),board), //Pour chaque pièce dans la portée (tableau de cases) du sort, applique un callback
-						function(target){if (target.player != source.player)damage(target,spell.piece,20)}) //infligeant des dégâts
+						function(target){if (target.player != source.player) damage(target,spell.piece,20)}) //infligeant des dégâts
 				},
 				function(){ //la fonction (facultative) retournant la portée du spell sous la forme d'un tableau de cases
 					return caseInRangeZ(this.piece.cx,this.piece.cy,1)
@@ -1448,8 +1528,8 @@ class Cavalier extends Piece {
 								if (piece.player == spell.piece.player) return false;
 								let tx = spell.piece.cx + (piece.cx - spell.piece.cx) * 2;
 								let ty = spell.piece.cy + (piece.cy - spell.piece.cy) * 2;
-								if (isOnBoard(tx,ty)) if (board[tx][ty]) return false
-								return true
+								if (isOnBoard(tx,ty)) if (board[tx][ty]) return false;
+								return true;
 							}
 						]
 					)
@@ -1542,6 +1622,53 @@ class Cavalier extends Piece {
 class Roi extends Piece {
   constructor(x, y, player) {
     super(5, "Roi", 30, 400, x, y, player, 2, 0);
+
+// name,manaCost,cooldown,img,helpImg,baseLocked,piece,onUsed,effect,getRange
+
+    this.spell = [
+      new Spell("Arrêtez De Vous Battez", 7, 5, img.spell.Roi[0], 0, false, this,
+        function(){
+          this.cast();
+        },
+        function(){
+          let range = this.getRange();
+          let board = examineBoard();
+          let pieces = piecesInCases(range, board);
+
+          for (let i = 0; i < pieces.length; i++) {
+            pieces[i].hp += 15;
+            if (!pieces[i].maxHP && pieces[i].hp > pieces[i].baseHP) pieces[i].hp = pieces[i].baseHP;
+            if (pieces[i].maxHP && pieces[i].hp > pieces[i].maxHP) pieces[i].hp = pieces[i].maxHP;
+          }
+        },
+        function(){
+          return caseInRangeZ(this.piece.cx, this.piece.cy, 2);
+        }
+      ),
+      new Spell("Colère Royale", 1, 10, img.spell.Roi[1], 0, false, this,
+        function(){
+          this.cast();
+        },
+        function(){
+          let range = this.getRange();
+          let board = examineBoard();
+          let pieces = piecesInCases(range, board);
+          pieces[Math.floor(Math.random() * pieces.length)].hp -= 2;
+        },
+        function(){
+          let ennemy = [];
+          let board = examineBoard();
+
+          for (let i = 0; i < board.length; i++) {
+            for (let j = 0; j < board[i].length; j++) {
+              if (board[i][j] && board[i][j].player != this.piece.player) ennemy.push([i, j]);
+            }
+          }
+
+          return ennemy;
+        }
+      )
+    ]
   }
 
   getDepl(board) {
@@ -1623,7 +1750,7 @@ class Roi extends Piece {
 
 }
 
-class PrePiece{ //Les prePiece sont des objets "prévoyant" une pièce : chaque prePiece indique une future pièce qui sera créee au début de la partie
+class PrePiece { //Les prePiece sont des objets "prévoyant" une pièce : chaque prePiece indique une future pièce qui sera créee au début de la partie
 	//les prePieces qu'un joueur possède avant le début de la partie déterminent dont les pièces qu'il possèdera lorsque la partie se lancera
   constructor(Piece,cx,cy,player){ //Une prePieces ne contient comme attribut que
     this.Piece = Piece; //La classe de la pièce à créer
@@ -1804,7 +1931,7 @@ class FadeOut { //Animation à appliquer à un objet graphique, qui va modifier 
 
 }
 
-class Movement{ //Animation à appliquer à un objet graphique pour le déplacer
+class Movement { //Animation à appliquer à un objet graphique pour le déplacer
   constructor(object,speed,xTarget,yTarget){
     this.object = object //objet
     this.speed = speed  //vitesse en px/ms
@@ -1847,8 +1974,8 @@ class Movement{ //Animation à appliquer à un objet graphique pour le déplacer
   }
 
   end(){ //fin du mouvement (généralement quand la position d'arrivée est atteinte)
-    this.object.x = this.xTarget ; //place l'objet sur la positiond d'arrivée exacte (évite les décalages, liés aux arrondis par ex)
-    this.object.y = this.yTarget ;
+    this.object.x = this.xTarget; //place l'objet sur la positiond d'arrivée exacte (évite les décalages, liés aux arrondis par ex)
+    this.object.y = this.yTarget;
     this.destroy(); //supprime l'objet mouvement
   }
 
@@ -1863,10 +1990,10 @@ class Spell { //Classe définissant un sort d'une pièce
     this.locked = baseLocked; //disponibilité au début de la partie : true si bloqué, un nombre si on veut le bloquer jusqu'à ce que la pièce atteigne le niveau correspondant
     this.onUsed = onUsed; //fonction éxécutée au clic sur l'icône
     this.effect = effect; //effet du sort : peut être lancé directement lors du clic, ou après
-	this.getRange = getRange; //fonction donnant les cases su lesquelles le spell peut agir (s'il agit sur des cases définies)
-	this.piece = piece; //pièce propriétaire
-	this.cooldown = cooldown; //délai de récupération
-	this.actualCooldown = 0; //récupération actuelle
+  	this.getRange = getRange; //fonction donnant les cases su lesquelles le spell peut agir (s'il agit sur des cases définies)
+  	this.piece = piece; //pièce propriétaire
+  	this.cooldown = cooldown; //délai de récupération
+  	this.actualCooldown = 0; //récupération actuelle
   }
 
   cast(arg){ //lance le spell (sera a priori appelée à un moment où un autre dans onUsed() ) :
@@ -1884,36 +2011,37 @@ class SpellIcon extends Button { //icône des spells; hérite des simples bouton
 		super("pieceHUD",spell.img,x,y,w,h, //crée un bouton avec les coordonées spécifiées, et comme image l'icône du spell spécifié
 		function(){ //comme hovercallback, une fonction affichant des infos sur le spell (qui seront donc affichées qua la souris est sur l'icône)
 			textSize(config.hud.spellInfo.size)
-			textFont("Verdana")
-			textAlign(LEFT,TOP)
-			fill(255)
-			text(this.spell.name, config.hud.spellInfo.x, config.hud.spellInfo.y) //le nom du sort
-			fill(150,150,150)
-			text("Cooldown : " + this.spell.cooldown, config.hud.spellInfo.x, config.hud.spellInfo.y + config.hud.spellInfo.size) //son délai de récupération
-			fill(150,150,255)
-			text("Mana cost : " + this.spell.manaCost, config.hud.spellInfo.x, config.hud.spellInfo.y + config.hud.spellInfo.size * 2) //son coût
+			textFont("Verdana");
+			textAlign(LEFT,TOP);
+			fill(255);
+			text(this.spell.name, config.hud.spellInfo.x, config.hud.spellInfo.y); //le nom du sort
+			fill(150,150,150);
+			text("Cooldown: " + this.spell.cooldown, config.hud.spellInfo.x, config.hud.spellInfo.y + config.hud.spellInfo.size); //son délai de récupération
+			fill(150,150,255);
+			text("Mana cost: " + this.spell.manaCost, config.hud.spellInfo.x, config.hud.spellInfo.y + config.hud.spellInfo.size * 2); //son coût
 
 			if (this.spell.getRange){ //des rectangles sur les cases faisant partie de la portée du sort
-				let range = this.spell.getRange()
+				let range = this.spell.getRange();
 				for (var i = 0; i < range.length; i++){
 					fill(255,120,120,100);
-					rect(convertPx(range[i][0]),convertPx(range[i][1]),config.tileSize,config.tileSize,config.border)
+					rect(convertPx(range[i][0]),convertPx(range[i][1]),config.tileSize,config.tileSize,config.border);
 				}
 			}
 		},
 		function(){ //callback du bouton :
-			if (guiState == ""){ //si la GUI est à son état normal (aucune opéraiton particulière en cours)
+			if (guiState == ""){ //si la GUI est à son état normal (aucune opération particulière en cours)
 				if(joueur[this.spell.piece.player].mana >= this.spell.manaCost){ //si le joueur a assez de mana
 					if (this.spell.actualCooldown == 0 && !this.spell.locked){ //et si le spell n'est pas en récupération
 						this.spell.onUsed(this.spell); //utilisation du spell
 					}
-				}else{
-					this.spell.piece.noManaError(this.x + this.w/2, this.y + this.h/2)// si pas assez de mana, affichage de l'erreur "not enough mana" (voir "manaError()")
+				} else {
+					this.spell.piece.noManaError(this.x + this.w/2, this.y + this.h/2); // si pas assez de mana, affichage de l'erreur "not enough mana" (voir "manaError()")
 				}
 			}
-		})
-		this.spell = spell
-		this.baseDraw = this.draw
+		});
+
+		this.spell = spell;
+		this.baseDraw = this.draw;
 
 		this.draw = function(){ //Affiche l'icône
 			this.baseDraw() //draw de base du bouton (gère notament le hovercallback)
@@ -1925,8 +2053,8 @@ class SpellIcon extends Button { //icône des spells; hérite des simples bouton
 				if (this.spell.actualCooldown) text(this.spell.actualCooldown,this.x + this.w/2, this.y + this.h/2) //si en récupération, affiche le nombre de tours restants
 			}
 			if (this.spell.active){
-				fill(255,255,255,100)
-				rect(this.x,this.y,this.w,this.h)
+				fill(255,255,255,100);
+				rect(this.x,this.y,this.w,this.h);
 			}
 		}
 	}
@@ -1934,30 +2062,30 @@ class SpellIcon extends Button { //icône des spells; hérite des simples bouton
 
 
 
-class Effect{ //classe représentant les effets sur la durée appliqués aux pièces. A ajouter au tableau .effect d'une pièce pour lui appliquer un effet
+class Effect { //classe représentant les effets sur la durée appliqués aux pièces. A ajouter au tableau .effect d'une pièce pour lui appliquer un effet
 	//un effet contient une fonction qui sera appelée à chaque tour, pour s'assurer que l'effet est présent de manière continue, jusqu'à un certain nombre de tour
 	constructor(piece,duration,turnEffect = 0,endEffect = 0,direct = true){
-		this.piece = piece //pièce sur laquelle l'effet agira
-		this.turnEffect = turnEffect //effet continu : sera lancé à chaque début de tour (souvent pour modifier les stats après leur réinitialisation)
-		this.endEffect = endEffect //fcontion à éxécuter lorsque l'effet se termine
-		this.duration = duration //durée de l'effet en tours
-		this.remaining = duration
+		this.piece = piece; //pièce sur laquelle l'effet agira
+		this.turnEffect = turnEffect; //effet continu : sera lancé à chaque début de tour (souvent pour modifier les stats après leur réinitialisation)
+		this.endEffect = endEffect; //fcontion à éxécuter lorsque l'effet se termine
+		this.duration = duration; //durée de l'effet en tours
+		this.remaining = duration;
 
-		if (direct && this.turnEffect) this.turnEffect() //si on a précisé que l'effet était présent dès son applicaiton, on lance son effet continu
+		if (direct && this.turnEffect) this.turnEffect(); //si on a précisé que l'effet était présent dès son applicaiton, on lance son effet continu
 	}
 
 	apply(){ //applique l'effet : sera lancé à chaque début de tour
 		this.remaining--;
 		if (this.remaining == 0){ //s'il arrive à sa fin
-			if(this.endEffect) this.endEffect() //lance la fonction de fin
-			this.destroy() //puis le supprime
+			if(this.endEffect) this.endEffect(); //lance la fonction de fin
+			this.destroy(); //puis le supprime
 		}else{
-			if (this.turnEffect) this.turnEffect() //sinon, lance sa fonction d'effet continu
+			if (this.turnEffect) this.turnEffect(); //sinon, lance sa fonction d'effet continu
 		}
 	}
 
 	destroy(){
-		this.piece.effects.spliceItem(this) //supprime l'effet du tableau piece.effects
+		this.piece.effects.spliceItem(this); //supprime l'effet du tableau piece.effects
 	}
 }
 
@@ -2058,9 +2186,9 @@ function setup() { //Lancée par p5 au lancement du programme : c'est ici qu com
 	cursor("img/cursor.png"); //Changement de l'image du curseur
 	createCanvas(config.canvasW, config.canvasH); //Création du canvas où on va dessiner
 	config.update()
-  
+
 	startTitle(); //Lancement de l'écran-titre
-  
+
 }
 
 function draw() { //Fonction lancée par p5 à chaque frame
