@@ -1272,9 +1272,6 @@ class Fou extends Piece {
     this.spell = [
       new Spell("Madness", 3, 1, img.spell.Fou[0], 0, false, this,
         function(){
-          this.cast();
-        },
-        function(){
           let range = this.getRange();
           let board = examineBoard();
           let pos = [];
@@ -1286,7 +1283,12 @@ class Fou extends Piece {
           }
 
           let finalPos = Math.floor(Math.random() * pos.length);
-          this.piece.move(pos[finalPos][0], pos[finalPos][1], false);
+          let coord = [pos[finalPos][0], pos[finalPos][1]];
+          if (pos.length > 0) this.cast(coord);
+        },
+        function(coord){
+          let board = examineBoard();
+          this.piece.move(coord[0], coord[1], false);
           this.piece.viewRanges();
           let dmgRange = [[this.piece.cx + 1,this.piece.cy + 1]]
           //selectPieces(piecesInCases())
@@ -1303,9 +1305,7 @@ class Fou extends Piece {
       ),
       new Spell("Echo", 5, 3, img.spell.Fou[1], 0, false, this,
         function(){
-          this.cast();
-        },
-        function(){
+          let spell = this;
           let range = this.getRange();
           let board = examineBoard();
           let pieces = piecesInCases(range, board);
@@ -1318,17 +1318,23 @@ class Fou extends Piece {
           startPieceSelectionHLC(finalPieces, [255, 255, 150, 100], [255, 255, 150, 150],
             function(target){
               let origin = target;
-              let finalRange = [];
-              finalRange = caseInRangeZ(origin.cx, origin.cy, 1);
+              let targets = [];
+              targets = caseInRangeZ(origin.cx, origin.cy, 1);
+              targets = piecesInCases(targets, examineBoard());
+              targets = filterElements(targets, function(piece){if (piece.player != spell.piece.player) {return true}});
+              if (targets.length < 1) spell.cast([origin]);
 
-              startPieceSelectionHLC(finalRange, [255, 255, 150, 100], [255, 255, 150, 150],
-                function(target){
-                  damage(origin, this.piece, this.piece.atk*0.9);
-                  damage(target, this.piece, this.piece.atk*0.9);
+              startPieceSelectionHLC(targets, [255, 255, 150, 100], [255, 255, 150, 150],
+                function(selected){
+                  spell.cast([origin, selected]);
                 }
               );
             }  
           );
+        },
+        function(targets){
+          damage(targets[0], this.piece, this.piece.atk*0.9);
+          if (targets.length > 1) damage(targets[1], this.piece, this.piece.atk*0.9);
         },
         function(){
           return caseInRangeZ(this.piece.cx, this.piece.cy, 4);
@@ -1781,8 +1787,20 @@ class Roi extends Piece {
       return atk;
   }
 
+  onStartTurn() {
+    let king = this;
+    let range = caseInRangeZ(this.cx, this.cy, 1);
+    let pieces = piecesInCases(range, examineBoard());
+    let allies = filterElements(pieces, function(piece){if (piece.player == king.player) return true});
+    if (this.hp < this.baseHP * 20 / 100) {
+      for (let i = 0; i < allies.length; i++) {
+        if (!allies[i].max) allies[i].atk += allies[i].atk * 20 / 100;
+      }
+    }
+  }
+
   onDying(killer){ //Passif se lançant lorsque cette pièce meurt : indique que le joueur ayant tué le Roi à gagné
-    victory = joueur[1-this.player]
+    victory = joueur[1-this.player];
   }
 
 }
