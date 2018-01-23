@@ -317,7 +317,7 @@ function selectPiecesConditional(pieces, callback, condition = []){
 function filterElements(elements,condition){
 	let result = [];
 	for (let i = 0; i < elements.length; i++){
-		if (condition()) result.push(elements[i]); 
+		if (condition(elements[i])) result.push(elements[i]); 
 	}
 	return result
 }
@@ -1265,9 +1265,7 @@ class Fou extends Piece {
       ),
       new Spell("Echo", 5, 3, img.spell.Fou[1], 0, false, this,
         function(){
-          this.cast();
-        },
-        function(){
+          let spell = this;
           let range = this.getRange();
           let board = examineBoard();
           let pieces = piecesInCases(range, board);
@@ -1280,17 +1278,23 @@ class Fou extends Piece {
           startPieceSelectionHLC(finalPieces, [255, 255, 150, 100], [255, 255, 150, 150],
             function(target){
               let origin = target;
-              let finalRange = [];
-              finalRange = caseInRangeZ(origin.cx, origin.cy, 1);
+              let targets = [];
+              targets = caseInRangeZ(origin.cx, origin.cy, 1);
+              targets = piecesInCases(targets, examineBoard());
+              targets = filterElements(targets, function(piece){if (piece.player != spell.piece.player) {return true}});
+              if (targets.length < 1) spell.cast([origin]);
 
-              startPieceSelectionHLC(finalRange, [255, 255, 150, 100], [255, 255, 150, 150],
-                function(target){
-                  damage(origin, this.piece, this.piece.atk*0.9);
-                  damage(target, this.piece, this.piece.atk*0.9);
+              startPieceSelectionHLC(targets, [255, 255, 150, 100], [255, 255, 150, 150],
+                function(selected){
+                  spell.cast([origin, selected]);
                 }
               );
             }  
           );
+        },
+        function(targets){
+          damage(targets[0], this.piece, this.piece.atk*0.9);
+          if (targets.length > 1) damage(targets[1], this.piece, this.piece.atk*0.9);
         },
         function(){
           return caseInRangeZ(this.piece.cx, this.piece.cy, 4);
