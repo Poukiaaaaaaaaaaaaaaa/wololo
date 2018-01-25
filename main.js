@@ -70,7 +70,7 @@ config.event = [
 	"onDamagingDone",
 	"onDying",
 	"onKilling",
-	"onKilling",
+	"onKillingDone",
 ]
 
 // globalFunctions -----------
@@ -412,22 +412,22 @@ function isOnBoard(x,y){return (x > -1 && x < config.nCol && y > -1 && y < confi
 
 var titleView = { //Objet contenant plusieurs fonctions : chacune sert à initialiser une "page" de l'écran titre : elles créent les éléments à afficher pour chaque page
 	mainPage : function(){ //Page d'accueil
-    clearGUI("hud") //Vide les éléments de hud (dans l'écran-titre, l'élément de gui "hud" contient tous les objets affichés sauf le l'image de fond)
-    {let titleW = config.unit * 90, titleH = config.unit * 18
-    new StaticImage("hud",img.title[1],config.canvasW/2 - titleW / 2,config.canvasH/5 - titleH / 2,titleW,titleH)}  //Logo de chess++
-    {let playButtonW = config.unit * 50, playButtonH = config.unit * 20
-    new Button("hud",img.title[2],config.canvasW/2 - playButtonW / 2,config.canvasH/5*3 - playButtonH / 2,playButtonW,playButtonH, //Bouton play
-      function(){fill([200,200,200,50]); rect(this.x,this.y,this.w,this.h,config.unit*3)},
-      function(){startGame()})}  //son callback appelle startGame, qui lance la partie
-    {let setButtonS = config.unit * 20
-    new Button("hud",img.title[4],config.canvasW/4 - setButtonS/2,config.canvasH/5*3 - setButtonS / 2,setButtonS,setButtonS, //Bouton ouvrant les paramètres
-    function(){fill([200,200,200,50]); rect(this.x,this.y,this.w,this.h,config.unit*3)},
-    function(){titleView.settings()})}  //Son callback appelle une autre fonction de titleView, settings, qui affiche les éléments de configuration
-    {let helpButtonS = config.unit * 20
-    new Button("hud",img.title[6],config.canvasW/4 * 3 - helpButtonS/2,config.canvasH/5*3 - helpButtonS / 2,helpButtonS,helpButtonS,  //Bouton d'aide
-    function(){fill([200,200,200,50]); rect(this.x,this.y,this.w,this.h,config.unit*3)},
-    function(){let win = window.open("help/help.html", '_blank') ; win.focus()})} //son callback ouvre dans un autre onglet le fichier help/help.html
-	new Text("hud",config.unit,config.canvasH - config.unit,"version 1.0-alpha","Arial",config.unit,[0,0,0],TOP,LEFT)
+		clearGUI("hud") //Vide les éléments de hud (dans l'écran-titre, l'élément de gui "hud" contient tous les objets affichés sauf le l'image de fond)
+		{let titleW = config.unit * 90, titleH = config.unit * 18
+			new StaticImage("hud",img.title[1],config.canvasW/2 - titleW / 2,config.canvasH/5 - titleH / 2,titleW,titleH)}  //Logo de chess++
+		{let playButtonW = config.unit * 50, playButtonH = config.unit * 20
+			new Button("hud",img.title[2],config.canvasW/2 - playButtonW / 2,config.canvasH/5*3 - playButtonH / 2,playButtonW,playButtonH, //Bouton play
+				function(){fill([200,200,200,50]); rect(this.x,this.y,this.w,this.h,config.unit*3)},
+				function(){startGame()})}  //son callback appelle startGame, qui lance la partie
+		{let setButtonS = config.unit * 20
+			new Button("hud",img.title[4],config.canvasW/4 - setButtonS/2,config.canvasH/5*3 - setButtonS / 2,setButtonS,setButtonS, //Bouton ouvrant les paramètres
+				function(){fill([200,200,200,50]); rect(this.x,this.y,this.w,this.h,config.unit*3)},
+				function(){titleView.settings()})}  //Son callback appelle une autre fonction de titleView, settings, qui affiche les éléments de configuration
+		{let helpButtonS = config.unit * 20
+			new Button("hud",img.title[6],config.canvasW/4 * 3 - helpButtonS/2,config.canvasH/5*3 - helpButtonS / 2,helpButtonS,helpButtonS,  //Bouton d'aide
+				function(){fill([200,200,200,50]); rect(this.x,this.y,this.w,this.h,config.unit*3)},
+				function(){let win = window.open("help/help.html", '_blank') ; win.focus()})} //son callback ouvre dans un autre onglet le fichier help/help.html
+		new Text("hud",config.unit,config.canvasH - config.unit,"version 1.0-alpha","Arial",config.unit,[0,0,0],TOP,LEFT)
 	},
 	settings : function(){ //Page de configuration
 		clearGUI("hud") //Vide les éléments de hud (dans l'écran-titre, l'élément de gui "hud" contient tous les objets affichés sauf le l'image de fond)
@@ -914,6 +914,7 @@ class Piece {
 			return this[passive](arg); //la lance
 		}
 		if (this.addedPassive){
+			if (!this.addedPassive[passive]) {console.error(passive + "is not a valid passive event") ; return false}
 			for (let i = 0; i < this.addedPassive[passive].length; i++){
 				this.addedPassive[passive][i](arg)
 			}
@@ -1441,7 +1442,7 @@ class Reine extends Piece {
 					let i = 0
 					for (let j = 0; j < range.length; j++){
 						i++
-						if (board.[ range[i][0] ][ range[i][1] ].player != this.piece.player) break
+						if (board[ range[i][0] ][ range[i][1] ].player != this.piece.player) break
 					}
 					for (i ; i < range.length; i++){
 						
