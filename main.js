@@ -1,11 +1,9 @@
 // CHESS++ ISN PROJECT
 // Téo Tinarrage // Amaël Marquez
-// TODO (avant la présentation)
-// - Intégrer les changements du à la séparation en fichiers multiples (INTEGRER P55.DRAW ET DEFINITION DE P55.GUI)
-// TODO (non terminé au moment de la présentation):
-// - Sorts de certaines pièces
+// TODO (éléments de jeu):
 // - Système de monnaie
-
+// TODO (éléments internes)
+// - Ajout de propriétés libre lors de la création des HighLlighCase de séléction [start__SelectionHLC()]
 
 //Disclaimer :
 //Si ChessPP est actuellement fonctionnel bien que légèrement incomplet, il reste
@@ -179,6 +177,7 @@ function heal(target,source,heal){
 }
 
 
+
 function examineBoard() {
 	//permet d'analyser le contenu de l'échiquier facilement
 	//via un tableau dont chaque entrée représente une case
@@ -192,7 +191,6 @@ function examineBoard() {
     var piece = chessGUI.pieces[i];		//récupère les coordonnées de chaque pièce et place une référence à cette pièce
     board[piece.cx][piece.cy] = piece;		//dans la case correspodante dans le tableau
   }
-
 	return board;
 	//renvoie le tableau
 	//board[x][y] contient le contenu de la case (x,y)
@@ -525,19 +523,26 @@ var chessGUI = { background: [], pieces: [], highlightCase: [], hud: [], pieceHU
 
 // endGlobalVars --------------
 
-
 // images ---------------
 function preload() { //chargement des images. La fonction Preload est lancée par p5 avant le setup.
-	var oldLoadImage = loadImage
-	loadImage = function(path,sCallback = undefined,fCallback = undefined){
-		return oldLoadImage(path,sCallback,
-			function(){
-        if(fCallback) fCallback();
-				throw "Impossible de charger " + path;
+	if (debug){ //On remplace la fonction de chargement d'image par une version qui envoie un message d'erreur en cas d'échec.
+	//On le fait uniquement en mode debug car un bug de p5 fait que le message d'erreur peut s'afficher sans raison
+		if (!loadImage.over){
+			console.log("tamer")
+			var oldLoadImage = loadImage
+			loadImage = function(path,sCallback = undefined,fCallback = undefined){
+				return loadImage.oldLoadImage(path,sCallback,
+					function(){
+						if(fCallback) fCallback();
+						throw "Impossible de charger " + path;
+					}
+				);
 			}
-		);
+			loadImage.oldLoadImage = oldLoadImage
+			loadImage.over = true
+		}
 	}
-
+	
   config.background = loadImage("img/background.png");
   img.HUD[0] = loadImage("img/HUD/end_turn.png");
   img.HUD[1] = loadImage("img/HUD/info.png");
@@ -1426,9 +1431,22 @@ class Reine extends Piece {
 		this.spell = [
 			new Spell("Thunderbolt",8,3,img.spell.Reine[0],0,false,this,
 				function(){
+					let board = examineBoard()
+					let range = this.getRange()
+					 if (piecesInCases(range,board)) this.cast({range : range, board : board})
 				},
-				function(){
-
+				function(arg){
+					let range = arg.range
+					let board = arg.board
+					let i = 0
+					for (let j = 0; j < range.length; j++){
+						i++
+						if (board.[ range[i][0] ][ range[i][1] ].player != this.piece.player) break
+					}
+					for (i ; i < range.length; i++){
+						
+					}
+						
 				},
 				function(){
 					let range = []
@@ -1809,7 +1827,7 @@ class Roi extends Piece {
   }
 
   onDying(killer){ //Passif se lançant lorsque cette pièce meurt : indique que le joueur ayant tué le Roi à gagné
-    victory = joueur[1-this.player];
+    victory = joueur[1-this.player]; 
   }
 
 }
@@ -2250,7 +2268,7 @@ function setup() { //Lancée par p5 au lancement du programme : c'est ici qu com
 	cursor("img/cursor.png"); //Changement de l'image du curseur
 	createCanvas(config.canvasW, config.canvasH); //Création du canvas où on va dessiner
 	config.update()
-
+	
 	startTitle(); //Lancement de l'écran-titre
 
 }
