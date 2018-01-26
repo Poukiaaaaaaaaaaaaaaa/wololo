@@ -1434,19 +1434,22 @@ class Reine extends Piece {
 				function(){
 					let board = examineBoard()
 					let range = this.getRange()
-					 if (piecesInCases(range,board)) this.cast({range : range, board : board})
+					if (piecesInCases(range,board)) this.cast({range : range, board : board})
 				},
 				function(arg){
 					let range = arg.range
 					let board = arg.board
 					let i = 0
-					for (let j = 0; j < range.length; j++){
+					let case_
+					for (let i = 0; i < range.length; i++){
+						piece = board[ range[i][0] ][ range[i][1] ]
+						if (piece) if (piece.player != this.piece.player) break
+					}
+					do {
+						damage(piece,this.piece,50)
 						i++
-						if (board[ range[i][0] ][ range[i][1] ].player != this.piece.player) break
-					}
-					for (i ; i < range.length; i++){
-						
-					}
+						piece = board[ range[i][0] ][ range[i][1] ]
+					}while(i < range.length && !(piece && piece.player != this.piece.player))
 						
 				},
 				function(){
