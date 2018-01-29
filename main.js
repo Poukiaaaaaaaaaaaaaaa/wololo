@@ -1440,16 +1440,16 @@ class Reine extends Piece {
 					let range = arg.range
 					let board = arg.board
 					let i = 0
-					let case_
+					let piece, found = false
+					
 					for (let i = 0; i < range.length; i++){
 						piece = board[ range[i][0] ][ range[i][1] ]
-						if (piece) if (piece.player != this.piece.player) break
+						if (piece && piece.player != this.piece.player) {
+							found = true
+							consle.log(piece)//damage(piece,this.piece,50)
+						}else if (found) break
 					}
-					do {
-						damage(piece,this.piece,50)
-						i++
-						piece = board[ range[i][0] ][ range[i][1] ]
-					}while(i < range.length && !(piece && piece.player != this.piece.player))
+					
 						
 				},
 				function(){
