@@ -109,12 +109,12 @@ function addDepl(board,depl,x,y){
 }
 
 function addAtk(board,atk,x,y){
-	//utile dans les fonctions piece.getAtkRange() uniquement : ajoute une case d'attaque
+	//utile dans les fonctions piece.getAtkRange() uniquement : ajoute une cible d'attaque
 	//à la liste après avoir effectué tous les tests nécessaires (si la case est hors
 	//de l'échiquier ou s'il n'y a aucune cible possible sur cette case)
 	if (x + 1 > 0 && x < config.nCol && y + 1 > 0 && y < config.nLig){
 		if (typeof board[x][y] != "undefined"){
-			atk.push([x,y]);
+			atk.push(board[x][y]);
 			return 2; // dans le board et une pièce -> l'ajout a réussi
 		}
 		return 1; // dans le board mais pas de pièce
@@ -157,23 +157,31 @@ function kill(target,killer){ //tue une pièce
 
 function damage(target,source,dmg){ //inflig des dégâts à une pièce
 	//Appel des passifs s'activant quand une pièce subit des dégâts
-  if (target.callPassive("onDamaged",{source : source, damage : dmg}) == true) return true //si l'un des passifs pré-dégâts renvoie true
-  if (source.callPassive("onDamaging",{target : target, damage : dmg}) == true) return true //les dégâts sont annulés et la fonction renvoie elle aussi true (permet à un passif d'annuler des dégâts)
+	
+	if (target.callPassive("onDamaged",{source : source, damage : dmg}) == true) return true //si l'un des passifs pré-dégâts renvoie true
+	if (source.callPassive("onDamaging",{target : target, damage : dmg}) == true) return true //les dégâts sont annulés et la fonction renvoie elle aussi true (permet à un passif d'annuler des dégâts)
 
-  target.hp = target.hp - dmg //retrait des points de vie à la pièce subissant des dégâts
-  if (target.hp < 1){
-    kill(target,source) //si es PV de la pièce tombent à 0, la tue
-  }
+	target.hp = target.hp - dmg //retrait des points de vie à la pièce subissant des dégâts
+	if (target.hp < 1){
+		kill(target,source) //si es PV de la pièce tombent à 0, la tue
+	}
 
-  target.callPassive("onDamagedDone",{source : source, damage : dmg})
-  source.callPassive("onDamagingDone",{target : target, damage : dmg})
-
+	target.callPassive("onDamagedDone",{source : source, damage : dmg})
+	source.callPassive("onDamagingDone",{target : target, damage : dmg})
 }
 
 function heal(target,source,heal){
 	target.hp += heal
 	if (target.hp > target.maxHP) target.hp = target.maxHP
 	
+}
+
+function stun(target,duration){
+	target.applyEffect(duration,
+		function(){this.piece.cc = true}
+	)
+	
+	target.updateView()
 }
 
 
@@ -780,7 +788,7 @@ class Piece {
 
   select(){ //Sélectionne la pièce
     clearSelectedPiece(this) //Déselectionne la pièce sélectionnée, puis sélectionne celle-ci
-    this.viewRanges(); //on affiche les portées d'attaque et de déplacement
+    if (!this.cc) this.viewRanges(); //on affiche les portées d'attaque et de déplacement
 
     for (var i = 0; i < this.spell.length; i++){ //Affichage des icônes des sorts
       new SpellIcon(config.hud.spells.x + i * (config.hud.spells.spellSize * 1.1),config.hud.spells.y,config.hud.spells.spellSize,config.hud.spells.spellSize,this.spell[i])
@@ -824,13 +832,11 @@ class Piece {
     	}
 
     	for (var i = 0; i < atk.length; i++) { //Pour chaque case du tableau
-    		if (typeof board[atk[i][0]][atk[i][1]] != "undefined"){
-    			if (board[atk[i][0]][atk[i][1]].player == 1 - this.player){ //si la case contient une pièce ennemie (on vérifie grâce à examineBoard())
-    				HLCase = new HighlightCase(atk[i][0],atk[i][1], //On y crée une HighLlighCase
+    			if (atk[i].player != this.player){ //si la case contient une pièce ennemie 
+    				HLCase = new HighlightCase(atk[i].cx,atk[i].cy, //On y crée une HighLlighCase
     				color,hoverColor,this,callback);
-    				HLCase.target = board[atk[i][0]][atk[i][1]];
+    				HLCase.target = atk[i];
     			}
-    		}
     	}
     }
 
@@ -907,16 +913,17 @@ class Piece {
     }
   }
 
-	callPassive(passive,arg){ //Appelle un "passif" de la pièce. Les passifs sont des sorts se déclenchant d'eux mêmes à divers moments.
+	callPassive(passive,arg,env = {}){ //Appelle un "passif" de la pièce. Les passifs sont des sorts se déclenchant d'eux mêmes à divers moments.
 	//Il s'agit de méthodes "on________()" crées dans les classes de chaque pièce. Lors de chaque évènement pouvanr déclencher un passif,
 	//cette méthode est appelée, en spécifiant le passif correspondant.
+		
 		if (typeof this[passive] == "function"){ //Si cette méthode existe
-			return this[passive](arg); //la lance
+			if (this[passive](arg,env) == true) return true; //la lance
 		}
 		if (this.addedPassive){
 			if (!this.addedPassive[passive]) {console.error(passive + "is not a valid passive event") ; return false}
 			for (let i = 0; i < this.addedPassive[passive].length; i++){
-				this.addedPassive[passive][i](arg)
+				if (this.addedPassive[passive][i](arg,env) == true) return true
 			}
 		}
 	}
@@ -939,6 +946,7 @@ class Piece {
 		}
 		this.mp = this.baseMp;
 		this.addedPassive = initAddedpassivesArrays()
+		this.cc = false
 		//Puis les recalcule en fonction des effets actifs (voir "class Effect()")
 		
 	}
@@ -947,11 +955,11 @@ class Piece {
 		for (var i = 0; i < this.effects.length; i++){
 				this.effects[i].apply();
 			}
-		this.callPassive("onStartTurn"); //Appel de l'éventuel passif se déclanchant au début de chaque tour
+		this.callPassive("onStartTurn"); //Appel de l'éventuel passif se déclenchant au début de chaque tour
 	}
 		
-	applyEffect(duration,turn,end){ // Applique un effet à la pièce (voir "class Effect")
-		this.effects.push(new Effect(this,duration,turn,end));
+	applyEffect(duration,turn,end,direct){ // Applique un effet à la pièce (voir "class Effect")
+		this.effects.push(new Effect(this,duration,turn,end,direct));
 	}
 
 	showStats() { //Affiche les caractéristiques de la pièce dans une fenêtre (fw.js)
@@ -1000,6 +1008,12 @@ class Piece {
 
 		if (this.exp >= config.expLevels[this.level]) this.levelUp(this.level + 1) //si l'exp a dépassé un autre niveau, on répète l'opération
 
+	}
+	
+	updateView(){
+		if (selectedPiece = this){ //si la pièce est sélectionnée
+			this.select
+		}
 	}
 
 
@@ -1446,7 +1460,7 @@ class Reine extends Piece {
 						piece = board[ range[i][0] ][ range[i][1] ]
 						if (piece && piece.player != this.piece.player) {
 							found = true
-							consle.log(piece)//damage(piece,this.piece,50)
+							damage(piece,this.piece,50)
 						}else if (found) break
 					}
 					
@@ -1493,6 +1507,15 @@ class Reine extends Piece {
 				function(){
 					return caseInRangeZ(this.piece.cx,this.piece.cy,3,true)
 				}
+			),
+			new Spell("Petrifying",8,5,img.spell.Reine[2],0,false,this,
+				function(){
+					let range = this.getAtkRange(examineBoard,2)
+					get
+				},
+				function(target){
+					stun(target,2)
+				}
 			)
 		]
 	}
@@ -1529,40 +1552,40 @@ class Reine extends Piece {
 	return depl;
   }
 
-  getAtkRange(board){
+  getAtkRange(board,mp = this.mp){
 	var atk = [];
 
-	for (var i = 1; i < this.mp - 1; i++) {
+	for (var i = 1; i < mp - 1; i++) {
 	  var atkRt = addAtk(board,atk,this.cx + i,this.cy + i);
       if (atkRt == 2 || !atkRt) break;
     }
-    for (var i = -1; i > -this.mp + 1; i--) {
+    for (var i = -1; i > -mp + 1; i--) {
       var atkRt = addAtk(board,atk,this.cx + i,this.cy - i);
       if (atkRt == 2 || !atkRt) break;
     }
 
-    for (var i = 1; i < this.mp - 1; i++) {
+    for (var i = 1; i < mp - 1; i++) {
       var atkRt = addAtk(board,atk,this.cx - i,this.cy - i);
       if (atkRt == 2 || !atkRt) break;
     }
-	for (var i = -1; i > -this.mp + 1; i--) {
+	for (var i = -1; i > -mp + 1; i--) {
       var atkRt = addAtk(board,atk,this.cx - i,this.cy + i);
       if (atkRt == 2 || !atkRt) break;
     }
-	for (var i = 1; i < this.mp - 1; i++) {
+	for (var i = 1; i < mp - 1; i++) {
 	  var atkRt = addAtk(board,atk,this.cx,this.cy + i);
       if (atkRt == 2 || !atkRt) break;
     }
-    for (var i = -1; i > -this.mp + 1; i--) {
+    for (var i = -1; i > -mp + 1; i--) {
       var atkRt = addAtk(board,atk,this.cx,this.cy + i);
       if (atkRt == 2 || !atkRt) break;
     }
 
-    for (var i = 1; i < this.mp - 1; i++) {
+    for (var i = 1; i < mp - 1; i++) {
       var atkRt = addAtk(board,atk,this.cx + i,this.cy);
       if (atkRt == 2 || !atkRt) break;
     }
-	for (var i = -1; i > -this.mp + 1; i--) {
+	for (var i = -1; i > -mp + 1; i--) {
       var atkRt = addAtk(board,atk,this.cx + i,this.cy);
       if (atkRt == 2 || !atkRt) break;
     }
@@ -1578,7 +1601,7 @@ class Cavalier extends Piece {
 		this.spell = [
 			new Spell("Stomp",6,2,img.spell.Cavalier[0],0,false,this,
 				function(){
-					this.active = true;
+				if (this.active) {this.active = false} else this.active = true;
 				},
 				function(){
 					var spell = this;
@@ -2082,10 +2105,10 @@ class Spell { //Classe définissant un sort d'une pièce
   	this.actualCooldown = 0; //récupération actuelle
   }
 
-  cast(arg){ //lance le spell (sera a priori appelée à un moment où un autre dans onUsed() ) :
-    if (joueur[this.piece.player].mana >= this.manaCost){ //si le joueur a assez de mana
+  cast(arg,cost = this.manaCost){ //lance le spell (sera a priori appelée à un moment où un autre dans onUsed() ) :
+    if (!joueur || joueur[this.piece.player].mana >= cost){ //si le joueur a assez de mana (ou si aucun joueur n'est défini)
 		this.effect(arg) //éxécute l'effet
-		joueur[this.piece.player].mana -= this.manaCost; //retire le mana
+		if (joueur) joueur[this.piece.player].mana -= cost; //retire le mana au joueur s'il est défini
 		this.actualCooldown = this.cooldown //indique qu'il reste un certain nombre de tour avant de pouvoir l'utiliser
 	}
   }
@@ -2117,7 +2140,7 @@ class SpellIcon extends Button { //icône des spells; hérite des simples bouton
 		function(){ //callback du bouton :
 			if (guiState == ""){ //si la GUI est à son état normal (aucune opération particulière en cours)
 				if(joueur[this.spell.piece.player].mana >= this.spell.manaCost){ //si le joueur a assez de mana
-					if (this.spell.actualCooldown == 0 && !this.spell.locked){ //et si le spell n'est pas en récupération
+					if (this.spell.actualCooldown == 0 && !this.spell.locked && !this.spell.piece.cc){ //et si le spell n'est pas en récupération
 						this.spell.onUsed(this.spell); //utilisation du spell
 					}
 				} else {
@@ -2137,8 +2160,13 @@ class SpellIcon extends Button { //icône des spells; hérite des simples bouton
 				fill(255)
 				textAlign(CENTER,CENTER) ; textSize(this.h * 0.8)
 				if (this.spell.actualCooldown) text(this.spell.actualCooldown,this.x + this.w/2, this.y + this.h/2) //si en récupération, affiche le nombre de tours restants
-			}
-			if (this.spell.active){
+			} else if (joueur[this.spell.piece.player].mana < this.spell.manaCost) {
+				fill(100,100,255,100);
+				rect(this.x,this.y,this.w,this.h);
+			} else if (this.spell.piece.cc) {
+				fill(150,150,150,100);
+				rect(this.x,this.y,this.w,this.h);
+			} else if (this.spell.active){
 				fill(255,255,255,100);
 				rect(this.x,this.y,this.w,this.h);
 			}
