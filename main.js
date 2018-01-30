@@ -103,16 +103,16 @@ function addDepl(board,depl,x,y){
 	//utile dans les fonctions piece.getDepl() uniquement : ajoute un déplacement
 	//à la liste après avoir effectué tous les tests nécessaires (si la case est hors
 	//de l'échiquier ou si une pi�ce si trouve déjà
-  if (x + 1 > 0 && x < config.nCol && y + 1 > 0 && y < config.nLig && typeof board[x][y] == "undefined"){
+  if (isOnBoard(x,y) && typeof board[x][y] == "undefined"){
     depl.push([x,y]);
     } else { return false } //renvoie false si l'ajout n'a pas pu �tre effectu�
 }
 
 function addAtk(board,atk,x,y){
-	//utile dans les fonctions piece.getAtkRange() uniquement : ajoute une cible d'attaque
+	//utile dans les fonctions piece.getAtkTargets() uniquement : ajoute une cible d'attaque
 	//à la liste après avoir effectué tous les tests nécessaires (si la case est hors
 	//de l'échiquier ou s'il n'y a aucune cible possible sur cette case)
-	if (x + 1 > 0 && x < config.nCol && y + 1 > 0 && y < config.nLig){
+	if (isOnBoard(x,y)){
 		if (typeof board[x][y] != "undefined"){
 			atk.push(board[x][y]);
 			return 2; // dans le board et une pièce -> l'ajout a réussi
@@ -814,7 +814,7 @@ class Piece {
   	var callback;
 
   	//ATTAQUE
-  	var atk = this.getAtkRange(board); //Récupère les cases sur lesquelles on peut attaquer (sous forme de tableau [ [x,y], [x,y], ... ])
+  	var atk = this.getAtkTargets(board); //Récupère les cases sur lesquelles on peut attaquer (sous forme de tableau de pièces)
   	var HLCase;
 
     clearGUI("highlightCase"); //Supprime les cases colorées
@@ -832,11 +832,11 @@ class Piece {
     	}
 
     	for (var i = 0; i < atk.length; i++) { //Pour chaque case du tableau
-    			if (atk[i].player != this.player){ //si la case contient une pièce ennemie 
-    				HLCase = new HighlightCase(atk[i].cx,atk[i].cy, //On y crée une HighLlighCase
-    				color,hoverColor,this,callback);
-    				HLCase.target = atk[i];
-    			}
+    		if (atk[i].player != this.player){ //si la case contient une pièce ennemie 
+    			HLCase = new HighlightCase(atk[i].cx,atk[i].cy, //On y crée une HighLlighCase
+    			color,hoverColor,this,callback);
+    			HLCase.target = atk[i];
+    		}
     	}
     }
 
@@ -902,7 +902,7 @@ class Piece {
 	 return [];
   }
 
-  getAtkRange(board){
+  getAtkTargets(board){
 	 return [];
   }
 
@@ -1095,7 +1095,7 @@ class Pion extends Piece {
 					if (targets[i].player != this.piece.player) damage(targets[i],this.piece,20 + this.piece.kyojin * 2)
 				}
 			},
-			function() {return this.piece.getAtkRange()}
+			function() {return this.piece.getAtkTargets()}
 
 		)
     ];
@@ -1115,18 +1115,27 @@ class Pion extends Piece {
     return depl;
   }
 
-  getAtkRange(){ //fonction renvoyant les cases où il est possible de se déplacer (propre à chaque type de pièce)
+  getAtkRange(){ //fonction n'existant que pour les Pions, renvoyant les cases où il est possible d'attaquer, utile pour le getAtkTargets
 	var atk = [];
 	var direction = ((this.player == 0) ? 1 : -1);
 	var x,y;
 	for (var i = -1; i < 2;i++){
 		x = this.cx + i;
 		y = this.cy + direction;
-		if (x + 1 > 0 && x < config.nCol && y + 1 > 0 && y < config.nLig){
+		if (isOnBoard(x,y)){
 			atk.push([x,y]);
 		}
 	}
 	return atk;
+  }
+  
+  getAtkTargets(board){ //fonction renvoyant les cases où il est possible d'attaquer (propre à chaque type de pièce)
+	let range = this.getAtkRange()
+	let piece
+	for (let i = 0; i < range.length; i++) { //pour chaque case du tableau range
+		piece = board[atk[i][0],atk[i][1]] //on récupère la case du tableau board correspondant  à la case actuelle
+		if (piece &&)
+	}
   }
 
 	onStartTurn(){ //Passif se lançant au début de chaque tour
@@ -1272,7 +1281,7 @@ class Tour extends Piece {
     return depl;
   }
 
-  getAtkRange(board){
+  getAtkTargets(board){
 	var atk = [];
 	for (var i = 1; i < this.mp - 1; i++) {
 	  var atkRt = addAtk(board,atk,this.cx,this.cy + i);
@@ -1406,7 +1415,7 @@ class Fou extends Piece {
 	return depl;
   }
 
-  getAtkRange(board){
+  getAtkTargets(board){
 	var atk = [];
 
 	for (var i = 1; i < this.mp - 1; i++) {
@@ -1510,7 +1519,7 @@ class Reine extends Piece {
 			),
 			new Spell("Petrifying",8,5,img.spell.Reine[2],0,false,this,
 				function(){
-					let range = this.getAtkRange(examineBoard,2)
+					let range = this.getAtkTargets(examineBoard,2)
 					get
 				},
 				function(target){
@@ -1552,7 +1561,7 @@ class Reine extends Piece {
 	return depl;
   }
 
-  getAtkRange(board,mp = this.mp){
+  getAtkTargets(board,mp = this.mp){
 	var atk = [];
 
 	for (var i = 1; i < mp - 1; i++) {
@@ -1693,7 +1702,7 @@ class Cavalier extends Piece {
     return depl;
 	}
 
-	getAtkRange(board) {
+	getAtkTargets(board) {
     var atk = [];
 
     for (var i = -1; i < 2; i += 2) {
@@ -1800,7 +1809,7 @@ class Roi extends Piece {
   return depl;
   }
 
-  getAtkRange(board){
+  getAtkTargets(board){
     var atk = [];
 
     for (var i = 1; i < this.mp; i++) {
