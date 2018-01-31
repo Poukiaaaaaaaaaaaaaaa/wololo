@@ -1148,6 +1148,7 @@ class Pion extends Piece {
 
 	onStartTurn(){ //Passif se lançant au début de chaque tour
 		var direction = this.player;
+		this.kyojin = Math.abs(((config.nLig - 1) * -direction) + this.cy)
 		//Recalcule la valeur d'avancée (kyojin) et les stats en fonction
 		let prevMaxHP = this.maxHP;
 		this.maxHP += this.kyojin * (this.baseHP / 50);
@@ -1388,11 +1389,23 @@ class Fou extends Piece {
       ),
       new Spell("Ultrasound", 4, 5, img.spell.Fou[2], 0, false, this,
         function(){
-			this.cast()
+                    let spell = this;
+                let range = this.getRange();
+
+                    let targets = piecesInCases(range, examineBoard());
+                    targets = filterElements(targets, function(piece){if (piece.player != spell.piece.player) {return true}});
+
+                    startPieceSelectionHLC(targets, [255, 220, 220, 100], [255, 220, 220, 150],
+                        function(target){
+                            spell.cast(target);
+                        }
+                    );
         },
-        function(){
-          let range = this.getRange();
-		  console.log("oui")
+        function(target){
+                    let t = target;
+                    let spell = this;
+                    t.applyEffect(2,function(){t.addPassive("onAttacking", 
+						function(){if (Math.random() >= 0.5) {damage(this, spell.piece, Math.floor(spell.piece.atk*0.2)); return true;}})});
         },
         function(){
           return caseInRangeZ(this.piece.cx, this.piece.cy, 3);
