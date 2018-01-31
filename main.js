@@ -1388,6 +1388,7 @@ class Fou extends Piece {
       ),
       new Spell("Ultrasound", 4, 5, img.spell.Fou[2], 0, false, this,
         function(){
+<<<<<<< HEAD
                     let spell = this;
                 let range = this.getRange();
 
@@ -1405,6 +1406,13 @@ class Fou extends Piece {
                     let spell = this;
                     t.applyEffect(2,function(){t.addPassive("onAttacking", 
 						function(){if (Math.random() >= 0.5) {damage(this, spell.piece, Math.floor(spell.piece.atk*0.2)); return true;}})});
+=======
+			this.cast()
+        },
+        function(){
+          let range = this.getRange();
+		  console.log("oui")
+>>>>>>> 9cebd3c2716c8b05aa0659634894b11b9751b52c
         },
         function(){
           return caseInRangeZ(this.piece.cx, this.piece.cy, 3);
