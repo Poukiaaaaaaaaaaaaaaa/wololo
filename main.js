@@ -610,6 +610,7 @@ function preload() { //chargement des images. La fonction Preload est lancée pa
   img.spell.Roi = [];
   img.spell.Roi[0] = loadImage("img/Spells/Roi/0.png");
   img.spell.Roi[1] = loadImage("img/Spells/Roi/1.png");
+  img.spell.Roi[2] = loadImage("img/Spells/Roi/2.png");
 
   winIMG[0] = loadImage("img/Window/window_left.png");
   winIMG[1] = loadImage("img/Window/window_right.png");
@@ -667,7 +668,8 @@ function facepunch() { //hehe
   img.spell.Roi = [];
   img.spell.Roi[0] = loadImage("img/no/facepunch.jpg");
   img.spell.Roi[1] = loadImage("img/no/facepunch.jpg");
-
+  img.spell.Roi[2] = loadImage("img/no/facepunch.jpg");
+  
   winIMG[0] = loadImage("img/no/facepunch.jpg");
   winIMG[1] = loadImage("img/no/facepunch.jpg");
   startGame();
@@ -1386,10 +1388,11 @@ class Fou extends Piece {
       ),
       new Spell("Ultrasound", 4, 5, img.spell.Fou[2], 0, false, this,
         function(){
-
+			this.cast()
         },
         function(){
           let range = this.getRange();
+		  console.log("oui")
         },
         function(){
           return caseInRangeZ(this.piece.cx, this.piece.cy, 3);
@@ -1770,7 +1773,7 @@ class Roi extends Piece {
 
           return ennemy;
         }
-      )
+      ),
 	  new Spell("Projet", 5, 10, img.spell.Roi[2], 0, false, this,
         function(){
           this.cast();
@@ -1786,9 +1789,10 @@ class Roi extends Piece {
 				damage(piece,spell.piece,dmg)
 			}
 		  )
+		  heal(spell.piece,spell.piece,dmg * c)
         },
         function(){
-          return casesInRangeZ(this.piece.cx,this.piece.cy,1)
+          return caseInRangeZ(this.piece.cx,this.piece.cy,1)
         }
       )
     ]
