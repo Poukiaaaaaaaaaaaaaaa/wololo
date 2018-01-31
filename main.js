@@ -928,7 +928,6 @@ class Piece {
 			if (this[passive](arg,env) == true) return true; //la lance
 		}
 		if (this.addedPassive){
-		console.log("ok")
 			if (!this.addedPassive[passive]) {console.error(passive + "is not a valid passive event") ; return false}
 			for (let i = 0; i < this.addedPassive[passive].length; i++){
 				if (this.addedPassive[passive][i](arg,env) == true) return true
@@ -1770,6 +1769,26 @@ class Roi extends Piece {
           }
 
           return ennemy;
+        }
+      )
+	  new Spell("Projet", 5, 10, img.spell.Roi[2], 0, false, this,
+        function(){
+          this.cast();
+        },
+        function(){
+          let range = this.getRange();
+          let board = examineBoard();
+		  let spell = this, c = 0, dmg = 15
+          let pieces = filterElements(piecesInCases(range, board), function(piece){ if (piece.player == spell.piece.player) return true})
+          selectPieces(pieces,
+			function(piece){
+				c++
+				damage(piece,spell.piece,dmg)
+			}
+		  )
+        },
+        function(){
+          return casesInRangeZ(this.piece.cx,this.piece.cy,1)
         }
       )
     ]
