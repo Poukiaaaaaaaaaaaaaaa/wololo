@@ -610,6 +610,7 @@ function preload() { //chargement des images. La fonction Preload est lancée pa
   img.spell.Roi = [];
   img.spell.Roi[0] = loadImage("img/Spells/Roi/0.png");
   img.spell.Roi[1] = loadImage("img/Spells/Roi/1.png");
+  img.spell.Roi[2] = loadImage("img/Spells/Roi/2.png");
 
   winIMG[0] = loadImage("img/Window/window_left.png");
   winIMG[1] = loadImage("img/Window/window_right.png");
@@ -667,7 +668,8 @@ function facepunch() { //hehe
   img.spell.Roi = [];
   img.spell.Roi[0] = loadImage("img/no/facepunch.jpg");
   img.spell.Roi[1] = loadImage("img/no/facepunch.jpg");
-
+  img.spell.Roi[2] = loadImage("img/no/facepunch.jpg");
+  
   winIMG[0] = loadImage("img/no/facepunch.jpg");
   winIMG[1] = loadImage("img/no/facepunch.jpg");
   startGame();
@@ -1386,10 +1388,23 @@ class Fou extends Piece {
       ),
       new Spell("Ultrasound", 4, 5, img.spell.Fou[2], 0, false, this,
         function(){
+                    let spell = this;
+                let range = this.getRange();
 
+                    let targets = piecesInCases(range, examineBoard());
+                    targets = filterElements(targets, function(piece){if (piece.player != spell.piece.player) {return true}});
+
+                    startPieceSelectionHLC(targets, [255, 220, 220, 100], [255, 220, 220, 150],
+                        function(target){
+                            spell.cast(target);
+                        }
+                    );
         },
-        function(){
-          let range = this.getRange();
+        function(target){
+                    let t = target;
+                    let spell = this;
+                    t.applyEffect(2,function(){t.addPassive("onAttacking", 
+						function(){if (Math.random() >= 0.5) {damage(this, spell.piece, Math.floor(spell.piece.atk*0.2)); return true;}})});
         },
         function(){
           return caseInRangeZ(this.piece.cx, this.piece.cy, 3);
@@ -1770,7 +1785,7 @@ class Roi extends Piece {
 
           return ennemy;
         }
-      )
+      ),
 	  new Spell("Projet", 5, 10, img.spell.Roi[2], 0, false, this,
         function(){
           this.cast();
@@ -1786,9 +1801,10 @@ class Roi extends Piece {
 				damage(piece,spell.piece,dmg)
 			}
 		  )
+		  heal(spell.piece,spell.piece,dmg * c)
         },
         function(){
-          return casesInRangeZ(this.piece.cx,this.piece.cy,1)
+          return caseInRangeZ(this.piece.cx,this.piece.cy,1)
         }
       )
     ]
