@@ -1020,8 +1020,8 @@ class Piece {
 	}
 	
 	updateView(){
-		if (selectedPiece = this){ //si la pièce est sélectionnée
-			this.select
+		if (selectedPiece == this){ //si la pièce est sélectionnée
+			this.select()
 		}
 	}
 
@@ -1389,23 +1389,22 @@ class Fou extends Piece {
       ),
       new Spell("Ultrasound", 4, 5, img.spell.Fou[2], 0, false, this,
         function(){
-                    let spell = this;
-                let range = this.getRange();
+          let spell = this;
+          let range = this.getRange();
 
-                    let targets = piecesInCases(range, examineBoard());
-                    targets = filterElements(targets, function(piece){if (piece.player != spell.piece.player) {return true}});
+          let targets = piecesInCases(range, examineBoard());
+          targets = filterElements(targets, function(piece){if (piece.player != spell.piece.player) {return true}});
 
-                    startPieceSelectionHLC(targets, [255, 220, 220, 100], [255, 220, 220, 150],
-                        function(target){
-                            spell.cast(target);
-                        }
-                    );
+          startPieceSelectionHLC(targets, [255, 220, 220, 100], [255, 220, 220, 150],
+            function(target){
+              spell.cast(target);
+            }
+          );
         },
         function(target){
-                    let t = target;
-                    let spell = this;
-                    t.applyEffect(2,function(){t.addPassive("onAttacking", 
-						function(){if (Math.random() >= 0.5) {damage(this, spell.piece, Math.floor(spell.piece.atk*0.2)); return true;}})});
+          let spell = this;
+          target.applyEffect(2,function(){target.addPassive("onAttacking",
+                    function(){if (Math.random() >= 0.5) {damage(this, spell.piece, Math.floor(spell.piece.atk*0.2)); return true;}})});
         },
         function(){
           return caseInRangeZ(this.piece.cx, this.piece.cy, 3);
@@ -1537,7 +1536,7 @@ class Reine extends Piece {
 					
 					startPieceSelectionHLC(targets, [0,0,0,150], [0,0,0,200],
 						function(selected){
-							stun(selected,2)
+							this.cast(selected)
 						}
 					)
 				},
