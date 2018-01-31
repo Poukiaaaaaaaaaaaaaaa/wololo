@@ -1,9 +1,11 @@
 // CHESS++ ISN PROJECT
 // Téo Tinarrage // Amaël Marquez
 // TODO (éléments de jeu):
-// - Système de monnaie
+// - Système de monnaie -> Objets
+// - Pièces additionnelles
 // TODO (éléments internes)
 // - Ajout de propriétés libre lors de la création des HighLlighCase de séléction [start__SelectionHLC()]
+// - Added passives statiques (conservés au début du tour)
 
 //Disclaimer :
 //Si ChessPP est actuellement fonctionnel bien que légèrement incomplet, il reste
@@ -926,6 +928,7 @@ class Piece {
 			if (this[passive](arg,env) == true) return true; //la lance
 		}
 		if (this.addedPassive){
+		console.log("ok")
 			if (!this.addedPassive[passive]) {console.error(passive + "is not a valid passive event") ; return false}
 			for (let i = 0; i < this.addedPassive[passive].length; i++){
 				if (this.addedPassive[passive][i](arg,env) == true) return true
@@ -935,7 +938,7 @@ class Piece {
 
 	addPassive(event,passive){ //Ajoute un passif à la pièce
 		//event : l'évènement durant lequel le passif se déclenchera ; passive : la fonction du passif
-		this.addedPassive[event].push(passive)
+		this.addedPassive[event].push(passive.bind(this))
 	}
 
 	startTurnPre(){ //éxécuté au début du tour avant startTurn (doit être exécuté pour toutes les pièces avant qu'on commence à éxécuter les StartTurn)
