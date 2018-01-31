@@ -108,18 +108,23 @@ function addDepl(board,depl,x,y){
     } else { return false } //renvoie false si l'ajout n'a pas pu �tre effectu�
 }
 
-function addAtk(board,atk,x,y){
-	//utile dans les fonctions piece.getAtkTargets() uniquement : ajoute une cible d'attaque
+function addAtkTarget(source,board,atk,x,y){
+	//utile dans les fonctions piece.getAtkTargets() uniquement : ajoute une pièce
 	//à la liste après avoir effectué tous les tests nécessaires (si la case est hors
-	//de l'échiquier ou s'il n'y a aucune cible possible sur cette case)
+	//de l'échiquier ou s'il n'y a aucune pièce ennemie sur cette case.
+	//Ainsi, cette fonction ne sert qu'à effectuer les tests utilisés par la plupart des getAtkTargets
 	if (isOnBoard(x,y)){
+		if (!board) {atk.push([x,y]) ; return 0} //Si le board n'est pas fourni (on considère donc qu'on veut la portée d'attaque brute), on renvoie juste la case
 		if (typeof board[x][y] != "undefined"){
-			atk.push(board[x][y]);
-			return 2; // dans le board et une pièce -> l'ajout a réussi
+			if (board[x][y].player != source.player){
+				atk.push(board[x][y])
+				return 3 //une pièce ennemie est détectée et ajoutée au tableau
+			}
+			return 2; // dans le board et une pièce 
 		}
-		return 1; // dans le board mais pas de pièce
+		return 0; // dans le board mais pas de pièce
 	}
-	return 0; // hors du board
+	return 1; // hors du board
 }
 
 function getArrayID(array,element){
@@ -1090,12 +1095,12 @@ class Pion extends Piece {
 				this.cast()
 			},
 			function(){
-				let targets = piecesInCases( this.getRange(), examineBoard())
+				let targets = piecesInCases(this.getRange(), examineBoard())
 				for (var i = 0; i < targets.length; i++){  //on n'utilise pas selectPiecesConditional car l'action et la condition sont très simples
 					if (targets[i].player != this.piece.player) damage(targets[i],this.piece,20 + this.piece.kyojin * 2)
 				}
 			},
-			function() {return this.piece.getAtkTargets()}
+			function() {return this.piece.getAtkRange()}
 
 		)
     ];
@@ -1130,12 +1135,11 @@ class Pion extends Piece {
   }
   
   getAtkTargets(board){ //fonction renvoyant les cases où il est possible d'attaquer (propre à chaque type de pièce)
-	let range = this.getAtkRange()
-	let piece
+	let range = this.getAtkRange(),atk = []
 	for (let i = 0; i < range.length; i++) { //pour chaque case du tableau range
-		piece = board[atk[i][0],atk[i][1]] //on récupère la case du tableau board correspondant  à la case actuelle
-		if (piece &&)
+		addAtkTarget(this,board,atk,range[i][0],range[i][1])
 	}
+	return atk
   }
 
 	onStartTurn(){ //Passif se lançant au début de chaque tour
@@ -1284,21 +1288,17 @@ class Tour extends Piece {
   getAtkTargets(board){
 	var atk = [];
 	for (var i = 1; i < this.mp - 1; i++) {
-	  var atkRt = addAtk(board,atk,this.cx,this.cy + i);
-      if (atkRt == 2 || !atkRt) break;
+		if (addAtkTarget(this,board,atk,this.cx,this.cy + i)) break
     }
-    for (var i = -1; i > -this.mp + 1; i--) {
-      var atkRt = addAtk(board,atk,this.cx,this.cy + i);
-      if (atkRt == 2 || !atkRt) break;
+    for (var i = 1; i < this.mp - 1; i++) {
+		if (addAtkTarget(this,board,atk,this.cx,this.cy - i)) break
     }
 
     for (var i = 1; i < this.mp - 1; i++) {
-      var atkRt = addAtk(board,atk,this.cx + i,this.cy);
-      if (atkRt == 2 || !atkRt) break;
+		if (addAtkTarget(this,board,atk,this.cx + i,this.cy)) break
     }
-	for (var i = -1; i > -this.mp + 1; i--) {
-      var atkRt = addAtk(board,atk,this.cx + i,this.cy);
-      if (atkRt == 2 || !atkRt) break;
+	for (var i = 1; i < this.mp - 1; i++) {
+		if (addAtkTarget(this,board,atk,this.cx - i,this.cy)) break
     }
 
     return atk;
@@ -1419,21 +1419,17 @@ class Fou extends Piece {
 	var atk = [];
 
 	for (var i = 1; i < this.mp - 1; i++) {
-	  var atkRt = addAtk(board,atk,this.cx + i,this.cy + i);
-      if (atkRt == 2 || !atkRt) break;
+		if (addAtkTarget(this,board,atk,this.cx + i,this.cy + i)) break
     }
-    for (var i = -1; i > -this.mp + 1; i--) {
-      var atkRt = addAtk(board,atk,this.cx + i,this.cy - i);
-      if (atkRt == 2 || !atkRt) break;
+    for (var i = 1; i < this.mp - 1; i++) {
+		if (addAtkTarget(this,board,atk,this.cx - i,this.cy + i)) break
     }
 
     for (var i = 1; i < this.mp - 1; i++) {
-      var atkRt = addAtk(board,atk,this.cx - i,this.cy - i);
-      if (atkRt == 2 || !atkRt) break;
+		if (addAtkTarget(this,board,atk,this.cx + i,this.cy - i)) break
     }
-	for (var i = -1; i > -this.mp + 1; i--) {
-      var atkRt = addAtk(board,atk,this.cx - i,this.cy + i);
-      if (atkRt == 2 || !atkRt) break;
+	for (var i = 1; i < this.mp - 1; i++) {
+		if (addAtkTarget(this,board,atk,this.cx - i,this.cy - i)) break
     }
 
     return atk;
@@ -1519,11 +1515,20 @@ class Reine extends Piece {
 			),
 			new Spell("Petrifying",8,5,img.spell.Reine[2],0,false,this,
 				function(){
-					let range = this.getAtkTargets(examineBoard,2)
-					get
+					let targets = this.piece.getAtkTargets(examineBoard(),2)
+					
+					startPieceSelectionHLC(targets, [0,0,0,150], [0,0,0,200],
+						function(selected){
+							stun(selected,2)
+						}
+					)
 				},
 				function(target){
 					stun(target,2)
+				},
+				function(){
+					return this.piece.getAtkTargets(undefined,2) //on appelle la fonction renvoyant les cibles d'attaque sans préciser le board :
+					//la fonciton addAtkTarget (utilisée dans cette méthode) réagira en renvoyant toutes les cases dans la portée d'attaque, sans tests d'interactions
 				}
 			)
 		]
@@ -1561,42 +1566,34 @@ class Reine extends Piece {
 	return depl;
   }
 
-  getAtkTargets(board,mp = this.mp){
+  getAtkTargets(board,mp = this.mp - 2){
 	var atk = [];
 
-	for (var i = 1; i < mp - 1; i++) {
-	  var atkRt = addAtk(board,atk,this.cx + i,this.cy + i);
-      if (atkRt == 2 || !atkRt) break;
+	for (var i = 1; i < mp + 1; i++) {
+		if (addAtkTarget(this,board,atk,this.cx,this.cy + i)) break
     }
-    for (var i = -1; i > -mp + 1; i--) {
-      var atkRt = addAtk(board,atk,this.cx + i,this.cy - i);
-      if (atkRt == 2 || !atkRt) break;
+    for (var i = 1; i < mp + 1; i++) {
+		if (addAtkTarget(this,board,atk,this.cx,this.cy - i)) break
     }
 
-    for (var i = 1; i < mp - 1; i++) {
-      var atkRt = addAtk(board,atk,this.cx - i,this.cy - i);
-      if (atkRt == 2 || !atkRt) break;
+    for (var i = 1; i < mp + 1; i++) {
+		if (addAtkTarget(this,board,atk,this.cx + i,this.cy)) break
     }
-	for (var i = -1; i > -mp + 1; i--) {
-      var atkRt = addAtk(board,atk,this.cx - i,this.cy + i);
-      if (atkRt == 2 || !atkRt) break;
+	for (var i = 1; i < mp + 1; i++) {
+		if (addAtkTarget(this,board,atk,this.cx - i,this.cy)) break
     }
-	for (var i = 1; i < mp - 1; i++) {
-	  var atkRt = addAtk(board,atk,this.cx,this.cy + i);
-      if (atkRt == 2 || !atkRt) break;
+	for (var i = 1; i < mp + 1; i++) {
+		if (addAtkTarget(this,board,atk,this.cx + i,this.cy + i)) break
     }
-    for (var i = -1; i > -mp + 1; i--) {
-      var atkRt = addAtk(board,atk,this.cx,this.cy + i);
-      if (atkRt == 2 || !atkRt) break;
+    for (var i = 1; i < mp + 1; i++) {
+		if (addAtkTarget(this,board,atk,this.cx - i,this.cy + i)) break
     }
 
-    for (var i = 1; i < mp - 1; i++) {
-      var atkRt = addAtk(board,atk,this.cx + i,this.cy);
-      if (atkRt == 2 || !atkRt) break;
+    for (var i = 1; i < mp + 1; i++) {
+		if (addAtkTarget(this,board,atk,this.cx + i,this.cy - i)) break
     }
-	for (var i = -1; i > -mp + 1; i--) {
-      var atkRt = addAtk(board,atk,this.cx + i,this.cy);
-      if (atkRt == 2 || !atkRt) break;
+	for (var i = 1; i < mp + 1; i++) {
+		if (addAtkTarget(this,board,atk,this.cx - i,this.cy - i)) break
     }
 
     return atk;
@@ -1703,25 +1700,22 @@ class Cavalier extends Piece {
 	}
 
 	getAtkTargets(board) {
-    var atk = [];
+		var atk = [];
 
-    for (var i = -1; i < 2; i += 2) {
-      var atkRt = addAtk(board,atk,this.cx + i,this.cy + 2);
-        if (atkRt == 2 || !atkRt) continue;
+		for (var i = -1; i < 2; i += 2) {
+			addAtkTarget(this,board,atk,this.cx + i,this.cy + 2)
+	   
 		}
 		for (var i = -1; i < 2; i += 2) {
-      var atkRt = addAtk(board,atk,this.cx + 2,this.cy + i);
-        if (atkRt == 2 || !atkRt) continue;
+			addAtkTarget(this,board,atk,this.cx + 2,this.cy + i)
+		 
 		}
-    for (var i = -1; i < 2; i += 2) {
-      var atkRt = addAtk(board,atk,this.cx + i,this.cy - 2);
-        if (atkRt == 2 || !atkRt) continue;
-    }
-    for (var i = -1; i < 2; i += 2) {
-      var atkRt = addAtk(board,atk,this.cx - 2,this.cy + i);
-        if (atkRt == 2 || !atkRt) continue;
-    }
-
+		for (var i = -1; i < 2; i += 2) {
+			addAtkTarget(this,board,atk,this.cx + i,this.cy - 2)
+		}
+		for (var i = -1; i < 2; i += 2) {
+			addAtkTarget(this,board,atk,this.cx - 2,this.cy + i)
+		}
 		return atk;
 	}
 }
@@ -1777,78 +1771,66 @@ class Roi extends Piece {
     ]
   }
 
-  getDepl(board) {
-    var depl = [];
+	getDepl(board) {
+		var depl = [];
 
-    for (var i = 1; i < this.mp; i++) {
-      if (addDepl(board,depl,this.cx + i,this.cy + i) == false) break;
-  }
-  for (var i = -1; i > -this.mp; i--) {
-      if (addDepl(board,depl,this.cx + i,this.cy - i) == false) break;
-  }
-  for (var i = 1; i < this.mp; i++) {
-    if (addDepl(board,depl,this.cx - i,this.cy - i) == false) break;
-  }
-  for (var i = -1; i > -this.mp; i--) {
-      if (addDepl(board,depl,this.cx - i,this.cy + i) == false) break;
-  }
-  for (var i = 1; i < this.mp + 1; i++) {
-    if (addDepl(board,depl,this.cx,this.cy + i) == false) break;
-    }
-    for (var i = -1; i > -this.mp - 1; i--) {
-      if (addDepl(board,depl,this.cx,this.cy + i) == false) break;
-    }
+		for (var i = 1; i < this.mp; i++) {
+			if (addDepl(board,depl,this.cx + i,this.cy + i) == false) break;
+		}
+		for (var i = -1; i > -this.mp; i--) {
+			if (addDepl(board,depl,this.cx + i,this.cy - i) == false) break;
+		}
+		for (var i = 1; i < this.mp; i++) {
+			if (addDepl(board,depl,this.cx - i,this.cy - i) == false) break;
+		}
+		for (var i = -1; i > -this.mp; i--) {
+			if (addDepl(board,depl,this.cx - i,this.cy + i) == false) break;
+		}
+		for (var i = 1; i < this.mp + 1; i++) {
+			if (addDepl(board,depl,this.cx,this.cy + i) == false) break;
+		}
+		for (var i = -1; i > -this.mp - 1; i--) {
+			if (addDepl(board,depl,this.cx,this.cy + i) == false) break;
+		}
+		for (var i = 1; i < this.mp + 1; i++) {
+			if (addDepl(board,depl,this.cx + i,this.cy) == false) break;
+		}
+		for (var i = -1; i > -this.mp - 1; i--) {
+			if (addDepl(board,depl,this.cx + i,this.cy) == false) break;
+		}
 
-    for (var i = 1; i < this.mp + 1; i++) {
-      if (addDepl(board,depl,this.cx + i,this.cy) == false) break;
-    }
-  for (var i = -1; i > -this.mp - 1; i--) {
-      if (addDepl(board,depl,this.cx + i,this.cy) == false) break;
-    }
+	return depl;
+	}
 
-  return depl;
-  }
+    getAtkTargets(board,mp = this.mp){
+		var atk = [];
 
-  getAtkTargets(board){
-    var atk = [];
-
-    for (var i = 1; i < this.mp; i++) {
-      var atkRt = addAtk(board,atk,this.x + i,this.y + i);
-        if (atkRt == 2 || !atkRt) break;
-      }
-      for (var i = -1; i > -this.mp; i--) {
-        var atkRt = addAtk(board,atk,this.x + i,this.y - i);
-        if (atkRt == 2 || !atkRt) break;
-      }
-
-      for (var i = 1; i < this.mp; i++) {
-        var atkRt = addAtk(board,atk,this.x - i,this.y - i);
-        if (atkRt == 2 || !atkRt) break;
-      }
-    for (var i = -1; i > -this.mp; i--) {
-        var atkRt = addAtk(board,atk,this.x - i,this.y + i);
-        if (atkRt == 2 || !atkRt) break;
-      }
-    for (var i = 1; i < this.mp; i++) {
-      var atkRt = addAtk(board,atk,this.x,this.y + i);
-        if (atkRt == 2 || !atkRt) break;
-      }
-      for (var i = -1; i > -this.mp; i--) {
-        var atkRt = addAtk(board,atk,this.x,this.y + i);
-        if (atkRt == 2 || !atkRt) break;
-      }
-
-      for (var i = 1; i < this.mp; i++) {
-        var atkRt = addAtk(board,atk,this.x + i,this.y);
-        if (atkRt == 2 || !atkRt) break;
-      }
-    for (var i = -1; i > -this.mp; i--) {
-        var atkRt = addAtk(board,atk,this.x + i,this.y);
-        if (atkRt == 2 || !atkRt) break;
-      }
-
-      return atk;
-  }
+		for (var i = 1; i < mp + 1; i++) {
+			if (addAtkTarget(this,board,atk,this.cx,this.cy + i)) break
+		}
+		for (var i = 1; i < mp + 1; i++) {
+			if (addAtkTarget(this,board,atk,this.cx,this.cy - i)) break
+		}
+		for (var i = 1; i < mp + 1; i++) {
+			if (addAtkTarget(this,board,atk,this.cx + i,this.cy)) break
+		}
+		for (var i = 1; i < mp + 1; i++) {
+			if (addAtkTarget(this,board,atk,this.cx - i,this.cy)) break
+		}
+		for (var i = 1; i < mp; i++) {
+			if (addAtkTarget(this,board,atk,this.cx + i,this.cy + i)) break
+		}
+		for (var i = 1; i < mp; i++) {
+			if (addAtkTarget(this,board,atk,this.cx - i,this.cy + i)) break
+		}
+		for (var i = 1; i < mp; i++) {
+			if (addAtkTarget(this,board,atk,this.cx + i,this.cy - i)) break
+		}
+		for (var i = 1; i < mp; i++) {
+			if (addAtkTarget(this,board,atk,this.cx - i,this.cy - i)) break
+		}
+		return atk;
+	}
 
   onStartTurn() {
     if (this.hp < this.maxHP * 20 / 100) {
@@ -2157,28 +2139,26 @@ class SpellIcon extends Button { //icône des spells; hérite des simples bouton
 				}
 			}
 		});
-
-		this.spell = spell;
-		this.baseDraw = this.draw;
-
-		this.draw = function(){ //Affiche l'icône
-			this.baseDraw() //draw de base du bouton (gère notament le hovercallback)
-			if (this.spell.actualCooldown || this.spell.locked){ //si le spell est bloqué ou en récupération, le grise
-				fill([0,0,0,150])
-				rect(this.x,this.y,this.w,this.h)
-				fill(255)
-				textAlign(CENTER,CENTER) ; textSize(this.h * 0.8)
-				if (this.spell.actualCooldown) text(this.spell.actualCooldown,this.x + this.w/2, this.y + this.h/2) //si en récupération, affiche le nombre de tours restants
-			} else if (joueur[this.spell.piece.player].mana < this.spell.manaCost) {
-				fill(100,100,255,100);
-				rect(this.x,this.y,this.w,this.h);
-			} else if (this.spell.piece.cc) {
-				fill(150,150,150,100);
-				rect(this.x,this.y,this.w,this.h);
-			} else if (this.spell.active){
-				fill(255,255,255,100);
-				rect(this.x,this.y,this.w,this.h);
-			}
+		this.spell = spell
+	}
+	
+	draw(){ //Affiche l'icône
+		super.draw() //draw de base du bouton (gère notament le hovercallback)
+		if (this.spell.actualCooldown || this.spell.locked){ //si le spell est bloqué ou en récupération, le grise
+			fill([0,0,0,150])
+			rect(this.x,this.y,this.w,this.h)
+			fill(255)
+			textAlign(CENTER,CENTER) ; textSize(this.h * 0.8)
+			if (this.spell.actualCooldown) text(this.spell.actualCooldown,this.x + this.w/2, this.y + this.h/2) //si en récupération, affiche le nombre de tours restants
+		} else if (joueur[this.spell.piece.player].mana < this.spell.manaCost) {
+			fill(100,100,255,100);
+			rect(this.x,this.y,this.w,this.h);
+		} else if (this.spell.piece.cc) {
+			fill(150,150,150,100);
+			rect(this.x,this.y,this.w,this.h);
+		} else if (this.spell.active){
+			fill(255,255,255,100);
+			rect(this.x,this.y,this.w,this.h);
 		}
 	}
 }
@@ -2359,18 +2339,25 @@ function mouseClicked(){ //Fonction lancée par p5 à chaque clic
 var fpunch = 0, isFacepunch = false;
 
 function keyPressed() { //hehe
-  if (keyCode == 70 && !fpunch) fpunch = 1;                                                   //f
-  if (keyCode == 65 && fpunch == 1) fpunch = 2;                                               //a
-  if (keyCode == 67 && fpunch == 2) fpunch = 3;                                               //c
-  if (keyCode == 69 && fpunch == 3) fpunch = 4;                                               //e
-  if (keyCode == 80 && fpunch == 4) fpunch = 5;                                               //p
-  if (keyCode == 85 && fpunch == 5) fpunch = 6;                                               //u
-  if (keyCode == 78 && fpunch == 6) fpunch = 7;                                               //n
-  if (keyCode == 67 && fpunch == 7) fpunch = 8;                                               //c
-  if (keyCode == 72 && fpunch == 8) {                                                         //h
-    fpunch = 0; isFacepunch = isFacepunch ? false : true;
-    if (isFacepunch) facepunch();
-    if (!isFacepunch) deFacepunch();
-  }
+	if (keyCode == 70 && !fpunch) fpunch = 1;                                                   //f
+	if (keyCode == 65 && fpunch == 1) fpunch = 2;                                               //a
+	if (keyCode == 67 && fpunch == 2) fpunch = 3;                                               //c
+	if (keyCode == 69 && fpunch == 3) fpunch = 4;                                               //e
+	if (keyCode == 80 && fpunch == 4) fpunch = 5;                                               //p
+	if (keyCode == 85 && fpunch == 5) fpunch = 6;                                               //u
+	if (keyCode == 78 && fpunch == 6) fpunch = 7;                                               //n
+	if (keyCode == 67 && fpunch == 7) fpunch = 8;                                               //c
+	if (keyCode == 72 && fpunch == 8) {                                                         //h
+		punch = 0; isFacepunch = isFacepunch ? false : true;
+		if (isFacepunch) facepunch();
+		if (!isFacepunch) deFacepunch();
+	}
+	  
+	if (keyCode == 69) joueur[1 - playerTurn].startTurn()
+	if (keyCode == 73) {
+		if (selectedPiece) {
+			selectedPiece.showStats(); //on affiche les caractéristique de cette pièce
+		}
+	}
 }
 // end of main functions

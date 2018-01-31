@@ -32,7 +32,7 @@
 				Les pièces sont à première vue les mêmes que pour un jeu d'échecs classique.
 				Elles présentent cependant de nombreuses caractéristiques supplémentaires.
 				<ul>
-					<li><h3>Points de vie</h2>
+					<li><h3>Points de vie</h3>
 						<p>
 							Dans Chess++, les pièces ne sont pas toutes détruites en un coup.
 							Chaque pièce possède un certain nombre de points de vie, réduits
@@ -41,7 +41,7 @@
 							Les PV sont indiqués par la jauge située sous chaque pièce.
 
 						</p>
-					<li><h3>Déplacements</h2>
+					<li><h3>Déplacements</h3>
 						<p>
 							Les déplacements sont probablement la partie la plus proche des échecs
 							classiques : la manière dont chaque pièce peut se déplacer dépend de sa
@@ -49,19 +49,25 @@
 							déplacement coûtant 3 points de mana.
 							Lorsqu'une pièce est sélectionnée, les cases où il est possible de la déplacer sont bleutées, il suffit alors de cliquer dessus pour s'y déplacer.
 						</p>
-					<li><h3>Attaque</h2>
+					<li><h3>Attaque</h3>
 						<p>
 							Contrairement aux échecs classiques, attaquer une pièce ennemie (en plus de ne pas forcément la tuer) n'impique pas de se déplacer.
 							Les attaques se font donc à distance. Il n'est possible d'attaquer qu'une seule fois par tour, chaque
 							attaque coûtant 5 points de mana.
 							Lorsqu'une pièce est sélectionnée, les pièces qu'elle peut attaquer sont indiquées en rouge, il suffit alors de cliquer dessus pour les attaquer.
 						</p>
-					<li><h3>Sorts</h2>
+					<li><h3>Sorts</h3>
 						<p>
 							Chaque pièce possède une certain nombre de sorts, d'effets divers.<br/>
 							Les sorts actifs peuvent être utilisés durant le tour,
 							coûtent une quantité variable de mana, et possèdent un délai de récupération, devenant inutilisables jusqu'à la fin de ce délai.<br/>
 							Les sorts passifs s'activent d'eux mêmes à divers moments (lorque la pièce est attaquée, se déplace, etc)
+						</p>
+					<li><h3>Expérience</h3>
+						<p>
+							Au cours d'une partie (principalement en tuant des pièces), chaque pièce peut gagner en expérience.<br/>
+							A partir de certains paliers d'expérience, un pièce gagne un niveau, chaque montée de niveau augmentant les statistiques <br/> 
+							(Points de vie, attaque) de la pièce ; de plus, certains sorts ne sont utilisables qu'à partir d'un certain niveau.
 						</p>
 				</ul>
 
@@ -91,7 +97,6 @@
 						<li><b>Rise Of The Soldier</b>: (une utilisation tous les 5 tours) La tour invoque un pion ayant les même caractéristiques que les pions normaux et disparaissant au bout de 4 tours.</li>
 						<li><b>Catapult</b>: (une utilisation tous les 2 tours) La tour un projectile sur une pièce éloignée, lui infligeant des dégats. Ce sort ne possède pas de ligne de vue.</li>
 					</ul><br/>
-					<b>- Sort Passif</b>: (wip) La tour réduit dans une zone autour d'elle les dégats infligés par les pièces ennemies.
 					</p>
 				</li>
 				<li><h3>Cavalier</h3><img src="../img/Pieces/cavalier_blanc.png" alt="" align="middle" width="100" height="100">
@@ -99,9 +104,9 @@
 					<p><b>- Description</b>: Le cavalier (dans l'idée originale) est un pièce relativement mobile, possédant des sort de déplacement et pouvant améliorer le mouvement des pièces alliées.<br/>
 						<b>- Sorts</b>: Le cavalier possède 3 sorts:<br/>
 						<ul>
-							<li><b>Stomp</b>: (une utilisation tous les 2 tours) Après utilisation, le prochain déplacement du cavalier infligera des dégats de une zone.</li>
-							<li><b>Charge</b>: (une utilisation par tour) Le cavalier traverse une pièce lui infligeant des dégats et se positionnant derrière elle.</li>
-							<li><b>En-Chasse</b>: (une utilisation tous les 3 tours) Le cavalier augment de 1 les points de déplacements des pièces alliées proches pour 2 tours.</li>
+							<li><b>Stomp</b>: (une utilisation tous les 2 tours) Après utilisation, le prochain déplacement du cavalier infligera des dégats dans une zone.</li>
+							<li><b>Charge</b>: (une utilisation par tour) Le cavalier traverse une pièce, lui infligeant des dégats et se positionnant derrière elle.</li>
+							<li><b>En-Chasse</b>: (une utilisation tous les 3 tours) Le cavalier augmente de 1 les points de déplacements des pièces alliées proches pour 2 tours.</li>
 						</ul><br/>
 						<b>- Sort Passif</b>: Après avoir tué une pièce ennemie, le cavalier peut se déplacer une fois de plus.
 					</p>
@@ -112,7 +117,7 @@
 						<b>- Sorts</b>: Le fou possède 3 sorts:<br/>
 						<ul>
 							<li><b>Madness</b>: (une utilisation par tour) Le fou se téléporte sur une case aléatoire à proximité et inflige des dégats de zone.</li>
-							<li><b>Echo</b>: (une utilisation tous les 3 tours) Le fou frappe la pièce ennemie sélectionnée et les dégats re bondissent sur une des pièces adjacentes (s'il y en a).</li>
+							<li><b>Echo</b>: (une utilisation tous les 3 tours) Le fou frappe la pièce ennemie sélectionnée et les dégats rebondissent sur une des pièces adjacentes (s'il y en a).</li>
 							<li><b>Ultrasound</b>: (une utilisation tous les 5 tours) Le fou étourdit une pièce pendant 1 tour, une pièce étourdie a 1 chance sur 2 de s'infliger des dégats à elle même en attaquant.</li>
 						</ul><br/>
 						<b>- Sort Passif</b>: Lorsque le fou est attaqué, il a 1 chance sur 2 d'esquiver si les dégats sont faibles.
@@ -124,8 +129,9 @@
 						<br/><b>- Sorts</b>: La reine possède 3 sorts:<br/>
 						<ul>
 							<li><b>Météore</b>: (une utilisation tous les 4 tours) Un météore s'écrase sur le plateau, infligeant des dégats sur un carré de 3 cases de côté.</li>
-							<li><b>Thunderbolt</b>: (une utilisation tous les 3 tours) La reine inflige des dégats sur une ligne verticale en face d'elle.</li>
-							<li><b>Petrifying Wave</b>: (une utilisation tous les 5 tours) Le reine immobilise une pièce ennemie pendant 1 tour.</li>
+							<li><b>Thunderbolt</b>: (une utilisation tous les 3 tours) La reine inflige des dégats sur une ligne verticale devant elle. Si le thunderbolt rencontre une case vide ou une pièce alliée après 
+							avoir touchée une pièce ennemie, il s'arrêtera : seul le premier groupe de pièces ennemies, en partant de la reine, est touché.  </li>
+							<li><b>Petrifying Wave</b>: (une utilisation tous les 5 tours) La reine immobilise une pièce ennemie pendant 2 tours.</li>
 						</ul><br/>
 						<b>- Sort Passif</b>: Lorsque la reine attaque, elle se régénère une portion des dégats infligés.
 					</p>
@@ -135,7 +141,7 @@
 				<p><b>- Description</b>: Le roi, comme dans les échecs classiques, doit tout faire pour se préserver. Il possède pour cela une panoplie de sorts pour la plupart très intéressants.</br>
 					<br/><b>- Sorts</b>: Le roi possède 2 sorts:<br/>
 					<ul>
-						<li><b>Arrêtez de vous battez</b>: Le roi régénère les points de vie de pièces allièes proche.</li>
+						<li><b>Arrêtez de vous battez</b>: Le roi régénère les points de vie de pièces alliées proche.</li>
 						<li><b>Colère Royale</b>: Le roi inflige 1 point de dégats à une pièce ennemie aléatoire.</li>
 						<li><b>Emmanuel Macron</b>: Le roi draine les points de vie de ses alliés à proximité.</li>
 					</ul><br/>
