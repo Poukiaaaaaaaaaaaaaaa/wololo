@@ -1635,7 +1635,8 @@ class Cavalier extends Piece {
 								if (piece.player == spell.piece.player) return false;
 								let tx = spell.piece.cx + (piece.cx - spell.piece.cx) * 2;
 								let ty = spell.piece.cy + (piece.cy - spell.piece.cy) * 2;
-								if (isOnBoard(tx,ty)) if (board[tx][ty]) return false;
+								if (!isOnBoard(tx,ty)) return false
+								if (board[tx][ty]) return false;
 								return true;
 							}
 						]
