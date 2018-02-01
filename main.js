@@ -442,7 +442,7 @@ var titleView = { //Objet contenant plusieurs fonctions : chacune sert à initia
 			new Button("hud",img.title[6],config.canvasW/4 * 3 - helpButtonS/2,config.canvasH/5*3 - helpButtonS / 2,helpButtonS,helpButtonS,  //Bouton d'aide
 				function(){fill([200,200,200,50]); rect(this.x,this.y,this.w,this.h,config.unit*3)},
 				function(){let win = window.open("help/help.html", '_blank') ; win.focus()})} //son callback ouvre dans un autre onglet le fichier help/help.html
-		new Text("hud",config.unit,config.canvasH - config.unit,"version 1.0-alpha","Arial",config.unit,[0,0,0],TOP,LEFT)
+		new Text("hud",config.unit,config.canvasH - config.unit,"version 1.0","Arial",config.unit,[0,0,0],TOP,LEFT)
 	},
 	settings : function(){ //Page de configuration
 		clearGUI("hud") //Vide les éléments de hud (dans l'écran-titre, l'élément de gui "hud" contient tous les objets affichés sauf le l'image de fond)
@@ -557,6 +557,7 @@ function preload() { //chargement des images. La fonction Preload est lancée pa
 			loadImage.over = true
 		}
 	}
+	
 	
   config.background = loadImage("img/background.png");
   img.HUD[0] = loadImage("img/HUD/end_turn.png");
@@ -1532,11 +1533,11 @@ class Reine extends Piece {
 			),
 			new Spell("Petrifying",8,5,img.spell.Reine[2],0,false,this,
 				function(){
-					let targets = this.piece.getAtkTargets(examineBoard(),2)
-					
+					let targets = this.piece.getAtkTargets(examineBoard(),2);
+					let spell = this;
 					startPieceSelectionHLC(targets, [0,0,0,150], [0,0,0,200],
 						function(selected){
-							this.cast(selected)
+							spell.cast(selected);
 						}
 					)
 				},
