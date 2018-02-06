@@ -15,7 +15,27 @@
 //rendu du projet, et il sera à terme un jeu de stratégie à part entière.
 
 // debug
-var debug = false;
+var debug = true;
+if (debug){
+	function analysePerf(loops){
+		let analyser = {
+			loop : loops,
+			start : actTime,
+			c: 0,
+			draw : function(){
+				this.c++
+				if (this.c > this.loop){
+					let time = actTime - this.start
+					let speed = time/this.loop
+					console.log("Les " + this.loop + "frames on été affichées en "+time+"ms, pour un framerate de " + speed)			
+					chessGUI.hud.spliceItem(this)
+				}
+			}
+		}
+		chessGUI.hud.push(analyser)
+	}
+
+}
 // endDebug
 
 // config : objet contenant toutes les valeurs constantes qui définiront le fonctionnement du jeu
@@ -162,12 +182,19 @@ function kill(target,killer){ //tue une pièce
 	killer.gainExp(xp) //Le tueur gagne de l'expérience
 }
 
-function damage(target,source,dmg){ //inflig des dégâts à une pièce
+function damage(target,source,dmg, animation = true){ //inflig des dégâts à une pièce
 	//Appel des passifs s'activant quand une pièce subit des dégâts
 	
 	if (target.callPassive("onDamaged",{source : source, damage : dmg}) == true) return true //si l'un des passifs pré-dégâts renvoie true
 	if (source.callPassive("onDamaging",{target : target, damage : dmg}) == true) return true //les dégâts sont annulés et la fonction renvoie elle aussi true (permet à un passif d'annuler des dégâts)
 
+	if (animation){
+		{
+		  let dmgTXT = new Text("msg",target.x + config.tileSize / 2,target.y + config.tileSize / 2,"-"+dmg,"Arial",config.unit * 4,[255,0,0]) //Crée un texte rouge indiquant les dégâts subis
+		  applyFadeOut(dmgTXT,dmgTXT.color,255,0.5) //Le fait disparaître en fondu
+		}
+	}
+	
 	target.hp = target.hp - dmg //retrait des points de vie à la pièce subissant des dégâts
 	if (target.hp < 1){
 		kill(target,source) //si es PV de la pièce tombent à 0, la tue
@@ -543,7 +570,6 @@ function preload() { //chargement des images. La fonction Preload est lancée pa
 	if (debug){ //On remplace la fonction de chargement d'image par une version qui envoie un message d'erreur en cas d'échec.
 	//On le fait uniquement en mode debug car un bug de p5 fait que le message d'erreur peut s'afficher sans raison
 		if (!loadImage.over){
-			console.log("tamer")
 			var oldLoadImage = loadImage
 			loadImage = function(path,sCallback = undefined,fCallback = undefined){
 				return loadImage.oldLoadImage(path,sCallback,
@@ -557,7 +583,6 @@ function preload() { //chargement des images. La fonction Preload est lancée pa
 			loadImage.over = true
 		}
 	}
-	
 	
   config.background = loadImage("img/background.png");
   img.HUD[0] = loadImage("img/HUD/end_turn.png");
@@ -1535,6 +1560,7 @@ class Reine extends Piece {
 				function(){
 					let targets = this.piece.getAtkTargets(examineBoard(),2);
 					let spell = this;
+
 					startPieceSelectionHLC(targets, [0,0,0,150], [0,0,0,200],
 						function(selected){
 							spell.cast(selected);
@@ -2203,7 +2229,24 @@ class SpellIcon extends Button { //icône des spells; hérite des simples bouton
 	}
 }
 
-
+class Item{
+	constructor(name,img,cost,stats,onObtained){
+		this.name = name
+		this.img = img
+		this.cost = cost
+		this.stats = stats
+		this.onObtained = onObtained
+	
+	}
+	
+	buy(piece){
+	
+	
+	}
+	
+	
+	
+}
 
 class Effect { //classe représentant les effets sur la durée appliqués aux pièces. A ajouter au tableau .effect d'une pièce pour lui appliquer un effet
 	//un effet contient une fonction qui sera appelée à chaque tour, pour s'assurer que l'effet est présent de manière continue, jusqu'à un certain nombre de tour
@@ -2329,7 +2372,6 @@ function setup() { //Lancée par p5 au lancement du programme : c'est ici qu com
 	cursor("img/cursor.png"); //Changement de l'image du curseur
 	createCanvas(config.canvasW, config.canvasH); //Création du canvas où on va dessiner
 	config.update()
-	
 	startTitle(); //Lancement de l'écran-titre
 
 }
