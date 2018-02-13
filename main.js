@@ -79,6 +79,7 @@ config.update = function(){
 // endConfig -------------
 
 config.event = [
+	"permanent",
 	"onStartTurn",
 	"onMoved",
 	"onMovedDone",
@@ -199,6 +200,7 @@ function damage(target,source,dmg, animation = true){ //inflig des dégâts à u
 	if (target.hp < 1){
 		kill(target,source) //si es PV de la pièce tombent à 0, la tue
 	}
+	updatePieces()
 
 	target.callPassive("onDamagedDone",{source : source, damage : dmg})
 	source.callPassive("onDamagingDone",{target : target, damage : dmg})
@@ -530,6 +532,17 @@ function initAddedpassivesArrays(){
 	return passives
 }
 
+function updatePieces(){
+	let TIEM = (new Date()).getTime();
+	for (let i = 0; i < joueur.length; i++){
+		for (let j = 0; j < joueur[i].piece.length; j++){
+			joueur[i].piece[j].updatePre();
+			joueur[i].piece[j].update();
+		}
+	}
+	console.log((new Date()).getTime() - TIEM)
+}
+
 // endGlobalFunctions -------------
 
 // globalVars --------------
@@ -742,7 +755,7 @@ class Joueur {
 		for (var i = 0; i < this.piece.length; i++) {
 			this.piece[i].startTurnPre();
 		}
-		for (var i = 0; i < this.piece.length; i++) { //Une fois qu'on a effecté tous les startTurnPre, on peut commencer à éxécuter les StartTurn
+		for (var i = 0; i < this.piece.length; i++) { //Une fois qu'on a effecté tous les updatePre, on peut commencer à éxécuter les StartTurn
 			this.piece[i].startTurn();
 		}
 
@@ -756,35 +769,35 @@ class Joueur {
 class Piece {
 	//classe représentant une pièce en général
 	//les différentes pièces seront des classes héritées de celle-ci
-  constructor(img,name,atk,hp,cx,cy,player,mp,expValue,spell = []) { //On ne créera jamais d'instances de cette classe directement : ce sont les classes
-		//héritant de Piece, les classes qui définissent un pièce en particulier (voir "class Pion"), appelleront elle-même le constructeur de Piece
-	  //on passe au constructeur l'image, le nom, les stats, la position initiale, le propriétaire d'une pièce
-	  //l'ID d'image, le nom, les stats seront déterminés de manière fixe lors de l'appel du superconstructeur
-	  //dans le constructeur des classes héritées (= les pièces en elles mêmes)
-    this.img = img; //image représentant la pièce : il s'agit d'un numéro, qui indique une entrée du tableau img.piece.[noir/blanc]
-    this.name = name; //nom de la pièce (pas vraiment utilisé)
-    this.atk = atk; //stat d'attaque de la pièce
-	  this.baseAtk = atk //stat d'attaque d'origine de la pièce
-    this.baseHP = hp; //stat de pv max d'origine de la pièce
-	  this.maxHP = hp //stat de pv max de la pièce
-    this.hp = hp; //pv actuels de la pièce
-	  this.mp = mp; //stat de point de déplacements (obsolète)
-    this.cx = cx; //position x (en cases)
-    this.cy = cy; //position y (en cases)
-    this.color = joueur[player].color; //string représentant le couleur de la pièce
-    this.player = player; //numéro du joueur possédan la pièce
-    this.deplCD = false; //valeur bool indiquant si la pièce peut oui ou non se déplacer (possible une fois par tour)
-    this.atkCD = false; //valeur bool indiquant si la pièce peut oui ou non attaquer (possible une fois par tour)
-	  this.spell = spell; //spells (actifs) de la pièce
-	  this.addedPassive = initAddedpassivesArrays()
-	  this.effects = [] //effets appliqués à la pièce
-	  this.exp = 0 //expérience de la pièce
-	  this.level = 0 //niveau de la pièce
-	  this.expValue = expValue //quantité d'exp obtenue en tuant la pièce
-	  this.baseMp = mp //Points de déplacement à l'origine
-
-    chessGUI.pieces.push(this); //ajout de la pièce au tableau des éléments de la GUI
-  }
+	constructor(img,name,atk,hp,cx,cy,player,mp,expValue,spell = []) { //On ne créera jamais d'instances de cette classe directement : ce sont les classes
+			//héritant de Piece, les classes qui définissent un pièce en particulier (voir "class Pion"), appelleront elle-même le constructeur de Piece
+		  //on passe au constructeur l'image, le nom, les stats, la position initiale, le propriétaire d'une pièce
+		  //l'ID d'image, le nom, les stats seront déterminés de manière fixe lors de l'appel du superconstructeur
+		  //dans le constructeur des classes héritées (= les pièces en elles mêmes)
+		this.img = img; //image représentant la pièce : il s'agit d'un numéro, qui indique une entrée du tableau img.piece.[noir/blanc]
+		this.name = name; //nom de la pièce (pas vraiment utilisé)
+		this.atk = atk; //stat d'attaque de la pièce
+		this.baseAtk = atk //stat d'attaque d'origine de la pièce
+		this.baseHP = hp; //stat de pv max d'origine de la pièce
+		this.maxHP = hp //stat de pv max de la pièce
+		this.hp = hp; //pv actuels de la pièce
+		this.mp = mp; //stat de point de déplacements (obsolète)
+		this.cx = cx; //position x (en cases)
+		this.cy = cy; //position y (en cases)
+		this.color = joueur[player].color; //string représentant le couleur de la pièce
+		this.player = player; //numéro du joueur possédan la pièce
+		this.deplCD = false; //valeur bool indiquant si la pièce peut oui ou non se déplacer (possible une fois par tour)
+		this.atkCD = false; //valeur bool indiquant si la pièce peut oui ou non attaquer (possible une fois par tour)
+		this.spell = spell; //spells (actifs) de la pièce
+		this.addedPassive = initAddedpassivesArrays()
+		this.effects = [] //effets appliqués à la pièce
+		this.exp = 0 //expérience de la pièce
+		this.level = 0 //niveau de la pièce
+		this.expValue = expValue //quantité d'exp obtenue en tuant la pièce
+		this.baseMp = mp //Points de déplacement à l'origine
+		this.items = []
+		chessGUI.pieces.push(this); //ajout de la pièce au tableau des éléments de la GUI
+	}
 
   draw() {
   //méthode affichant la pièce
@@ -930,6 +943,7 @@ class Piece {
     this.callPassive("onMovedDone",{x: cx, y: cy})
 
     if (animation) move(this,0.8,convertPx(cx),convertPx(cy)); //Déclenche une animation de mouvement, de la position de départ à la pisition d'arrivée
+	updatePieces()
   }
 
   // Fonctions à redéfinir dans chaque classe piece : renvoient les cases sur lesquelles il est possible d'attaquer/se déplacer
@@ -968,10 +982,9 @@ class Piece {
 		this.addedPassive[event].push(passive.bind(this))
 	}
 
-	startTurnPre(){ //éxécuté au début du tour avant startTurn (doit être exécuté pour toutes les pièces avant qu'on commence à éxécuter les StartTurn)
-		this.deplCD = false; //Met les atkCD et deplCD à false, indiquant que ces actions sont disponibles
-		this.atkCD = false;
-		//Réinitialise les stats (les remet au valeurs de base de la pièce)
+	
+	updatePre(){ //éxécuté au début du tour avant update (doit être exécuté pour toutes les pièces avant qu'on commence à éxécuter les StartTurn)
+		//Réinitialise les stats (les remet aux valeurs de base de la pièce)
 		this.atk = this.baseAtk;
 		let prevMaxHP = this.maxHP;
 		this.maxHP = this.baseHP;
@@ -982,19 +995,31 @@ class Piece {
 		this.mp = this.baseMp;
 		this.addedPassive = initAddedpassivesArrays()
 		this.cc = false
-		//Puis les recalcule en fonction des effets actifs (voir "class Effect()")
 		
 	}
 	
+	startTurnPre(){
+		this.updatePre()
+		this.deplCD = false; //Met les atkCD et deplCD à false, indiquant que ces actions sont disponibles
+		this.atkCD = false;
+	}
+	
+	update(){
+		for (let i = 0; i < this.effects.length; i++){
+			this.effect[i].apply()
+		}
+		this.callPassive("permanent")
+	}
+	
 	startTurn(){ //a ne pas confondre avec le passif onStartTurn : fonction éxécutée au début de chaque tour
-		for (var i = 0; i < this.effects.length; i++){
-				this.effects[i].apply();
+		for (let i = 0; i < this.effects.length; i++){
+				this.effects[i].startTurn();
 			}
 		this.callPassive("onStartTurn"); //Appel de l'éventuel passif se déclenchant au début de chaque tour
 	}
 		
-	applyEffect(duration,turn,end,direct){ // Applique un effet à la pièce (voir "class Effect")
-		this.effects.push(new Effect(this,duration,turn,end,direct));
+	applyEffect(duration,perm,end,turn,direct){ // Applique un effet à la pièce (voir "class Effect")
+		this.effects.push(new Effect(this,duration,perm,end,turn,direct));
 	}
 
 	showStats() { //Affiche les caractéristiques de la pièce dans une fenêtre (fw.js)
@@ -1171,6 +1196,10 @@ class Pion extends Piece {
 	}
 	return atk
   }
+  
+  permanent(){
+	  console.log("ok")
+  }
 
 	onStartTurn(){ //Passif se lançant au début de chaque tour
 		var direction = this.player;
@@ -1183,6 +1212,14 @@ class Pion extends Piece {
 		this.atk += this.baseAtk * (this.kyojin / config.nLig);
 	}
 
+	permanent(){	
+		let prevMaxHP = this.maxHP;
+		this.maxHP += this.kyojin * (this.baseHP / 50);
+		this.hp = this.hp * this.maxHP / prevMaxHP;
+
+		this.atk += this.baseAtk * (this.kyojin / config.nLig);
+	}
+	
 	onMovedDone(){//Passif se lançant après chaque mouvement
 		//Recalcule la valeur d'avancée (kyojin) et les stats en fonction
 		var direction = this.player;
@@ -1898,7 +1935,7 @@ class Roi extends Piece {
 		return atk;
 	}
 
-  onStartTurn() {
+  permanent() {
     if (this.hp < this.maxHP * 20 / 100) {
 		let king = this
 		let range = caseInRangeZ(this.cx, this.cy, 1);
@@ -2230,18 +2267,29 @@ class SpellIcon extends Button { //icône des spells; hérite des simples bouton
 }
 
 class Item{
-	constructor(name,img,cost,stats,onObtained){
+	constructor(name,img,cost,stats = [],effects = [],require = []){
 		this.name = name
 		this.img = img
 		this.cost = cost
 		this.stats = stats
-		this.onObtained = onObtained
-	
+		this.effects = effects
+		this.require = []
 	}
 	
+	isBuyable(piece){
+		if (joueur[piece.player].gold < this.cost) return false
+		for (let i = 0; i < this.require.length; i++){
+			if (!this.require[i](piece)) return false
+		}
+		return true
+	}
+	
+	
 	buy(piece){
-	
-	
+		if (this.isBuyable(piece)){
+			piece.items.push(this);
+			joueur[piece.player].gold -= this.cost;
+		}
 	}
 	
 	
@@ -2250,25 +2298,32 @@ class Item{
 
 class Effect { //classe représentant les effets sur la durée appliqués aux pièces. A ajouter au tableau .effect d'une pièce pour lui appliquer un effet
 	//un effet contient une fonction qui sera appelée à chaque tour, pour s'assurer que l'effet est présent de manière continue, jusqu'à un certain nombre de tour
-	constructor(piece,duration,turnEffect = 0,endEffect = 0,direct = true){
+	constructor(piece,duration,permEffect = 0,endEffect = 0,turnEffect = 0,direct = true){
 		this.piece = piece; //pièce sur laquelle l'effet agira
 		this.turnEffect = turnEffect; //effet continu : sera lancé à chaque début de tour (souvent pour modifier les stats après leur réinitialisation)
 		this.endEffect = endEffect; //fcontion à éxécuter lorsque l'effet se termine
 		this.duration = duration; //durée de l'effet en tours
 		this.remaining = duration;
-
-		if (direct && this.turnEffect) this.turnEffect(); //si on a précisé que l'effet était présent dès son applicaiton, on lance son effet continu
+		this.permEffect = permEffect;
+		
+		if (direct && this.permEffect) this.permEffect(); //si on a précisé que l'effet était présent dès son applicaiton, on lance son effet continu
 	}
 
-	apply(){ //applique l'effet : sera lancé à chaque début de tour
+	apply(){ //applique l'effet
+		if (this.permEffect) this.permEffect(); //lance sa fonction d'effet continu
+	}
+	
+	startTurn(){ //sera lancé au début de chaque tour
 		this.remaining--;
 		if (this.remaining == 0){ //s'il arrive à sa fin
 			if(this.endEffect) this.endEffect(); //lance la fonction de fin
 			this.destroy(); //puis le supprime
 		}else{
-			if (this.turnEffect) this.turnEffect(); //sinon, lance sa fonction d'effet continu
+			if (this.turnEffect) this.turnEffect();
+			this.apply()
 		}
 	}
+	
 
 	destroy(){
 		this.piece.effects.spliceItem(this); //supprime l'effet du tableau piece.effects
@@ -2352,7 +2407,7 @@ function startGame() { //lance la partie en elle-même
     }
     mute.onLeftClick = function() { //au clic, si le clic est effectué sur ce bouton évidemment, on met le volumme de la musique à 0 ou à son volumme d'origine
       if (isObjectHovered(this)) sEffects[3].volume = 0.5 - sEffects[3].volume;
-    }
+    } 	
 
     chessGUI.hud.push(mute);
   }
@@ -2435,7 +2490,7 @@ function keyPressed() { //hehe
 		if (!isFacepunch) deFacepunch();
 	}
 	  
-	if (keyCode == 69) joueur[1 - playerTurn].startTurn()
+	if (keyCode == 69) joueur[1 - playerTurn].update()
 	if (keyCode == 73) {
 		if (selectedPiece) {
 			selectedPiece.showStats(); //on affiche les caractéristique de cette pièce
