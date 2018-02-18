@@ -533,14 +533,12 @@ function initAddedpassivesArrays(){
 }
 
 function updatePieces(){
-	let TIEM = (new Date()).getTime();
 	for (let i = 0; i < joueur.length; i++){
 		for (let j = 0; j < joueur[i].piece.length; j++){
 			joueur[i].piece[j].updatePre();
 			joueur[i].piece[j].update();
 		}
 	}
-	console.log((new Date()).getTime() - TIEM)
 }
 
 // endGlobalFunctions -------------
@@ -1006,7 +1004,12 @@ class Piece {
 	
 	update(){
 		for (let i = 0; i < this.effects.length; i++){
-			this.effect[i].apply()
+			this.effects[i].apply()
+		}
+		for (let i = 0; i < this.items.length; i++){	
+			for (let j = 0; j < this.items[i].effects.length; j++){
+				this.items[i].effects[j]()
+			}	
 		}
 		this.callPassive("permanent")
 	}
@@ -1014,7 +1017,12 @@ class Piece {
 	startTurn(){ //a ne pas confondre avec le passif onStartTurn : fonction éxécutée au début de chaque tour
 		for (let i = 0; i < this.effects.length; i++){
 				this.effects[i].startTurn();
-			}
+		}
+		for (let i = 0; i < this.items.length; i++){	
+			for (let j = 0; j < this.items[i].effects.length; j++){
+				this.items[i].effects[j]()
+			}	
+		}
 		this.callPassive("onStartTurn"); //Appel de l'éventuel passif se déclenchant au début de chaque tour
 	}
 		
@@ -1076,7 +1084,10 @@ class Piece {
 		}
 	}
 
-
+	hasItem(item){
+		if (getArrayID(this.items,item)) return true
+	}
+	
 }
 
 //Les classes suivantes sonrt les classes-pièces. Chacune hérite de la clase pièce, et définit une pièce particulière
@@ -2206,6 +2217,10 @@ class Spell { //Classe définissant un sort d'une pièce
 		this.actualCooldown = this.cooldown //indique qu'il reste un certain nombre de tour avant de pouvoir l'utiliser
 	}
   }
+  
+	unlock(){
+		this.locked = false
+	}
 
 }
 
@@ -2267,32 +2282,30 @@ class SpellIcon extends Button { //icône des spells; hérite des simples bouton
 }
 
 class Item{
-	constructor(name,img,cost,stats = [],effects = [],require = []){
+	constructor(name,img,cost,effects = [],onBuying,require = []){
 		this.name = name
 		this.img = img
 		this.cost = cost
-		this.stats = stats
 		this.effects = effects
 		this.require = []
+		this.onBuying = onBuying
 	}
 	
 	isBuyable(piece){
-		if (joueur[piece.player].gold < this.cost) return false
+		//if (joueur[piece.player].gold < this.cost) return false
 		for (let i = 0; i < this.require.length; i++){
 			if (!this.require[i](piece)) return false
 		}
 		return true
 	}
 	
-	
 	buy(piece){
 		if (this.isBuyable(piece)){
 			piece.items.push(this);
+			if (this.onBuying) this.onBuying(piece)
 			joueur[piece.player].gold -= this.cost;
 		}
 	}
-	
-	
 	
 }
 
