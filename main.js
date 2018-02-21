@@ -54,27 +54,29 @@ var config = {
 
 
 config.update = function(){
-  // Définition de certains éléments de configuration calculés
-  config.boardS = config.canvasH > config.canvasW ? config.canvasW : config.canvasH;
-  config.unit = config.boardS/100;  //unité de distance dépendant de la taille du plateau
-  config.border = config.boardS / (15*((config.nLig>config.nCol) ? config.nLig : config.nCol));
-  config.tileSize = (config.boardS - ((config.nLig>config.nCol) ? config.nLig + 1 : config.nCol + 1) * config.border) / ((config.nLig>config.nCol) ? config.nLig : config.nCol);
-  config.boardW = config.nCol * config.tileSize + config.border * (config.nCol+1);
-  config.hud.manaGauge = {x: config.boardW + config.border, y: config.border * 4 + config.unit * 16, w: config.unit * 40, h: config.unit * 6}
-  config.hud.button = {x : config.boardW + config.border, y: config.border * 2, w: config.hud.manaGauge.w, h: config.unit * 16}
-  config.hud.spells = {x: config.boardW + config.border, y: config.border * 6 + config.unit * 22, spellSize : config.unit * 8}
-  config.hud.info = {x: config.boardW + config.border, y: config.boardS - config.border * 2 - config.unit * 9, w: config.unit * 16, h: config.unit * 9}
-  config.hud.statsWindow = {x: config.boardW + config.border, y: config.boardS - config.border * 4 - config.boardS/5 - config.hud.info.h, w: config.boardW/3, h: config.boardS/5}
-  config.hud.spellInfo = {x : config.boardW + config.border, y: config.hud.spells.y + config.hud.spells.h + config.border * 2, size: config.unit * 2}
-  config.hud.mute = {x: config.boardW + config.border * 3 + config.hud.info.w, y: config.hud.info.y, w: config.hud.info.h, h: config.hud.info.h}
+	// Définition de certains éléments de configuration calculés
+	config.boardS = config.canvasH > config.canvasW ? config.canvasW : config.canvasH;
+	config.unit = config.boardS/100;  //unité de distance dépendant de la taille du plateau
+	config.border = config.boardS / (15*((config.nLig>config.nCol) ? config.nLig : config.nCol));
+	config.tileSize = (config.boardS - ((config.nLig>config.nCol) ? config.nLig + 1 : config.nCol + 1) * config.border) / ((config.nLig>config.nCol) ? config.nLig : config.nCol);
+	config.boardW = config.nCol * config.tileSize + config.border * (config.nCol+1);
+	config.hud.manaGauge = {x: config.boardW + config.border, y: config.border * 4 + config.unit * 16, w: config.unit * 40, h: config.unit * 6}
+	config.hud.button = {x : config.boardW + config.border, y: config.border * 2, w: config.hud.manaGauge.w, h: config.unit * 16}
+	config.hud.spells = {x: config.boardW + config.border, y: config.border * 6 + config.unit * 22, spellSize : config.unit * 8}
+	config.hud.info = {x: config.boardW + config.border, y: config.boardS - config.border * 2 - config.unit * 9, w: config.unit * 16, h: config.unit * 9}
+	config.hud.statsWindow = {x: config.boardW + config.border, y: config.boardS - config.border * 4 - config.boardS/5 - config.hud.info.h, w: config.boardW/3, h: config.boardS/5}
+	config.hud.spellInfo = {x : config.boardW + config.border, y: config.hud.spells.y + config.hud.spells.h + config.border * 2, size: config.unit * 2}
 
 	// Coordonnées des éléments du HUD
-  config.hud.manaGauge = {x: config.boardW + config.border, y: config.border * 4 + config.unit * 16, w: config.unit * 40, h: config.unit * 6} //jauge de mana
-  config.hud.button = {x : config.boardW + config.border, y: config.border * 2, w: config.hud.manaGauge.w, h: config.unit * 16 } //bouton de fin de tour
-  config.hud.spells = {x: config.boardW + config.border, y: config.border * 6 + config.unit * 22, spellSize : config.unit * 8} //icônes des sorts
-  config.hud.info = {x: config.boardW + config.border, y: config.boardS - config.border * 2 - config.unit * 9, w: config.unit * 16, h: config.unit * 9} //bouton d'infomartions sur les pièces
-  config.hud.statsWindow = {x: config.boardW + config.border, y: config.boardS - config.border * 4 - config.boardS/5 - config.hud.info.h, w: config.boardW/3, h: config.boardS/5} //fenêtre affichant les infos
-  config.hud.spellInfo = {x : config.boardW + config.border, y: config.hud.spells.y + config.hud.spells.spellSize + config.border * 2, size: config.unit * 2} //zone où sont affichées les infos sur chaque pièce
+	config.hud.manaGauge = {x: config.boardW + config.border, y: config.border * 4 + config.unit * 16, w: config.unit * 40, h: config.unit * 6} //jauge de mana
+	config.hud.button = {x : config.boardW + config.border, y: config.border * 2, w: config.hud.manaGauge.w, h: config.unit * 16 } //bouton de fin de tour
+	config.hud.spells = {x: config.boardW + config.border, y: config.border * 6 + config.unit * 22, spellSize : config.unit * 8} //icônes des sorts
+	config.hud.info = {x: config.boardW + config.border, y: config.boardS - config.border * 2 - config.unit * 9, w: config.unit * 16, h: config.unit * 9} //bouton d'infomartions sur les pièces
+	config.hud.statsWindow = {x: config.boardW + config.border, y: config.boardS - config.border * 4 - config.boardS/5 - config.hud.info.h, w: config.boardW/3, h: config.boardS/5} //fenêtre affichant les infos
+	config.hud.spellInfo = {x : config.boardW + config.border, y: config.hud.spells.y + config.hud.spells.spellSize + config.border * 2, size: config.unit * 2} //zone où sont affichées les infos sur chaque pièce
+	config.hud.shopButton = {x: config.boardW + config.border * 3 + config.hud.info.w, y: config.hud.info.y, w: config.unit * 12, h: config.hud.info.h}
+	config.hud.mute = {x: config.hud.shopButton.x + config.hud.shopButton.w + config.unit, y: config.hud.info.y, w: config.hud.info.h, h: config.hud.info.h}
+	config.hud.gold = {x: config.hud.manaGauge.x + config.hud.manaGauge.w, y: config.hud.info.y - config.unit * 8, size: config.unit * 3}
 }
 // endConfig -------------
 
@@ -567,6 +569,7 @@ img.piece = { //objet contenant deux tableaux, "blanc" et "noir" : chacun contie
 img.spell = {};
 img.HUD = [];
 img.title = [];
+img.items = {};
 
 //Le fondement de l'interface graphique du jeu : l'objet chessGUI possède en tant qu'attributs des "éléments de GUI", qui sont des tablelaux
 //qui contiendront des objets graphiques. Ces objets seront affichés et pourront réagir au clic (voir "draw()" et "mouseClicked()")
@@ -602,13 +605,15 @@ function preload() { //chargement des images. La fonction Preload est lancée pa
   img.HUD[3] = loadImage("img/HUD/muted.png");
   img.HUD[4] = loadImage("img/HUD/player_up.png");
   img.HUD[5] = loadImage("img/HUD/player_down.png");
-  img.title[0] = loadImage("img/title_background.png");
-  img.title[1] = loadImage("img/logo.png");
-  img.title[2] = loadImage("img/playButton.png");
-  img.title[3] = loadImage("img/edit.png");
-  img.title[4] = loadImage("img/settings.png");
-  img.title[5] = loadImage("img/backToMenu.png");
-  img.title[6] = loadImage("img/help.png");
+  img.HUD[6] = loadImage("img/HUD/shop.png")
+  img.HUD[7] = loadImage("img/HUD/buy.png")
+  img.title[0] = loadImage("img/title/title_background.png");
+  img.title[1] = loadImage("img/title/logo.png");
+  img.title[2] = loadImage("img/title/playButton.png");
+  img.title[3] = loadImage("img/title/edit.png");
+  img.title[4] = loadImage("img/title/settings.png");
+  img.title[5] = loadImage("img/title/backToMenu.png");
+  img.title[6] = loadImage("img/title/help.png");
 
   img.piece.noir[0] = loadImage("img/Pieces/pion_noir.png"); // pion noir
   img.piece.noir[1] = loadImage("img/Pieces/tour_noire.png"); // tour noire
@@ -648,6 +653,8 @@ function preload() { //chargement des images. La fonction Preload est lancée pa
   img.spell.Roi[0] = loadImage("img/Spells/Roi/0.png");
   img.spell.Roi[1] = loadImage("img/Spells/Roi/1.png");
   img.spell.Roi[2] = loadImage("img/Spells/Roi/2.png");
+  img.items.Pion = [];
+  img.items.Pion[0] = loadImage("img/Items/Pion/0.png");
 
   winIMG[0] = loadImage("img/Window/window_left.png");
   winIMG[1] = loadImage("img/Window/window_right.png");
@@ -736,6 +743,7 @@ class Joueur {
 		this.piece = []; //On initialise deux tableaux vides : 'piece', celui des pièces, et prePieces (voir "initPrePieces()")
 		this.prePiece = [];
 		this.name = name;
+		this.gold = config.gold
 	}
 
 	initGame(){ //Méthode initialisant le joueur pour une nouvelle partie
@@ -794,6 +802,7 @@ class Piece {
 		this.expValue = expValue //quantité d'exp obtenue en tuant la pièce
 		this.baseMp = mp //Points de déplacement à l'origine
 		this.items = []
+		this.shop = []
 		chessGUI.pieces.push(this); //ajout de la pièce au tableau des éléments de la GUI
 	}
 
@@ -1008,7 +1017,7 @@ class Piece {
 		}
 		for (let i = 0; i < this.items.length; i++){	
 			for (let j = 0; j < this.items[i].effects.length; j++){
-				this.items[i].effects[j]()
+				this.items[i].effects[j](this)
 			}	
 		}
 		this.callPassive("permanent")
@@ -1020,7 +1029,7 @@ class Piece {
 		}
 		for (let i = 0; i < this.items.length; i++){	
 			for (let j = 0; j < this.items[i].effects.length; j++){
-				this.items[i].effects[j]()
+				this.items[i].effects[j](this)
 			}	
 		}
 		this.callPassive("onStartTurn"); //Appel de l'éventuel passif se déclenchant au début de chaque tour
@@ -1033,7 +1042,7 @@ class Piece {
 	showStats() { //Affiche les caractéristiques de la pièce dans une fenêtre (fw.js)
 		let expText = (this.level >= config.expLevels.length) ? "" :"/" + config.expLevels[this.level];
 		let color = this.player ? "Black" : "White";
-			this.elements = [
+		let elements = [
 		  [ { type: "text", coord: { x: 0, y: 0 }, text: "Health Points: " + Math.floor(this.hp) + "/" + Math.floor(this.maxHP), size: config.unit*2, color: [210, 255, 210] },
 			{ type: "text", coord: { x: 0, y: config.unit*2 }, text: "Attack Points: " + Math.floor(this.atk), size: config.unit*2, color: [255, 210, 210] },
 			{ type: "text", coord: { x: 0, y: config.unit*4 }, text: "Color: " + color, size: config.unit*2, color: [255, 255, 210] },
@@ -1041,7 +1050,23 @@ class Piece {
 			{ type: "text", coord: { x: 0, y: config.unit*13.6 }, text: "Experience: "+this.exp + expText, size: config.unit*2, color: [150,150,255]}]
 		];
 		clearGUI("windows");
-		new Window(config.hud.statsWindow.x, config.hud.statsWindow.y,config.hud.statsWindow.w,config.hud.statsWindow.h, "Stats", this.elements);
+		new Window(config.hud.statsWindow.x, config.hud.statsWindow.y,config.hud.statsWindow.w,config.hud.statsWindow.h, "Stats", elements);
+	}
+	
+	showShop(){
+	let buyButton = function(piece){
+		this.buy(piece)
+	}
+	let elements = []
+	for (let i = 0; i < this.shop.length; i++){
+		elements[i] = [
+			{ type: "image", coord: { x: config.unit, y: config.unit, w: config.unit*6, h: config.unit*6}, img: this.shop[i].img},
+			{ type: "text", coord: { x: config.unit * 8, y: config.unit}, text: this.shop[i].name, color: 255, size: config.unit * 2},
+			{ type: "button", coord: { x: config.unit, y: config.unit * 8, w: config.unit*8, h: config.unit*5}, img: img.HUD[7], callback: buyButton.bind(this.shop[i],this)},
+			{ type: "text", coord: { x: config.unit * 8, y: config.unit * 4}, text: "Cost : " + this.shop[i].cost, color: [255,255,0], size: config.unit * 2}
+		]
+	}
+	new Window(config.hud.statsWindow.x, config.hud.statsWindow.y,config.hud.statsWindow.w,config.hud.statsWindow.h, "Stats", elements);
 	}
 
 	gainExp(exp){ //Ajoute de l'expérience à la pièce
@@ -1086,6 +1111,10 @@ class Piece {
 
 	hasItem(item){
 		if (getArrayID(this.items,item)) return true
+	}
+	
+	buyItem(item){
+		item.buy(this)
 	}
 	
 }
@@ -1172,6 +1201,20 @@ class Pion extends Piece {
     ];
 	this.spell = spell;
 
+	this.shop = [
+		new Item("Elementalist",img.items.Pion[0],50,
+			[],
+			function(piece){
+				piece.spell[0].unlock()
+			},
+		),
+		new Item("Vanguard",img.items.Pion[0],50,
+			[],
+			function(piece){
+				piece.spell[0].unlock()
+			},
+		)
+	]	
   }
 
   getDepl(board) { //fonction renvoyant les cases où il est possible de se déplacer (propre à chaque type de pièce)
@@ -1208,10 +1251,6 @@ class Pion extends Piece {
 	return atk
   }
   
-  permanent(){
-	  console.log("ok")
-  }
-
 	onStartTurn(){ //Passif se lançant au début de chaque tour
 		var direction = this.player;
 		this.kyojin = Math.abs(((config.nLig - 1) * -direction) + this.cy)
@@ -1983,6 +2022,21 @@ class PrePiece { //Les prePiece sont des objets "prévoyant" une pièce : chaque
   var pieceClass = [Pion,Tour,Fou,Reine,Cavalier,Roi] //Contient les classes de tous les types de pièces
 }
 
+class p55_object{
+	constructor(gui,draw,olc,x,y,w,h,onBuilt){
+		this.draw = draw
+		this.onLeftClick = olc
+		this.x = x
+		this.y = y
+		this.w = w
+		this.h = h
+		if (onBuilt) (onBuilt.bind(this))()
+	
+		chessGUI[gui].push(this) 
+	}
+	
+}
+
 class StaticImage { //Classe définissant un objet graphique qui affichera une simple image
   constructor(gui,img,x,y,w = undefined,h = undefined){
     this.x = x //Définition de ses coordonnées
@@ -2286,13 +2340,13 @@ class Item{
 		this.name = name
 		this.img = img
 		this.cost = cost
-		this.effects = effects
-		this.require = []
+		this.effects = effects || []
+		this.require = require
 		this.onBuying = onBuying
 	}
 	
 	isBuyable(piece){
-		//if (joueur[piece.player].gold < this.cost) return false
+		if (joueur[piece.player].gold < this.cost) return false
 		for (let i = 0; i < this.require.length; i++){
 			if (!this.require[i](piece)) return false
 		}
@@ -2406,6 +2460,30 @@ function startGame() { //lance la partie en elle-même
 		}
 		chessGUI.hud.push(info);
 	}
+	
+	new p55_object("hud",
+		function(){
+			image(this.img, this.x, this.y, this.w, this.h);
+			if (!selectedPiece) { fill(50, 50, 50, 180); rect(this.x, this.y, this.w, this.h, config.unit/4);
+			} else { if (isObjectHovered(this)) {fill(255,255,255,50) ; rect(this.x,this.y,this.w,this.h,config.unit/4)}}
+		},
+		function(){
+			if (selectedPiece) {
+				if (isObjectHovered(this)) {
+					selectedPiece.showShop(); //on affiche les caractéristique de cette pièce
+				}
+			}
+		},
+		config.hud.shopButton.x,config.hud.shopButton.y,config.hud.shopButton.w,config.hud.shopButton.h,
+		function(){this.img = img.HUD[6]}
+	)
+
+	{let txt = 
+		new Text("hud",config.hud.gold.x,config.hud.gold.y,"","Arial",config.hud.gold.size,
+			[255,255,0],RIGHT,TOP)
+		Object.defineProperty(txt,"text",{get: function(){return joueur[playerTurn].gold + "\n golds"}})
+	}	
+		
 
 	for (let i = 0; i < joueur.length; i++){
 		joueur[i].initGame(); //pour chaque joueur, on lance la méthode préparant le joueur pour la partie (voir "class Joueur")
