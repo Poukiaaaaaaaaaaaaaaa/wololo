@@ -1,5 +1,5 @@
 class Window {
-	constructor(x,y,w,h,title,elements) {
+	constructor(x,y,w,h,title,elements,dPage = 0) {
 		this.x = x; //coordonnées
 		this.y = y; //^
 		this.w = w; //^
@@ -21,7 +21,7 @@ class Window {
 
 		//éléments du "footer" > nombre de pages, etc...
 		this.nPages = elements.length;
-		this.pageCounter = 0;
+		this.pageCounter = dPage //page par défaut
 	  this.footer = { buttons: [], text: [] };
 	  this.footerOffset = h/80;
 	  this.footerHeight = h/12;
@@ -75,11 +75,6 @@ class Window {
   }
 
   onLeftClick() {
-      for (let j = 0; j < this.elements[this.pageCounter].buttons.length; j++) {
-				//appelle la méthode onLeftClick() de tous les boutons de l'array 'elements' affichés
-        this.elements[this.pageCounter].buttons[j].onLeftClick();
-      }
-
 		//condition de fermeture de la fenêtre
 		if (this.cross.isHovered()) chessGUI.windows.spliceItem(this);
 
@@ -87,6 +82,12 @@ class Window {
 			//appelle le onLeftClick() des éléments du "footer"
       this.footer.buttons[i].onLeftClick();
     }
+	
+	wclickloop: for (let j = 0; j < this.elements[this.pageCounter].buttons.length; j++) {
+				//appelle la méthode onLeftClick() de tous les boutons de l'array 'elements' affichés
+        if (this.elements[this.pageCounter].buttons[j].onLeftClick()) return true
+      }
+	
   }
 
 	draw() {
@@ -149,8 +150,9 @@ class WText extends WindowElement {
 	}
 
 	draw() {
-    textAlign(LEFT, TOP);
+		textAlign(LEFT, TOP);
 		textSize(this.size); fill(this.color);
+		textFont("Arial");
 		text(this.text, this.x, this.y);
 	}
 }
@@ -161,8 +163,9 @@ class FText extends WText {
   }
 
   draw() {
-    textAlign(CENTER, CENTER);
+		textAlign(CENTER, CENTER);
 		textSize(this.size); fill(this.color);
+		textFont("Arial")
 		text(this.text, this.x, this.y);
     this.update();
 	}
@@ -194,6 +197,7 @@ class WButton extends WindowElement {
   onLeftClick() {
      if (typeof this.callback == "function" && isHovered(this.x,this.y,this.w,this.h)) {
        this.callback();
+	   return true
     }
   }
 }
