@@ -3,9 +3,13 @@
 // TODO (éléments de jeu):
 // - Système de monnaie -> Objets
 // - Pièces additionnelles
+// - Traductions
+// - Bulles d'aide
 // TODO (éléments internes)
-// - Ajout de propriétés libre lors de la création des HighLlighCase de séléction [start__SelectionHLC()] -> Ok en fait
+// - Ajout de propriétés libre lors de la création des HighLlighCase de séléction [start__SelectionHLC()] -> Ok en fait non
 // - Inverser bHP et baseHP (public/privé)
+// - Virer p5
+
 
 //Disclaimer :
 //Si ChessPP est actuellement fonctionnel bien que légèrement incomplet, il reste
