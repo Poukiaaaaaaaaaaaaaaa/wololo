@@ -1,5 +1,5 @@
 class Window {
-	constructor(x,y,w,h,title,elements,dPage = 0) {
+	constructor(x,y,w,h,title,elements) {
 		this.x = x; //coordonnées
 		this.y = y; //^
 		this.w = w; //^
@@ -21,7 +21,7 @@ class Window {
 
 		//éléments du "footer" > nombre de pages, etc...
 		this.nPages = elements.length;
-		this.pageCounter = dPage //page par défaut
+		this.pageCounter = 0;
 	  this.footer = { buttons: [], text: [] };
 	  this.footerOffset = h/80;
 	  this.footerHeight = h/12;
@@ -32,7 +32,7 @@ class Window {
 
 		//ajout des éléments à partir du tableau d'éléments fourni dans le constructeur
 	  for (let i = 0; i < this.nPages; i++) {
-			this.elements[i] = { buttons: [], text: [], images: [] };
+			this.elements[i] = { buttons: [], text: [] };
 	  }
 
 	  for (let i = 0; i < elements.length; i++) {
@@ -47,21 +47,15 @@ class Window {
 				this.elements[i].text.push(new WText(this, elements[i][j].coord.x, elements[i][j].coord.y,
 													 elements[i][j].text, elements[i][j].size, elements[i][j].color));
 			  }
-			  
-			   if (elements[i][j].type === "image") {
-				this.elements[i].text.push(new WImage(this, elements[i][j].coord.x, elements[i][j].coord.y,
-													elements[i][j].coord.w, elements[i][j].coord.h,
-														  elements[i][j].img));
-			  }
 			}
 	  }
 
 		//ajout des éléments du "footer"
 		for (var i = 0; i < 3; i++) {
 		  if (i == 0) this.footer.buttons[0] = new WButton(this,-this.eleBorder + this.footerOffset,this.h - this.eleBorder - this.footerHeight - this.headerSize - this.footerOffset,
-											   this.footerHeight,this.footerHeight,winIMG[0],null,function(){if (this.win.pageCounter > 0) this.win.pageCounter -= 1});
+											   this.footerHeight,this.footerHeight,0,null,function(){if (this.win.pageCounter > 0) this.win.pageCounter -= 1});
 		  if (i == 1) this.footer.buttons[1] = new WButton(this,this.w - this.eleBorder - this.footerHeight - this.footerOffset,this.h - this.eleBorder - this.footerHeight - this.headerSize - this.footerOffset,
-											   this.footerHeight,this.footerHeight,winIMG[1],null,function(){if (this.win.pageCounter < this.win.nPages-1) this.win.pageCounter += 1});
+											   this.footerHeight,this.footerHeight,1,null,function(){if (this.win.pageCounter < this.win.nPages-1) this.win.pageCounter += 1});
 		  if (i == 2) this.footer.text[0] = new FText(this,-this.eleBorder + this.w/2, this.h - this.footerHeight - this.headerSize, this.pageCounter+1 + "/" + this.nPages, this.footerHeight, [255]);
 		}
 
@@ -75,6 +69,13 @@ class Window {
   }
 
   onLeftClick() {
+    for (let i = 0; i < this.elements.length; i++) {
+      for (let j = 0; j < this.elements[i].buttons.length; j++) {
+				//appelle la méthode onLeftClick() de tous les boutons de l'array 'elements' affichés
+        this.elements[i].buttons[j].onLeftClick();
+      }
+    }
+
 		//condition de fermeture de la fenêtre
 		if (this.cross.isHovered()) chessGUI.windows.spliceItem(this);
 
@@ -82,12 +83,6 @@ class Window {
 			//appelle le onLeftClick() des éléments du "footer"
       this.footer.buttons[i].onLeftClick();
     }
-	
-	wclickloop: for (let j = 0; j < this.elements[this.pageCounter].buttons.length; j++) {
-				//appelle la méthode onLeftClick() de tous les boutons de l'array 'elements' affichés
-        if (this.elements[this.pageCounter].buttons[j].onLeftClick()) return true
-      }
-	
   }
 
 	draw() {
@@ -150,9 +145,8 @@ class WText extends WindowElement {
 	}
 
 	draw() {
-		textAlign(LEFT, TOP);
+    textAlign(LEFT, TOP);
 		textSize(this.size); fill(this.color);
-		textFont("Arial");
 		text(this.text, this.x, this.y);
 	}
 }
@@ -163,9 +157,8 @@ class FText extends WText {
   }
 
   draw() {
-		textAlign(CENTER, CENTER);
+    textAlign(CENTER, CENTER);
 		textSize(this.size); fill(this.color);
-		textFont("Arial")
 		text(this.text, this.x, this.y);
     this.update();
 	}
@@ -186,7 +179,7 @@ class WButton extends WindowElement {
   }
 
   draw() {
-    image(this.img,
+    image(winIMG[this.img],
           this.x, this.y,
           this.w, this.h);
           if (typeof this.hovercallback == "function" && isHovered(this.x,this.y,this.w,this.h)){
@@ -197,25 +190,6 @@ class WButton extends WindowElement {
   onLeftClick() {
      if (typeof this.callback == "function" && isHovered(this.x,this.y,this.w,this.h)) {
        this.callback();
-	   return true
     }
   }
-}
-
-class WImage extends WindowElement {
-	
-	constructor(win,x,y,w,h,img,hovercallback,callback) {
-		super(win, x, y);
-    this.w = w;
-    this.h = h;
-    this.img = img;
-  }
-
-  draw() {
-    image(this.img,
-          this.x, this.y,
-          this.w, this.h);
-    }
-	
-
 }
