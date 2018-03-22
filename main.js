@@ -141,7 +141,9 @@ function draw() { //Fonction lancée par p5 à chaque frame
     if (chessGUI.hasOwnProperty(element)) { //()vérification que l'attribut actuel ne fait pas partie du prototype
       for (var i = 0; i < chessGUI[element].length; i++) { //Pour chaque champ du tableau
         if (typeof chessGUI[element][i].draw === "function"){ //Si l'objet contenu dans ce champ a un méthode draw()
-          chessGUI[element][i].draw(); //On la lance
+		console.log(chessGUI[element][i].name)
+		chessGUI[element][i].draw(); //On la lance
+	  
         }
       }
     }
