@@ -1,5 +1,5 @@
 class Window {
-	constructor(x,y,w,h,title,elements,dPage = 0) {
+	constructor(x,y,w,h,title,elements = [],dPage = 0) {
 		this.x = x; //coordonnées
 		this.y = y; //^
 		this.w = w; //^
@@ -118,9 +118,11 @@ class Window {
 
 		// Elements
 			for (let i in this.elements[this.pageCounter]) {
-				for (let j = 0; j < this.elements[this.pageCounter][i].length; j++) {
-					if (typeof (this.elements[this.pageCounter][i][j].draw) == "function")
-            this.elements[this.pageCounter][i][j].draw();
+				if (this.elements[this.pageCounter].hasOwnProperty(i)){
+					for (let j = 0; j < this.elements[this.pageCounter][i].length; j++) {
+						if (typeof (this.elements[this.pageCounter][i][j].draw) == "function")
+							this.elements[this.pageCounter][i][j].draw();
+					}
 				}
 			}
 		// Fin des Elements
