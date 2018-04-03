@@ -1,10 +1,10 @@
 class Window {
-	constructor(x,y,w,h,title,elements = [],dPage = 0) {
+	constructor(x,y,w,h,title,elements = [],dPage = 0,eleBorder = true) {
 		this.x = x; //coordonnées
 		this.y = y; //^
 		this.w = w; //^
 		this.h = h; //^
-			this.headerSize = h/7;
+			this.headerSize = config.unit * 3;
 			this.cross = { //"croix" de la fenêtre
 				x: x + w - h/7, y: y, s: h/7,
 			isHovered: function(){ //utilisation de cette fonction dans la méthode onLeftClick() > fermeture de la fenêtre
@@ -16,8 +16,8 @@ class Window {
 			};
 		//calcul des coordonnées et de la taille du titre de la fenêtre
 		this.title = title;
-		this.titleSize = h/9;
-		this.titleOffset = h/60;
+		this.titleSize = config.unit * 2;
+		this.titleOffset = config.unit / 2;
 
 		//éléments du "footer" > nombre de pages, etc...
 		this.nPages = elements.length;
@@ -27,7 +27,7 @@ class Window {
 	  this.footerHeight = h/12;
 
 		//éléments nécessaires à la gestion des éléments de chaque page
-		this.eleBorder = h/25;
+		this.eleBorder = h/25 * eleBorder;
 	  this.elements = [];
 
 		//ajout des éléments à partir du tableau d'éléments fourni dans le constructeur
@@ -40,18 +40,18 @@ class Window {
 			  if (elements[i][j].type === "button") {
 				this.elements[i].buttons.push(new WButton(this, elements[i][j].coord.x, elements[i][j].coord.y,
 														  elements[i][j].coord.w, elements[i][j].coord.h,
-														  elements[i][j].img, elements[i][j].hovercallback, elements[i][j].callback));
+														  elements[i][j].img, elements[i][j].hovercallback, elements[i][j].callback, elements[i][j].data));
 			  }
 
 			  if (elements[i][j].type === "text") {
 				this.elements[i].text.push(new WText(this, elements[i][j].coord.x, elements[i][j].coord.y,
-													 elements[i][j].text, elements[i][j].size, elements[i][j].color));
+													 elements[i][j].text, elements[i][j].size, elements[i][j].color, elements[i][j].data));
 			  }
 			  
 			   if (elements[i][j].type === "image") {
 				this.elements[i].text.push(new WImage(this, elements[i][j].coord.x, elements[i][j].coord.y,
 													elements[i][j].coord.w, elements[i][j].coord.h,
-														  elements[i][j].img));
+														  elements[i][j].img, elements[i][j].data));
 			  }
 			}
 	  }
@@ -132,10 +132,11 @@ class Window {
 
 class WindowElement {
 	// Classe de base d'un élément de la window, classe mère de tous les différents types d'éléments de la window
-	constructor(win, x, y) {
+	constructor(win, x, y, data) {
 		this.win = win;
 		this.x = x + this.win.x + this.win.eleBorder;
 		this.y = y + this.win.y + this.win.headerSize + this.win.eleBorder;
+		this.data = data
 	}
 
 	draw() { //fonction à overload dans chaque classe qui hérite
@@ -144,8 +145,8 @@ class WindowElement {
 }
 
 class WText extends WindowElement {
-	constructor(win,x,y,text,size,color) {
-		super(win, x, y);
+	constructor(win,x,y,text,size,color,data) {
+		super(win, x, y, data);
 		this.text = text;
 		this.size = size;
 		this.color = color;
@@ -178,8 +179,8 @@ class FText extends WText {
 }
 
 class WButton extends WindowElement {
-  constructor(win,x,y,w,h,img,hovercallback,callback) {
-		super(win, x, y);
+  constructor(win,x,y,w,h,img,hovercallback,callback,data) {
+		super(win, x, y, data);
     this.w = w;
     this.h = h;
     this.img = img;
@@ -206,8 +207,8 @@ class WButton extends WindowElement {
 
 class WImage extends WindowElement {
 	
-	constructor(win,x,y,w,h,img,hovercallback,callback) {
-		super(win, x, y);
+	constructor(win,x,y,w,h,img,hovercallback,callback,data) {
+		super(win, x, y, data);
     this.w = w;
     this.h = h;
     this.img = img;

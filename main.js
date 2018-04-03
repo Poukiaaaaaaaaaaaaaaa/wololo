@@ -60,11 +60,11 @@ var img = {}, //Objet contenant toutes les images
     guiState = "", //représente l'action en cours (qui détermine comment certains éléments se comportent)
     victory = false,
 	undefPiece,
-    sEffects = []; //array contenant tous les effets audio. Est à false si le son n'a pas pu être load
-
-	{ //création du tableau des classes
-		var pieceClass = [Pion,Tour,Fou,Reine,Cavalier,Roi] //Contient les classes de tous les types de pièces
-	}	
+    sEffects = [], //array contenant tous les effets audio. Est à false si le son n'a pas pu être load
+	turn = 0; //numéro du tour en cours
+	// { //création du tableau des classes
+		// var pieceClass = [Pion,Tour,Fou,Reine,Cavalier,Roi] //Contient les classes de tous les types de pièces
+	// }	
 
 	
 img.piece = { //objet contenant deux tableaux, "blanc" et "noir" : chacun contiendra les images des pi�ces de couleur correspodante
@@ -131,6 +131,8 @@ function setup() { //Lancée par p5 au lancement du programme : c'est ici qu com
 	startTitle(); //Lancement de l'écran-titre
 
 }
+
+
 
 function draw() { //Fonction lancée par p5 à chaque frame
 
