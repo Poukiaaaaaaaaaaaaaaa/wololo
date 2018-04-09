@@ -38,8 +38,13 @@ if (debug){
 		}
 		chessGUI.hud.push(analyser)
 	}
+	
+	Object.prototype.c = function(){	
+		console.log(this)	
+	}
 
 }
+
 // endDebug
 
 // CONFIG
@@ -61,11 +66,18 @@ var img = {}, //Objet contenant toutes les images
     victory = false,
 	undefPiece,
     sEffects = [], //array contenant tous les effets audio. Est à false si le son n'a pas pu être load
-	turn = 0; //numéro du tour en cours
+	turn = 0, //numéro du tour en cours
+	nextTick = 0, //temps (origin-relative) du prochain tick
+	onTick = new Event_("Tick"), //tableau de fonctions éxécutées à chaque tick
+	game = {isReady : false}; //l'objet game. Après un futur rework, il contiendra la plupart des variables globales ainsi que les objets joueur.
+	chessPP = {} //futur objet contenant les constantes du jeu
+	
 	// { //création du tableau des classes
 		// var pieceClass = [Pion,Tour,Fou,Reine,Cavalier,Roi] //Contient les classes de tous les types de pièces
 	// }	
 
+	
+chessPP.Piece = {};
 	
 img.piece = { //objet contenant deux tableaux, "blanc" et "noir" : chacun contiendra les images des pi�ces de couleur correspodante
     blanc: [],
@@ -100,7 +112,6 @@ img.fx = {}
 function startTitle(){ //fonction inialisant l'écran-titre
   if (soundPreLoad()) sEffects[3].play(); //charge les sons ; joue la musique
   joueur = [new Joueur("blanc","Gilbert"), new Joueur("noir","Patrick")]; //crée les deux joueurs de base
-  initPrePieces(); //crée leurs prePieces de base
   clearGUI();
   new StaticImage("background",img.title[0],0,0,config.canvasW,config.canvasH) //crée une image statique : l'image de fond
   titleView.mainPage(); //Affiche les éléments de la page d'accueil
@@ -116,7 +127,7 @@ function startGame() { //lance la partie en elle-même
 	undefPiece = Piece.prototype ; undefPiece.name = "undef"; //création d'une pièce vide, utile pour le fonctions demandant une pièce en paramètre mais que l'on veut lancer sans préciser de pièce particulière
 	playerTurn = 0; //Le joueur en train de jouer est le joueur 0
 	guiElements.player_arrow = new StaticImage("hud",img.HUD[playerTurn ? 4 : 5],config.hud.manaGauge.x + config.border, config.hud.manaGauge.y + config.border, config.hud.manaGauge.h - config.border*2, config.hud.manaGauge.h - config.border*2);
-  guiElements.player_arrow.update = function() { this.img = img.HUD[playerTurn ? 5 : 4] }
+	guiElements.player_arrow.update = function() { this.img = img.HUD[playerTurn ? 5 : 4] }
 	initBoard(); //Crée les pièces en fonction des prePieces des deux joueurs
 	joueur[playerTurn].startTurn(); //Lance la méthode de début de tour du joueur commençant à jouer
 }
@@ -124,14 +135,46 @@ function startGame() { //lance la partie en elle-même
 
 // main functions
 function setup() { //Lancée par p5 au lancement du programme : c'est ici qu commence l'éxécution du programme
+	loading("Launching the game")
+	
 	noStroke(); //Les formes dessinées n'auront jamais de stroke
 	cursor("img/cursor.png"); //Changement de l'image du curseur
 	createCanvas(config.canvasW, config.canvasH); //Création du canvas où on va dessiner
 	config.update()
 	startTitle(); //Lancement de l'écran-titre
+	onTick.add(
+		function(){
+			if (loadCount >= filesCount){ //si tous les fichiers ont été load
+			onceComplete()
+			this.delete()			
+			}
+		}
+	)
+	
+	console.log("HAYO! If you're here it's probably becuz you are going to CHEAT. If it's the case, just be careful and remember ur a BIG SHIT !")
 
 }
 
+function onceComplete(){ //éxécutée lorsque tous les fichiers ont été chargés
+	let classBuilder
+	for (let i = 0; i < classBuilders.length; i++){
+	classBuilder = Function(classBuilders[i])()
+		chessPP.Piece[classBuilder.name] = classBuilder
+		
+	}
+	for (let i = 0; i < prePieceLayout.length; i++){
+		if (!prePieceLayout[i].piece) {console.log("Error in config.json : the piece n° " + i + "doesn't have a proper piece id")} else 
+		if (typeof prePieceLayout[i].piece == "string"){
+			prePieceLayout[i].piece = chessPP.Piece[prePieceLayout[i].piece]
+		} else if (prePieceLayout[i].piece.constructor.name == "Array") {
+			for (let j = 0; j < prePieceLayout[i].piece.length; j++){
+				prePieceLayout[i].piece[j] = chessPP.Piece[prePieceLayout[i].piece[j]]
+			}
+		}
+	}
+	initPrePieces(); //crée leurs prePieces de base
+	game.isReady = true;
+}
 
 
 function draw() { //Fonction lancée par p5 à chaque frame
@@ -149,13 +192,18 @@ function draw() { //Fonction lancée par p5 à chaque frame
       }
     }
   }
+  
+	if (actTime > nextTick){ //si on a dépassé le temps auquel doit avoir lieu le prochain tick
+		onTick.process()
+		nextTick += 50 //on programme le prochain tick pour 50 ms après (pour un total de 20 tick/secondes)
+	}
 
   if (victory){ //Si la victoire a été décidée
     alert("Victoire de " + victory.name) //On affiche le vainquer
     startGame() //On relance la partie
     victory = false //On réinitialise la variable indiquant la victoire d'un joueur
   }
-
+  
   if (debug) {
     fill(255); textSize(20);
     text(floor(frameRate()), 20, 20);
