@@ -61,6 +61,7 @@ var img = {}, //Objet contenant toutes les images
     d, //le futur objet date
     joueur = [], //l'objet contenant les joueurs
     guiElements = {}, //un objet contenant certains objet p55 auxquels on veut conserver un accès rapide
+	chessGUI_DOM = [],
     winIMG = [], //images utilisées par les fenètres
     guiState = "", //représente l'action en cours (qui détermine comment certains éléments se comportent)
     victory = false,
@@ -69,8 +70,8 @@ var img = {}, //Objet contenant toutes les images
 	turn = 0, //numéro du tour en cours
 	nextTick = 0, //temps (origin-relative) du prochain tick
 	onTick = new Event_("Tick"), //tableau de fonctions éxécutées à chaque tick
-	game = {isReady : false}; //l'objet game. Après un futur rework, il contiendra la plupart des variables globales ainsi que les objets joueur.
-	chessPP = {} //futur objet contenant les constantes du jeu
+	game = {isReady : false}, //l'objet game. Après un futur rework, il contiendra la plupart des variables globales ainsi que les objets joueur.
+	chessPP = {}; //futur objet contenant les constantes du jeu
 	
 	// { //création du tableau des classes
 		// var pieceClass = [Pion,Tour,Fou,Reine,Cavalier,Roi] //Contient les classes de tous les types de pièces
@@ -148,6 +149,7 @@ function setup() { //Lancée par p5 au lancement du programme : c'est ici qu com
 			onceComplete()
 			this.delete()			
 			}
+			console.log("oui")
 		}
 	)
 	
