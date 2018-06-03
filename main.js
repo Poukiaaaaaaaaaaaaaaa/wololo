@@ -137,7 +137,6 @@ function startGame() { //lance la partie en elle-même
 // main functions
 function setup() { //Lancée par p5 au lancement du programme : c'est ici qu commence l'éxécution du programme
 	loading("Launching the game")
-	
 	noStroke(); //Les formes dessinées n'auront jamais de stroke
 	cursor("img/cursor.png"); //Changement de l'image du curseur
 	createCanvas(config.canvasW, config.canvasH); //Création du canvas où on va dessiner
@@ -149,35 +148,12 @@ function setup() { //Lancée par p5 au lancement du programme : c'est ici qu com
 			onceComplete()
 			this.delete()			
 			}
-			console.log("oui")
 		}
 	)
 	
 	console.log("HAYO! If you're here it's probably becuz you are going to CHEAT. If it's the case, just be careful and remember ur a BIG SHIT !")
 
 }
-
-function onceComplete(){ //éxécutée lorsque tous les fichiers ont été chargés
-	let classBuilder
-	for (let i = 0; i < classBuilders.length; i++){
-	classBuilder = Function(classBuilders[i])()
-		chessPP.Piece[classBuilder.name] = classBuilder
-		
-	}
-	for (let i = 0; i < prePieceLayout.length; i++){
-		if (!prePieceLayout[i].piece) {console.log("Error in config.json : the piece n° " + i + "doesn't have a proper piece id")} else 
-		if (typeof prePieceLayout[i].piece == "string"){
-			prePieceLayout[i].piece = chessPP.Piece[prePieceLayout[i].piece]
-		} else if (prePieceLayout[i].piece.constructor.name == "Array") {
-			for (let j = 0; j < prePieceLayout[i].piece.length; j++){
-				prePieceLayout[i].piece[j] = chessPP.Piece[prePieceLayout[i].piece[j]]
-			}
-		}
-	}
-	initPrePieces(); //crée leurs prePieces de base
-	game.isReady = true;
-}
-
 
 function draw() { //Fonction lancée par p5 à chaque frame
 
@@ -231,6 +207,7 @@ function mouseClicked(){ //Fonction lancée par p5 à chaque clic
 }
 
 var fpunch = 0, isFacepunch = false;
+var popup
 
 function keyPressed() { //hehe
 	if (keyCode == 70 && !fpunch) fpunch = 1;                                                   //f
