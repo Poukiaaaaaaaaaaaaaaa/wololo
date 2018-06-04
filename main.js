@@ -150,6 +150,12 @@ function setup() { //Lancée par p5 au lancement du programme : c'est ici qu com
 			}
 		}
 	)
+	// window.addEventListener("beforeunload", function()
+		// function(){
+			// console.log("oui");
+			// if (window.pieceLoaderPopup) window.pieceLoaderPopup.close()
+		// }
+	// )
 	
 	console.log("HAYO! If you're here it's probably becuz you are going to CHEAT. If it's the case, just be careful and remember ur a BIG SHIT !")
 
