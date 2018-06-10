@@ -79,6 +79,8 @@ var img = {}, //Objet contenant toutes les images
 
 	
 chessPP.Piece = {};
+chessPP.pieceLayout = [];
+chessPP.prePieceLayout = [];
 	
 img.piece = { //objet contenant deux tableaux, "blanc" et "noir" : chacun contiendra les images des pi�ces de couleur correspodante
     blanc: [],
