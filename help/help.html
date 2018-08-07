@@ -9,18 +9,21 @@
 		<center>
 			<br>Chess++ est un jeu de stratégie au tour-par-tour<br/>
 			inspiré des échecs mais présentant beaucoup de nouveaux<br/>
-			éléments de gameplay et de stratégie (sorts, mana, etc .)
+			éléments de gameplay et de stratégie (sorts, mana, etc .) <br><br>
+			Bien qu'il s'agisse d'un je multijoueur, <br>
+			il n'est pour l'instant jouable qu'en local.
 		</center>
 		<br/><br/>
 		<h1>Le jeu</h1>
-			Si le jeu peu ressembler à un jeu d'échecs classique à première vue et sur certains
+			Chess++ peut ressembler à un jeu d'échecs classique à première vue et sur certains
 			aspects : les pièces restent les mêmes (en tout cas en apparence), de même que l'échiquer
 			(qui n'a néanmoins pas la même taille), de plus la victoire s'obtient toujours en vaincant
 			le roi (ici, pas d'échec et mat).
 			Cependant de nombreuses différences fondamentales apparaissent :
 			<ul>
-				<li>Il est possible d'effectuer plusieurs actions par tour. Les actions restents cependant limitées chaque joueur possède une certaine quantité de Mana,
-					qui se réduit à chaque action affectuée. Le Mana est entièrement restauré à chaque début de tour (20 points de mana), et est indiqué par la jauge bleue.
+				<li>Il est possible d'effectuer plusieurs actions par tour. Les actions restents cependant limitées : chaque joueur possède une certaine quantité de <mana>Mana</mana>,
+					qui se réduit à chaque action affectuée : en d'autres termes, chaque action coûte une certaine quantité de <mana>Mana</mana>, le joueur ne pouvant plus agir si son mana est épuisé.
+					Le Mana est entièrement restauré à chaque début de tour (<mana>20 points de mana</mana>), et est indiqué par la jauge bleue.
 					<br/><img src="../img/Help/manaGaugeExample.png">
 				<li>Les actions des pièces sont également bien plus larges :
 			</ul>
@@ -45,45 +48,109 @@
 						<p>
 							Les déplacements sont probablement la partie la plus proche des échecs
 							classiques : la manière dont chaque pièce peut se déplacer dépend de sa
-							classe. Il n'est possible de se déplacer qu'une seule fois par tour, chaque
-							déplacement coûtant 3 points de mana.
+							classe. Ansi, un Fou ne pourra toujours pas se déplacer autrement qu'en diagonale.
+							Chaque pièce ne peut se déplacer qu'une fois par tour, chaque
+							déplacement coûtant de plus <mana>3 points de mana</mana>.
 							Lorsqu'une pièce est sélectionnée, les cases où il est possible de la déplacer sont bleutées, il suffit alors de cliquer dessus pour s'y déplacer.
 						</p>
 					<li><h3>Attaque</h3>
 						<p>
 							Contrairement aux échecs classiques, attaquer une pièce ennemie (en plus de ne pas forcément la tuer) n'impique pas de se déplacer.
-							Les attaques se font donc à distance. Il n'est possible d'attaquer qu'une seule fois par tour, chaque
-							attaque coûtant 5 points de mana.
+							Les attaques se font donc à distance. Chaque pièce ne peut attaque qu'une fois par tour, chaque
+							attaque coûtant <mana>5 points de mana</mana>.
 							Lorsqu'une pièce est sélectionnée, les pièces qu'elle peut attaquer sont indiquées en rouge, il suffit alors de cliquer dessus pour les attaquer.
 						</p>
-					<li><h3>Sorts</h3>
+					<li><h3>Sorts et passifs</h3>
 						<p>
 							Chaque pièce possède une certain nombre de sorts, d'effets divers.<br/>
-							Les sorts actifs peuvent être utilisés durant le tour,
-							coûtent une quantité variable de mana, et possèdent un délai de récupération, devenant inutilisables jusqu'à la fin de ce délai.<br/>
-							Les sorts passifs s'activent d'eux mêmes à divers moments (lorque la pièce est attaquée, se déplace, etc)
+							
+							On distingue deux types de sorts : <br>
+							<ul>
+								<li>Les sorts actifs (ou simplements "Sorts") sont des capacités qu'il est possible d'activer pendant le tour, de la même manière
+								que les actions basiques (déplacements, attque), et qui possèdent généralement un effet immédiat. Ces sorts sont indiqués par des icônes situées sous la barre de mana,
+								et s'activent en cliquant sur ces icônes (certains requérant des actions supplémentaires, telle que sélectionner une cible). De plus, chaque sort
+								possède un coût en <mana>Mana</mana> et un délai de récupération (en tours), n'étant à nouveau disponible qu'après la fin de ce délai. <br>
+								<img src = "../img/Help/spellIcons.png"/><br>
+								Passer la souris sur ces icônes affiche des informations sur le sort correspondant.
+								<li> Les sorts passifs (ou simplement "Passifs") sont des propriétés inhérentes à chaque pièce, en d'autres termes des capacités se déclenchant automatiquement 
+								et fonctionnant d'eux mêmes.Ils définissent en quelque sorte le fonctionnement de la pièce
+							</ul>
+							
 						</p>
 					<li><h3>Expérience</h3>
 						<p>
-							Au cours d'une partie (principalement en tuant des pièces), chaque pièce peut gagner en expérience.<br/>
+							Au cours d'une partie, chaque pièce peut gagner en expérience (principalement en tuant des pièces).<br/>
 							A partir de certains paliers d'expérience, un pièce gagne un niveau, chaque montée de niveau augmentant les statistiques <br/> 
-							(Points de vie, attaque) de la pièce ; de plus, certains sorts ne sont utilisables qu'à partir d'un certain niveau.
+							(Points de vie, attaque) de la pièce ; de plus, certains sorts actifs ne sont utilisables qu'à partir d'un certain niveau.
+						</p>
+					<li><h3>Golds et Items</h3>
+						<p>
+							Les golds sont une monnaie que les joueurs reçoivent à chaque tour. <br>
+							Chaque pièce possède un "Shop", c'est à dire une liste d'Objets (ou "Items"), que le joueur peut débloquer en dépensant ses Golds,
+							la pièce concernée (et elle seule, les Items étant propres à chaque pièce) recevant alors des améliorations propres à chaque Item. <br>
+							En d'autre termes, les Golds que possèdent les joueurs sont utilisés pour acheter des Items à leurs pièces afin de les améliorer. <br>
+							Le shop d'une pièce est affiché en cliquant sur le bouton "Shop" situé en bas de l'écran après avoir sélectionné la pièce en question. <br>
+							<imgContainer style = "width: 10%">
+								<img src = "../img/Help/shop.png"/><br>
+								Le Shop d'une Reine, affichant le premier objet achetable.
+							</imgContainer>
 						</p>
 				</ul>
-
 			</p>
 
+			<h1>Interface et contrôles</h1>
+			Les contrôles sont évidemment très simples, le jeu pouvant se jouer uniquement avec la souris.
+			
+			<imgContainer style = "width: 50%"> <img class = "c" src = "../img/Help/gameScreen.png"/> <br> </imgContainer>
+			
+			<ul>
+				<li><h2>Sélectionner une pièce</h2>
+				Cliquer sur une pièce la sélectionne (cliqure à nouveau la déselectionne). Une fois qu'une pièce est sélectionnée, un indicateur vert apparaît dessus, de plus si
+				elle appartient au joueur en train de jouer (autrement dit, s'il est possible d'agir avec cette pièce) de plus les cases sur lesquelles elle peut se déplacer 
+				apparaissent en bleu, tandis que les pièces qu'elle peut attaquer apparaissent en rouge. <br>
+				<imgContainer style = "width: 25%"><img class = "c" src = "../img/Help/selectedPiece.png"/><br>
+					Cliquer sur une case rouge ou bleue déclenche l'action correspondante.
+				</imgContainer>
+				<br>
+				Sélectionner une pièce à également pour effet : 
+				<ul>
+					<li> D'afficher ses <b>informations</b> en cliquant sur le bouton d'informations situé en bas à droite : une fenêtre s'ouvre, contenant
+					les caractéristiques d'une pièce telles que ses points de vie, ses points d'attaque, son expérience, les effets qui l'affectent, et sa ressource spéciale
+					(valeur propre à certaines pièces) si elle en possède une.<br>
+					<img src = "../img/Help/infos.png" style = "width: 15%" >
+					
+					<li> D'afficher son <b>Shop</b>, s'il s'agit d'une pièce alliée : une fenêtre s'ouvre, contenant plusieurs pages (naviguer entre les pages avec les flèches situées en bas
+					de la fenêtre), chacune présentant un objet achetable par la pièce (nom, coût) en cliquant sur le bouton "Buy".<br>
+					<img src = "../img/Help/shop1.png" style = "width: 15%" >
+					<li>D'afficher ses <a href = "#interface.spell">Sorts</a>
+				</ul>
+				<li><h2>Fin de tour</h2>
+				Une fois que le joueur a fini d'agir (s'il ne possède plus de mana par exemple), il peut mettre fin à son tour en cliquant sur le bouton "End Turn"
+				C'est alors au tour de l'adversaire de jouer.
+				<li><h2 id = "interface.spell">Sorts</h2>
+				Les Sorts (actifs) de la pièce sélectionnée s'affichent sous la barre de mana sous forme d'icones : <br>
+				<img src = "../img/Help/spellIcons.png"/><br>
+				Cliquer sur une icone de sort lance ce dernier, consommant du mana ; le sort peut requérir une action supplémentaire, généralement sélectionner une cible.<br>
+				<img src = "../img/Help/targetSelection.png" style = "width: 10%"/> <br>La Reine doit ici choisir, entre ces trois pions, la cilbe de son sort Petrifying.
 
+			</ul>
+			
+			
 			<h1>Liste des pièces</h1>
 			<ul>
 				<li><h3>Pion</h3><img src="../img/Pieces/pion_blanc.png" alt="" align="middle" width="100" height="100">
 					<img src="../img/Pieces/pion_noir.png" alt="" align="middle" width="100" height="100">
-					<p><b>- Description</b>: Le pion constitue la pièce de base du jeu. Le pion constitue une défense convenable grâce à ses points de vie relativement hauts.<br/><br/>
+					<p><b>- Description</b>: La pièce de base du jeu, présentes en 8 exemaplaires pour chaque joueur. Malgré des points de vie relativements hauts, elle est donc plutôt faible.<br/><br/>
 						<b>- Sorts</b>: Le pion possède 3 sorts:<br/>
 						<ul>
-							<li><b>Vent Divin</b>: (une utilisation par tour) Le pion rassemble ses forces, consommant ses points de vie, afin de relacher une puissante explosion blessant les pièces ennemies à proximité.</li>
-							<li><b>Unity</b>: (une utilisation tous les 3 tours) La cible du pion subit des dégats plus ou moins conséquents en fonction du nombre de pions présents à côté d'elle.</li>
-							<li><b>Flash Wave</b>: (une utilisation tous les 2 tours) Le pion fait <b>trembler la terre</b> et inflige des dégats sur une ligne en face de lui.</li>
+							<li><b>Vent Divin</b>: (une utilisation par tour, 8 points de mana) <br>
+								Le pion inflige des dégâts aux pièces ennemies adjacentes, mais également à lui même (ne peut pas être utilisé si le pion ne survivrait pas à ces dégâts)</li>
+							<li><b>Unity</b>: (une utilisation tous les 3 tours, 8 points de mana) <br>
+								Inflige des dégâts à une pièce ennemie dans un rayon de deux cases, augmentés en fonction du nombre de Pions alliés à proximité.<br>
+								Bloqué sans l'Item Elementalit.</li>
+							<li><b>Flash Wave</b>: (une utilisation tous les 2 tours, 5 points de mana)<br>
+								Le pion inflige de dégâts sur une ligne horizontale de trois cases de large devant lui, c'est à dire à toutes les pièces qu'il peut attaquer.<br>
+								Bloqué sans l'Item Elementalit.</li>
 						</ul><br/>
 						<b>- Sort Passif</b>: Les points de vie et d'attaque du pion augmentent en fonction de son avancée sur le plateau.
 					</p>
@@ -130,7 +197,7 @@
 						<ul>
 							<li><b>Météore</b>: (une utilisation tous les 4 tours) Un météore s'écrase sur le plateau, infligeant des dégats sur un carré de 3 cases de côté.</li>
 							<li><b>Thunderbolt</b>: (une utilisation tous les 3 tours) La reine inflige des dégats sur une ligne verticale devant elle. Si le thunderbolt rencontre une case vide ou une pièce alliée après 
-							avoir touchée une pièce ennemie, il s'arrêtera : seul le premier groupe de pièces ennemies, en partant de la reine, est touché.  </li>
+								avoir touchée une pièce ennemie, il s'arrêtera : seul le premier groupe de pièces ennemies, en partant de la reine, est touché.  </li>
 							<li><b>Petrifying Wave</b>: (une utilisation tous les 5 tours) La reine immobilise une pièce ennemie pendant 2 tours.</li>
 						</ul><br/>
 						<b>- Sort Passif</b>: Lorsque la reine attaque, elle se régénère une portion des dégats infligés.
@@ -152,7 +219,8 @@
 				<li><h2>Pièces additionnelles</h2>
 					<p>Les pièces suivantes sont de nouvelles pièces, qui ne s'inspirent pas des pièces d'échecs d'origine.</p>
 				</li>
-				<li><h3>Prêtre</h3>
+				<li><h3>Prêtre</h3><img src="../img/Pieces/priest_blanc.png" alt="" align="middle" width="100" height="100">
+					<img src="../img/Pieces/priest_noir.png" alt="" align="middle" width="100" height="100">
 					<p><b>- Description</b>: le Prêtre est une pièce de soutien, capable de gêner l'adversaire mais surtout de garantir la survie des alliés.</br>
 					<br/><b>- Sorts Passif</b>:
 					<ul>

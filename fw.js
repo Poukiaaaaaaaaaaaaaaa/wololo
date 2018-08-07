@@ -109,6 +109,7 @@ class Window {
     // Footer
 		if (this.nPages > 1) {
 			for (let i in this.footer) {
+				if (!this.footer.hasOwnProperty(i)) continue
 				for (let j = 0; j < this.footer[i].length; j++) {
 					this.footer[i][j].draw();
 				}

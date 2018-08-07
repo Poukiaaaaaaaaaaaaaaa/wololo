@@ -6,7 +6,7 @@ h1,h2,h3,h4,h5,h6 { /* propriétés des titres */
 }
 p { /* saut de 18 pixels en fin de paragraphe */
 	margin-bottom: 10px;
-  padding-left: 10px;
+	padding-left: 10px;
 }
 body {
     line-height: 1;
@@ -16,4 +16,28 @@ body {
     font-size: 20px;
     line-height: 23px;
     padding-right: 100px
-  }
+}
+
+imgContainer{
+	margin-top: 5px;
+	margin-bottom: 10px;
+	display: block; 
+	padding: 10px; 
+	border-color: #ffffff;
+	border-style: solid;
+	border-width: 3px; 
+	background: #808080; 
+}
+
+img.c{
+	width: 100%;
+}
+
+a{
+	color : #ee7600;
+}
+
+mana{
+	font-weight: bold;
+	color: #2020ff
+}

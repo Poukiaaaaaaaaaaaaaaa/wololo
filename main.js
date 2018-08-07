@@ -19,7 +19,7 @@
 //rendu du projet, et il sera à terme un jeu de stratégie à part entière.
 
 // debug
-var debug = true;
+var debug = false;
 if (debug){
 	function analysePerf(loops){
 		let analyser = {
@@ -38,11 +38,6 @@ if (debug){
 		}
 		chessGUI.hud.push(analyser)
 	}
-	
-	Object.prototype.c = function(){	
-		console.log(this)	
-	}
-
 }
 
 // endDebug
@@ -114,7 +109,6 @@ img.fx = {}
 
 function startTitle(){ //fonction inialisant l'écran-titre
   if (soundPreLoad()) sEffects[3].play(); //charge les sons ; joue la musique
-  joueur = [new Joueur("blanc","Gilbert"), new Joueur("noir","Patrick")]; //crée les deux joueurs de base
   clearGUI();
   new StaticImage("background",img.title[0],0,0,config.canvasW,config.canvasH) //crée une image statique : l'image de fond
   titleView.mainPage(); //Affiche les éléments de la page d'accueil
@@ -141,8 +135,10 @@ function setup() { //Lancée par p5 au lancement du programme : c'est ici qu com
 	loading("Launching the game")
 	noStroke(); //Les formes dessinées n'auront jamais de stroke
 	cursor("img/cursor.png"); //Changement de l'image du curseur
+	document.body.innerHTML = ''
 	createCanvas(config.canvasW, config.canvasH); //Création du canvas où on va dessiner
 	config.update()
+	joueur = [new Joueur("blanc","Gilbert"), new Joueur("noir","Patrick")]; //crée les deux joueurs de base
 	startTitle(); //Lancement de l'écran-titre
 	onTick.add(
 		function(){
@@ -200,6 +196,7 @@ function mouseClicked(){ //Fonction lancée par p5 à chaque clic
 	if (mouseButton == LEFT){ //Si le clic est un clic gauche
 		let ichessGUI = [], i = 0
 		for (let element in chessGUI){
+			if (chessGUI.hasOwnProperty(element))
 			ichessGUI[i] = chessGUI[element];
 			i++
 		}
