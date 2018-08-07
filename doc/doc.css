@@ -1,0 +1,17 @@
+body{
+	font-family: Arial, Verdana;	
+	width: 50%;
+}
+
+codeLine{
+	font-family: monospace;
+	background-color: #f0f0f0;
+	display: inline;
+}
+
+codeBlock{
+	font-family: monospace;
+	background-color: #f0f0f0;
+	display: block;
+	border-width: 2px;
+}

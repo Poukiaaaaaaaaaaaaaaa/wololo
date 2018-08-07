@@ -1,0 +1,21 @@
+body{
+	background-color: #ee7600; 
+	position:relative;
+	vertical-align: middle;
+	height: 100%; width: 100%;
+}
+
+.content {
+	font-family: Arial, Verdana;
+	background-color: #202020; color:#ee7600; 
+	position:relative; margin:auto;
+	height:90%; width:85%; border-radius: 10px;
+	top: 50% ; transform : translateY(-50%);
+	text-align: center;
+	display: flex; flex-direction: column; justify-content: center;
+}
+
+#p5_loading {
+	line-heig
+		
+}
